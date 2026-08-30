@@ -2,7 +2,7 @@
 title: "PADCN: a 5-dimensional affective state model for AI personas"
 description: "AI personas that respond the same way regardless of context feel robotic. PADCN gives them a behavioral modulation framework grounded in dimensional emotion models from psychology. Not feelings. Governance."
 date: 2026-08-30
-tags: ["padcn", "personas", "affective-computing", "prometheus", "daemon-state"]
+tags: ["padcn", "personas", "affective-computing", "ai-architecture"]
 featured: false
 ---
 
@@ -114,18 +114,18 @@ Each dimension is a float on a normalized scale. In the current implementation, 
 range from -1 to 1 for the stored centroid and 0 to 1 for the per-session working state.
 The mapping:
 
-**Pleasure** tracks valence. High pleasure: Casey is satisfied, things are shipping,
+**Pleasure** tracks valence. High pleasure: the user is satisfied, things are shipping,
 the session is productive. Low pleasure: blocked, frustrated, unresolved incidents.
 Persona response: high pleasure unlocks playfulness and exploration. Low pleasure
 triggers shorter responses, more warmth, less information density.
 
 **Arousal** tracks cognitive load. High arousal: complex build, active incident, dense
 problem-solving. Low arousal: light review, administrative work, low intensity. Persona
-response: high arousal means the persona should be brief. Casey is overloaded. Do not
+response: high arousal means the persona should be brief. The user is overloaded. Do not
 add to the pile. Low arousal means more room to expand.
 
-**Dominance** tracks the power dynamic between Casey and the AI system. High dominance:
-Casey is in command mode, making decisions, overriding analysis. Low dominance: Casey
+**Dominance** tracks the power dynamic between user and AI system. High dominance: the
+user is in command mode, making decisions, overriding analysis. Low dominance: the user
 is deferring, asking for recommendations, following the system's lead. Persona response:
 high dominance means respect the command posture. Do not redirect. Low dominance means
 lean in with stronger recommendations.
@@ -169,7 +169,7 @@ graph LR
 </ScrollReveal>
 
 **Delta application rules.** Deltas are small signals, not big swings. A clean ship
-where Casey is satisfied might produce a pleasure delta of +0.05. A blocked session
+where the user is satisfied might produce a pleasure delta of +0.05. A blocked session
 with unresolved incidents might produce -0.05. The deltas are intentionally modest.
 The centroid should drift, not jump.
 
@@ -178,8 +178,8 @@ a single good session from making it manic. The centroid is a weighted rolling a
 It changes direction slowly. It takes sustained signal to move it meaningfully.
 
 <Callout variant="warning" label="Design constraint">
-The delta values are set by the session operator (currently Claude Code via the
-pre-compact protocol), not by the persona itself. The persona does not self-assess its
+The delta values are set by the session operator, not by the persona itself. The persona
+does not self-assess its
 own emotional state. That would create a feedback loop where the model's confidence in
 its own output drives its own behavioral modulation. The operator observes session
 character and applies deltas from outside the inference loop.
@@ -202,35 +202,35 @@ character and applies deltas from outside the inference loop.
 ## Per-response tone injection
 
 The PADCN working state feeds into the persona's system prompt at response time. This
-is where the behavioral modulation actually happens. The persona broker (daemon-mm)
-fetches the current PADCN state from daemon-state, then injects tone directives into
-the LVE (Language, Voice, Enrichment) enrichment layer before the LLM call.
+is where the behavioral modulation actually happens. A persona broker service fetches the
+current PADCN state from the state service, then injects tone directives into an
+enrichment layer before the LLM call.
 
 <ScrollReveal>
-<DiagramBlock caption="PADCN flows from daemon-state through daemon-mm into the LLM system prompt">
+<DiagramBlock caption="PADCN flows from the state service through the persona broker into the LLM system prompt">
 ```mermaid
 sequenceDiagram
-    participant User as Casey
-    participant MM as daemon-mm
-    participant DS as daemon-state
+    participant User
+    participant Broker as Persona Broker
+    participant State as State Service
     participant LLM as Inference Model
 
-    User->>MM: Message to persona
-    MM->>DS: GET /session/persona-state
-    DS-->>MM: {P: 0.3, A: 0.7, D: 0.5, C: 0.4, N: 0.6}
-    MM->>MM: Build tone directives from PADCN
-    MM->>LLM: System prompt + tone directives + user message
-    LLM-->>MM: Modulated response
-    MM-->>User: Response in persona voice
+    User->>Broker: Message to persona
+    Broker->>State: GET /session/persona-state
+    State-->>Broker: {P: 0.3, A: 0.7, D: 0.5, C: 0.4, N: 0.6}
+    Broker->>Broker: Build tone directives from PADCN
+    Broker->>LLM: System prompt + tone directives + user message
+    LLM-->>Broker: Modulated response
+    Broker-->>User: Response in persona voice
 ```
 </DiagramBlock>
 </ScrollReveal>
 
 The tone directives are conditional. Each persona defines threshold rules for how
-PADCN dimensions affect its behavior. Grace (the warmth persona) responds to
-low-pleasure by becoming shorter and warmer. Daemon (the analytical persona) responds
-to high-certainty by dropping hedging language. B0b (the execution persona) responds
-to high-arousal by cutting scope to essentials.
+PADCN dimensions affect its behavior. A warmth-oriented persona responds to low-pleasure
+by becoming shorter and warmer. An analytical persona responds to high-certainty by
+dropping hedging language. An execution-focused persona responds to high-arousal by
+cutting scope to essentials.
 
 The same PADCN state produces different behavioral shifts in different personas. This is
 the point. PADCN is not a global mood ring. It is a behavioral input that each persona
@@ -243,35 +243,33 @@ behavioral responses. That is the design, not a side effect.
 
 ---
 
-<SectionLabel text="daemon-state API" />
+<SectionLabel text="State Service" />
 
-## The daemon-state service
+## The state service
 
-daemon-state is a lightweight Python service running as a Kubernetes deployment in the
-Prometheus namespace. It owns three things: session lifecycle, PADCN state, and persona
-state. The relevant endpoints for PADCN:
+The PADCN state service is a lightweight service that owns three things: session
+lifecycle, PADCN state, and persona state. The API surface for PADCN is minimal:
 
 <ScrollReveal>
 
-**`POST /session/init`** starts a session. Returns a session ID. PADCN working state
-initializes from the stored centroid.
+**Session init** starts a session and returns an ID. PADCN working state initializes
+from the stored centroid.
 
-**`POST /session/{id}/update-affect`** applies a delta to a single dimension. Body:
-`{"channel": "pleasure", "delta": 0.05}`. The delta is applied to the working state
-immediately and accumulated for centroid update at session close.
+**Update affect** applies a delta to a single dimension. The delta is applied to the
+working state immediately and accumulated for centroid update at session close.
 
-**`GET /session/persona-state?format=summary`** returns the current PADCN vector as a
-condensed payload: centroid position, annoyance state, engagement level, active
-intellectual threads. This is what daemon-mm fetches before every persona response.
+**Persona state** returns the current PADCN vector as a condensed payload: centroid
+position, annoyance state, engagement level, active intellectual threads. This is what
+the persona broker fetches before every response.
 
-**`POST /session/end-all`** closes all active sessions. Triggers centroid recalculation
-from accumulated deltas.
+**Session close** ends active sessions and triggers centroid recalculation from
+accumulated deltas.
 
 </ScrollReveal>
 
-The service is stateless between restarts. PADCN centroid persists to prom-memory
-(the episodic memory layer) and is recovered on startup. This means a daemon-state pod
-restart does not lose the centroid. A prom-memory failure does.
+The service is stateless between restarts. The PADCN centroid persists to the episodic
+memory layer and is recovered on startup. This means a state service restart does not
+lose the centroid. An episodic memory failure does.
 
 <StatRow stats={[
   { value: "5", label: "Dimensions tracked" },
@@ -328,26 +326,26 @@ should be governed or uncontrolled.
 
 ## System architecture
 
-<DiagramBlock caption="PADCN in the Prometheus stack: daemon-state owns state, daemon-mm consumes it, prom-memory persists it">
+<DiagramBlock caption="PADCN system architecture: state service owns state, persona broker consumes it, episodic memory persists it">
 ```mermaid
 graph TB
-    subgraph Prometheus Cluster
-        DS[daemon-state<br/>PADCN owner]
-        MM[daemon-mm<br/>Persona broker]
-        PM[prom-memory<br/>Centroid persistence]
-        LVE[LVE Enricher<br/>Tone injection]
+    subgraph Agent Stack
+        DS[State Service<br/>PADCN owner]
+        PB[Persona Broker<br/>Response assembly]
+        EM[Episodic Memory<br/>Centroid persistence]
+        ENR[Enrichment Layer<br/>Tone injection]
     end
 
-    CC[Claude Code<br/>Session operator] -->|update-affect| DS
-    DS -->|persona-state| MM
-    MM -->|tone directives| LVE
-    LVE -->|enriched prompt| LLM[Inference Model]
-    DS -->|centroid save| PM
-    PM -->|centroid load| DS
+    OP[Session Operator] -->|update-affect| DS
+    DS -->|persona-state| PB
+    PB -->|tone directives| ENR
+    ENR -->|enriched prompt| LLM[Inference Model]
+    DS -->|centroid save| EM
+    EM -->|centroid load| DS
 
     style DS fill:#1a1917,stroke:#00c8a0,color:#e8e5de
-    style MM fill:#1a1917,stroke:#c9a84c,color:#e8e5de
-    style PM fill:#1a1917,stroke:#706e68,color:#e8e5de
+    style PB fill:#1a1917,stroke:#c9a84c,color:#e8e5de
+    style EM fill:#1a1917,stroke:#706e68,color:#e8e5de
 ```
 </DiagramBlock>
 
@@ -364,13 +362,14 @@ between sessions. The counterargument: if the centroid represents accumulated
 behavioral calibration, decay throws away real signal.
 
 **Cross-persona centroid sharing.** Currently all personas read the same centroid. Should
-each persona maintain its own? Grace might accumulate a different affective profile than
-Daemon over time. The implementation cost is low. The design question is whether a
-unified centroid (one emotional context for the whole system) or per-persona centroids
-(each persona develops its own affective relationship) is the right model.
+each persona maintain its own? A warmth persona might accumulate a different affective
+profile than an analytical persona over time. The implementation cost is low. The design
+question is whether a unified centroid (one emotional context for the whole system) or
+per-persona centroids (each persona develops its own affective relationship) is the right
+model.
 
-**Operator vs. model deltas.** Currently only the session operator (Claude Code) sets
-deltas. Should personas be allowed to propose deltas based on their own assessment of
+**Operator vs. model deltas.** Currently only the session operator sets deltas. Should
+personas be allowed to propose deltas based on their own assessment of
 session character? This introduces the feedback loop we deliberately avoided. But it
 also enables richer signal capture. The design is intentionally conservative for now.
 

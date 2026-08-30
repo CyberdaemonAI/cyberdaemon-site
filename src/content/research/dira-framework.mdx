@@ -15,10 +15,9 @@ import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Original research">
 Dual-Intent Runtime Authorization (DIRA) is original research by Casey Gager, developed on
-personal time and equipment. The reference implementation runs in the Prometheus system, a
-production AI agent stack on a homelab K3s cluster. This is not a whitepaper. It is a
-framework derived from what actually happened when agentic systems ran unsupervised for
-months, and what the controls caught.
+personal time and equipment. The reference implementation runs in a production AI agent
+stack. This is not a whitepaper. It is a framework derived from what actually happened
+when agentic systems ran unsupervised for months, and what the controls caught.
 </Callout>
 
 ---
@@ -191,7 +190,7 @@ graph TB
         A --> C[LLM Classification]
         A --> D[Adversarial Re-pass]
         E[BDD Probes] --> F[Structural Baseline]
-        F --> G[Gate D53: CONTEXT_DRIFT]
+        F --> G[Behavioral Drift Gate]
     end
 
     subgraph "Layer 2: JWT Scope Enforcement"
@@ -201,8 +200,8 @@ graph TB
     end
 
     subgraph "Layer 3: NHI Identity"
-        L[Keycloak Client Credentials] --> M[Scoped JWT Issuance]
-        M --> N[Secret Rotation via ESO]
+        L[Client Credentials Flow] --> M[Scoped JWT Issuance]
+        M --> N[Automated Secret Rotation]
     end
 
     G --> |"Behavioral verdict"| O{Authorization Decision}
@@ -213,8 +212,7 @@ graph TB
 </ScrollReveal>
 
 **Layer 1: Behavioral trust evaluation.** This layer answers: *is the agent behaving
-consistently with its declared purpose?* It runs in daemon-guard, a Kubernetes deployment
-in the Prometheus namespace. Two detection scopes operate here:
+consistently with its declared purpose?* Two detection scopes operate here:
 
 - **In-session detection** measures a 10-dimensional structural vector of tool-use patterns
   and computes cosine similarity against a session-start snapshot. Catches drift during an
@@ -236,31 +234,29 @@ action type, and does this specific action on this specific resource satisfy the
 resource-level constraints?* The scope check is middleware. The resource-level enforcement
 is application code. These are not the same check.
 
-The scope check asks: does the token include `watchdog:issues:create`? The route handler
-asks: given this `POST /issues` request, is the `created_by` field being written
-server-side from the JWT subject? Is the label being forced to match the JWT subject
-identity? These resource-level constraints cannot be encoded in a scope string. They live
-in the route handler. Both checks must pass.
+The scope check asks: does the token include the required action scope? The route handler
+asks: given this request, is the `created_by` field being written server-side from the JWT
+subject? Is the label being forced to match the JWT subject identity? These resource-level
+constraints cannot be encoded in a scope string. They live in the route handler. Both
+checks must pass.
 
 **Layer 3: NHI identity management.** This layer answers: *who is this actor, and how was
-its identity provisioned?* Each agent is a Keycloak client using client credentials flow
-(RFC 6749 Section 4.4). No human login path exists. Scopes are provisioned
-administratively. The secret rotation chain runs through HashiCorp Vault, External Secrets
-Operator, Kubernetes Secret, environment variable. The agent never handles its own secret
-provisioning.
+its identity provisioned?* Each agent authenticates via client credentials flow (RFC 6749
+Section 4.4). No human login path exists. Scopes are provisioned administratively. The
+secret rotation chain runs through a secrets manager, a secrets synchronization operator,
+and environment injection. The agent never handles its own secret provisioning.
 
 ---
 
 <SectionLabel text="Proof Case" />
 
-## The Watchdog: DIRA in production
+## A health monitor under DIRA: all three invariants in one actor
 
 Theory is cheap. Here is what it looks like running.
 
-The Watchdog is a Kubernetes CronJob that runs every 30 minutes. It authenticates to
-Keycloak via client credentials, obtains a JWT with three scopes
-(`watchdog:issues:create`, `watchdog:issues:close`, `prometheus:read`), runs cluster
-health checks, and creates or closes issues in the Prometheus API based on the results.
+Consider a scheduled health monitor agent. It authenticates via client credentials,
+obtains a JWT with three scopes (create issues, close issues, read system state), runs
+health checks, and creates or closes issues in the platform API based on the results.
 
 <ScrollReveal>
 <StatRow stats={[
@@ -270,43 +266,43 @@ health checks, and creates or closes issues in the Prometheus API based on the r
 ]} />
 </ScrollReveal>
 
-Three things the Watchdog cannot do, enforced by the system:
+Three things this agent cannot do, enforced by the system:
 
-**It cannot create an issue with any label other than `watchdog`.** The route handler for
-`POST /issues` writes the label from the JWT subject. The request body's label field is
-ignored. Invariant II: the Watchdog cannot produce resources that carry a different
-identity than its own.
+**It cannot create an issue with any label other than its own identity.** The route handler
+for issue creation writes the label from the JWT subject. The request body's label field is
+ignored. Invariant II: the agent cannot produce resources that carry a different identity
+than its own.
 
 **It cannot close an issue it did not create.** The close route checks `created_by == JWT
 sub`. A 403 is returned if the JWT subject does not match the issue creator. Invariant III:
 self-referential authority is bounded at the resource level.
 
 **It cannot act outside its declared purpose without triggering a behavioral evaluation
-gate.** If BDD detects that the Watchdog's output patterns have shifted significantly, Gate
-D53 (CONTEXT_DRIFT) fires. Invariant I: declared scope and runtime scope are evaluated
+gate.** If BDD detects that the agent's output patterns have shifted significantly, the
+behavioral drift gate fires. Invariant I: declared scope and runtime scope are evaluated
 independently.
 
 <ScrollReveal>
-<DiagramBlock caption="Watchdog authorization flow: three invariants enforced across three layers">
+<DiagramBlock caption="Health monitor authorization flow: three invariants enforced across three layers">
 ```mermaid
 sequenceDiagram
-    participant W as Watchdog CronJob
-    participant KC as Keycloak
-    participant API as Prometheus API
-    participant DG as daemon-guard (BDD)
+    participant W as Health Monitor Agent
+    participant KC as Identity Provider
+    participant API as Platform API
+    participant DG as Behavioral Trust Layer
 
     W->>KC: Client credentials grant
     KC-->>W: JWT (3 scopes)
     W->>W: Run health checks
     W->>API: POST /issues (health failure)
     API->>API: Validate JWT signature (Layer 2)
-    API->>API: Check scope: watchdog:issues:create (Layer 2)
+    API->>API: Check scope: issues:create (Layer 2)
     API->>API: Force label = JWT subject (Invariant II)
     API-->>W: 201 Created
-    DG->>DG: BDD probe (every 6h)
+    DG->>DG: BDD probe (periodic)
     DG->>DG: Compare structural features to baseline
     DG-->>DG: Verdict: STABLE (Invariant I)
-    Note over W,API: Later, cluster recovers
+    Note over W,API: Later, system recovers
     W->>API: PATCH /issues/{id}/close
     API->>API: Check created_by == JWT sub (Invariant III)
     API-->>W: 200 OK
@@ -466,8 +462,8 @@ Honesty about limitations is what distinguishes a framework from marketing.
 
 **Scope escalation.** A compromised agent retains its token and exercises valid scopes for
 purposes outside its declared intent. Invariant I, enforced by Layer 1 (behavioral trust
-evaluation), detects the divergence independently of the scope check. Gate D53
-(CONTEXT_DRIFT) fires on behavioral deviation.
+evaluation), detects the divergence independently of the scope check. The behavioral drift
+gate fires on deviation from the declared baseline.
 
 **Model swap.** The inference model underlying an agent is replaced without notice (vendor
 update, supply chain compromise). BDD cross-session detection flags the structural output
@@ -581,37 +577,34 @@ model has to be there first.
 
 ## Building it: what matters in practice
 
-The reference implementation runs in the Prometheus system on a K3s cluster: two nodes
-(NVIDIA Orin AGX, Beelink mini-PC), running Keycloak, daemon-guard, prometheus-api, and a
-fleet of agent actors. Some implementation details that turned out to matter more than
-expected:
+The reference implementation runs in a production agent stack with an identity provider,
+a behavioral trust service, a platform API, and a fleet of agent actors. Some implementation
+details that turned out to matter more than expected:
 
 **Separate the scope check from the route handler.** These are different jobs doing
-different things. The scope check (`scope_check.py` middleware) validates action-type
-authorization. The route handler validates resource-level constraints. If you merge them,
-you lose the ability to reason about each independently. When an authorization failure
-occurs, you need to know whether the agent lacked the scope (Layer 2 middleware) or had the
-scope but violated a resource constraint (Layer 2 route handler) or had both but was
-behaviorally drifting (Layer 1). Separation of concerns is not a style preference here. It
-is a debugging necessity.
+different things. The scope check middleware validates action-type authorization. The route
+handler validates resource-level constraints. If you merge them, you lose the ability to
+reason about each independently. When an authorization failure occurs, you need to know
+whether the agent lacked the scope (Layer 2 middleware) or had the scope but violated a
+resource constraint (Layer 2 route handler) or had both but was behaviorally drifting
+(Layer 1). Separation of concerns is not a style preference here. It is a debugging
+necessity.
 
 **Write `created_by` server-side, always.** If the `created_by` field is supplied by the
 client at creation time rather than written by the server from the JWT subject, a malicious
 client can forge it. This sounds obvious. It breaks silently when a developer trusts the
 request body for convenience.
 
-**The LLM is not a hard control.** The three-pass content evaluation pipeline in
-daemon-guard uses hard regex rules as the floor, LLM classification for the gray zone, and
-an adversarial re-pass on what the LLM cleared. The LLM never overrides a hard rule block.
-This ordering is non-negotiable. LLMs produce inconsistent verdicts across prompt
-framings. Using an LLM as the sole authorization gate is using a probabilistic system for a
-deterministic job.
+**The LLM is not a hard control.** The three-pass content evaluation pipeline uses hard
+regex rules as the floor, LLM classification for the gray zone, and an adversarial re-pass
+on what the LLM cleared. The LLM never overrides a hard rule block. This ordering is
+non-negotiable. LLMs produce inconsistent verdicts across prompt framings. Using an LLM as
+the sole authorization gate is using a probabilistic system for a deterministic job.
 
-**Gate D53 starts in detect mode.** The behavioral drift gate (CONTEXT_DRIFT) currently
-fires alerts and writes verdicts to memory but does not block active sessions. Promotion to
-hard block requires 30 days of false-positive rate data. Shipping a blocking behavioral
-gate without calibration data is shipping a denial-of-service vulnerability against your
-own agents.
+**Start behavioral gates in detect mode.** The behavioral drift gate should initially fire
+alerts and write verdicts to memory but not block active sessions. Promotion to hard block
+requires 30 days of false-positive rate data. Shipping a blocking behavioral gate without
+calibration data is shipping a denial-of-service vulnerability against your own agents.
 
 ---
 
@@ -696,8 +689,8 @@ takes that seriously.
 ---
 
 *Casey Gager is a cybersecurity architect specializing in IAM, Zero Trust, and AI security.
-DIRA, the Prometheus system, and all original research described here were developed on
-personal time and equipment. Views expressed are his own.*
+DIRA and all original research described here were developed on personal time and equipment.
+Views expressed are his own.*
 
 [^1]: Gartner estimates from Prefactor analysis (2026). The 50:1 NHI-to-human ratio is consistent across multiple industry reports. By 2028, Gartner forecasts one-third of enterprise software applications will rely on AI agents.
 

@@ -2,7 +2,7 @@
 title: "Middle-Out: temporal compression for AI episodic memory systems"
 description: "A novel approach to compressing AI memory that preserves what matters and discards what doesn't. Named after that show. Seriously."
 date: 2026-08-29
-tags: ["ai-memory", "compression", "episodic-memory", "prometheus"]
+tags: ["ai-memory", "compression", "episodic-memory", "ai-architecture"]
 featured: true
 ---
 
@@ -181,11 +181,11 @@ and model attention patterns simultaneously.
 
 <SectionLabel text="Implementation" />
 
-## Implementation in Prometheus
+## Implementation
 
-Prometheus is the AI system where Middle-Out is implemented. The episodic memory layer
-(prom-memory) stores structured memories with embeddings generated on write. The decay
-tagging system maps directly to Middle-Out bands:
+The reference implementation runs against an episodic memory layer that stores structured
+memories with embeddings generated on write. The decay tagging system maps directly to
+Middle-Out bands:
 
 <ScrollReveal>
 <StatRow stats={[
@@ -195,10 +195,10 @@ tagging system maps directly to Middle-Out bands:
 ]} />
 </ScrollReveal>
 
-The three-stage algorithm runs as a scheduled K3s CronJob on the cluster. After each
-compression run, the retrieval miss rate (how often a relevant memory was compressed
-away) feeds back into the cluster granularity parameter. The system gets better at
-compression over time by measuring what it lost.
+The three-stage algorithm runs as a scheduled job. After each compression run, the
+retrieval miss rate (how often a relevant memory was compressed away) feeds back into
+the cluster granularity parameter. The system gets better at compression over time by
+measuring what it lost.
 
 <StatRow stats={[
   { value: "3x", label: "Token reduction" },
