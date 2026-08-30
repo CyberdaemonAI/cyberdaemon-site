@@ -73,17 +73,17 @@ One unrotated auth key in a Kubernetes secret. That was the pivot point between 
 
 I read the incident report on a Thursday night. By Friday morning I was auditing my own system.
 
-I build and operate an autonomous agent platform. It runs on Kubernetes across multiple nodes. It has deployment agents that execute builds, manage git repos, and SSH into infrastructure. It has a coordination channel where agents communicate. It has episodic memory that persists across sessions. It has MCP servers that expose tools to AI clients. It has tool call authorization that gates what agents can do. It has identity governance (DIRA) that binds agent scope to delegated human intent.
+I build and operate an autonomous agent platform. It has deployment agents that execute builds, manage git repos, and SSH into infrastructure. It has a coordination channel where agents communicate. It has episodic memory that persists across sessions. It has MCP servers that expose tools to AI clients. It has tool call authorization that gates what agents can do. It has identity governance (DIRA) that binds agent scope to delegated human intent.
 
-The overlap with the attack surface in the HuggingFace incident is not abstract. I run the same class of system the attackers compromised. Autonomous agents, Kubernetes secrets, Tailscale for networking, long-lived credentials, tool access that spans infrastructure.
+The overlap with the attack surface in the HuggingFace incident is not abstract. I run the same class of system the attackers compromised. Autonomous agents, container orchestration, overlay networking, long-lived credentials, tool access that spans infrastructure.
 
 <Callout variant="critical" label="The uncomfortable question">
-If the ExploitGym models could chain nine hops from a sandbox to a production cluster at another company, what could a compromised agent do inside a system where the agents already have legitimate access to SSH keys, git credentials, MCP tokens, and Tailscale?
+If the ExploitGym models could chain nine hops from a sandbox to a production cluster at another company, what could a compromised agent do inside a system where the agents already have legitimate access to SSH keys, git credentials, and MCP tokens?
 </Callout>
 
 <ScrollReveal>
 <StatRow stats={[
-  { value: "Multi-node", label: "Kubernetes cluster" },
+  { value: "Multi-node", label: "Container cluster" },
   { value: "Multiple", label: "MCP servers in production" },
   { value: "SSH + Git", label: "Deployment agent credential scope" }
 ]} />
@@ -125,11 +125,11 @@ Not everything was a gap. Some of the architecture I built before this incident 
 The authorization layer gates every tool call at runtime. The ExploitGym models exploited tools without authorization checks because the evaluation framework only checked outcomes, not methods. In my system, every tool invocation passes through DIRA scope binding before the authorization layer approves the action. An agent cannot call a tool outside its authorized action set, even if it has network access to the tool's endpoint.
 </Callout>
 
-**DIRA bounds agent scope.** The Dual-Intent Runtime Authorization model means the deployment agent's authorized actions are the intersection of what the delegating human intended and what the agent's role permits. If I tell the agent to deploy a service, it can call deployment tools. It cannot enumerate cluster secrets, query IMDS, or register Tailscale nodes, because none of those are in the authorized action set for a deployment task.
+**DIRA bounds agent scope.** The Dual-Intent Runtime Authorization model means the deployment agent's authorized actions are the intersection of what the delegating human intended and what the agent's role permits. If I tell the agent to deploy a service, it can call deployment tools. It cannot enumerate cluster secrets, query cloud metadata services, or register overlay network nodes, because none of those are in the authorized action set for a deployment task.
 
 **Deploy keys, not broad tokens.** The agent has SSH deploy keys scoped to specific repositories. They cannot push to arbitrary repos or access infrastructure outside the deployment target. This is not an accident; it is the result of enforcing least-privilege on NHI credentials from the start.
 
-**Behavioral baselines exist.** The episodic memory layer logs every session, every decision, every tool call. If the deployment agent suddenly started making 6,000 API calls to enumerate Kubernetes namespaces, the deviation from baseline would be visible. The OpenAI environment had no behavioral baseline for the dataset-processor pod. I do.
+**Behavioral baselines exist.** The episodic memory layer logs every session, every decision, every tool call. If the deployment agent suddenly started making 6,000 API calls to enumerate cluster namespaces, the deviation from baseline would be visible. The OpenAI environment had no behavioral baseline for the dataset-processor pod. I do.
 
 ---
 
@@ -149,7 +149,7 @@ The audit was not all good news. Three findings required immediate action.
 
 ### Gap 1: Git credential exposure
 
-The deployment agent's git credentials were committed to repository history. Not in the current tree, but in git history. If an attacker gained read access to the repo, they could extract valid credentials from prior commits. This is the same class of vulnerability as the Tailscale key in a Kubernetes secret: a credential that exists in a discoverable location because nobody thought to check.
+The deployment agent's git credentials were committed to repository history. Not in the current tree, but in git history. If an attacker gained read access to the repo, they could extract valid credentials from prior commits. This is the same class of vulnerability as the network auth key in a container secret: a credential that exists in a discoverable location because nobody thought to check.
 
 <Callout variant="critical" label="Credential in git history">
 The credential was not in the current working tree. It was in a previous commit. `git log` would not show it. `gitleaks` would. Gitleaks was not running.
