@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import ArticleHero from '../components/ArticleHero.astro';
 
 interface Props {
   title: string;
@@ -7,65 +8,22 @@ interface Props {
   date: Date;
   lane: 'research' | 'analysis' | 'build-logs';
   tags?: string[];
+  readTime?: string;
 }
 
-const { title, description, date, lane, tags = [] } = Astro.props;
-
-const laneLabels: Record<string, string> = {
-  'research':   'Research',
-  'analysis':   'Analysis',
-  'build-logs': 'Build Log',
-};
-
-const laneColors: Record<string, string> = {
-  'research':   '#6b8fcc',
-  'analysis':   '#8fcc8a',
-  'build-logs': '#cc9a6b',
-};
-
-const laneHrefs: Record<string, string> = {
-  'research':   '/research',
-  'analysis':   '/analysis',
-  'build-logs': '/build-logs',
-};
-
-const formatted = new Intl.DateTimeFormat('en-US', {
-  year: 'numeric', month: 'long', day: 'numeric'
-}).format(date);
+const { title, description, date, lane, tags = [], readTime } = Astro.props;
 ---
 <Base title={title} description={description}>
 
-  <article class="max-w-article mx-auto px-6 pt-20 pb-24">
+  <article class="max-w-article mx-auto px-6 pb-24">
 
-    <!-- Article header -->
-    <header class="mb-14">
-
-      <!-- Lane + date -->
-      <div class="article-meta">
-        <a
-          href={laneHrefs[lane]}
-          class="uppercase tracking-widest hover:opacity-70 transition-opacity"
-          style={`color: ${laneColors[lane]}`}
-        >
-          {laneLabels[lane]}
-        </a>
-        <span class="sep">·</span>
-        <time datetime={date.toISOString()}>{formatted}</time>
-      </div>
-
-      <!-- Title -->
-      <h1 class="font-serif text-text-primary mb-5 leading-tight" style="font-size: 2rem; letter-spacing: -0.02em;">
-        {title}
-      </h1>
-
-      <!-- Description / deck -->
-      {description && (
-        <p class="font-sans leading-relaxed" style="font-size: 1.0625rem; color: #777; max-width: 580px;">
-          {description}
-        </p>
-      )}
-
-    </header>
+    <ArticleHero
+      title={title}
+      subtitle={description}
+      lane={lane}
+      date={date}
+      readTime={readTime}
+    />
 
     <!-- Body -->
     <div class="article-body">

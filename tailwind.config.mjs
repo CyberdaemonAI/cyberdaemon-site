@@ -5,18 +5,29 @@ export default {
     extend: {
       colors: {
         // Backgrounds — warm dark, not cold black
+        bg:       '#111210',
         canvas:   '#111210',
         surface:  '#1a1917',
         border:   '#2e2c29',
-        // Text
+        // Text — semantic tokens
+        'text-primary':   '#e8e5de',
+        'text-secondary': '#b0ada6',
+        'text-muted':     '#706e68',
+        'text-dim':       '#4a4842',
+        // Text — legacy aliases
         'ink':         '#e8e5de',
         'ink-2':       '#b0ada6',
         'ink-muted':   '#706e68',
-        // Accents — teal + gold (matching cyberdaemon.ai)
+        // Accents — teal + gold + purple (matching cyberdaemon.ai)
+        accent:        '#00c8a0',
         teal:          '#00c8a0',
         'teal-dim':    '#007a60',
         gold:          '#c9a84c',
         'gold-dim':    '#8a6400',
+        purple:        '#9b8ecf',
+        'purple-dim':  '#6b5fa0',
+        critical:      '#c1121f',
+        'critical-dim':'#8a0d16',
         // Lane accents
         'lane-research':  '#00c8a0',
         'lane-analysis':  '#c9a84c',

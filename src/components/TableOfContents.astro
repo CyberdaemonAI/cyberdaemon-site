@@ -1,0 +1,135 @@
+---
+/**
+ * TableOfContents — sticky sidebar nav auto-generated from heading data.
+ * Uses IntersectionObserver for scroll-spy active highlighting.
+ *
+ * Usage:
+ *   <TableOfContents headings={[
+ *     { depth: 2, slug: 'intro', text: 'Introduction' },
+ *     { depth: 3, slug: 'background', text: 'Background' },
+ *   ]} />
+ */
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+// Filter to h2 and h3 only
+const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
+---
+
+{filtered.length > 0 && (
+  <nav class="toc" aria-label="Table of Contents">
+    <div class="toc-title font-mono">On this page</div>
+    <ul class="toc-list">
+      {filtered.map((h) => (
+        <li class={`toc-item ${h.depth === 3 ? 'toc-indent' : ''}`}>
+          <a href={`#${h.slug}`} class="toc-link font-mono" data-toc-slug={h.slug}>
+            {h.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
+
+<style>
+  .toc {
+    position: sticky;
+    top: 5rem;
+    max-height: calc(100vh - 7rem);
+    overflow-y: auto;
+    padding-right: 1rem;
+  }
+
+  .toc-title {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #706e68;
+    margin-bottom: 0.75rem;
+  }
+
+  .toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-left: 1px solid #2e2c29;
+  }
+
+  .toc-item {
+    padding-left: 0.875rem;
+  }
+
+  .toc-indent {
+    padding-left: 1.5rem;
+  }
+
+  .toc-link {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: #706e68;
+    padding: 0.25rem 0;
+    transition: color 0.15s;
+    text-decoration: none;
+  }
+
+  .toc-link:hover {
+    color: #b0ada6;
+  }
+
+  .toc-link:global(.active) {
+    color: #00c8a0;
+  }
+
+  /* Active indicator via parent border highlight */
+  .toc-item:has(:global(.active)) {
+    border-left: 1px solid #00c8a0;
+    margin-left: -1px;
+  }
+</style>
+
+<script>
+  function initScrollSpy() {
+    const links = document.querySelectorAll<HTMLAnchorElement>('[data-toc-slug]');
+    if (!links.length) return;
+
+    const slugs = Array.from(links).map((l) => l.dataset.tocSlug!);
+    const targets = slugs
+      .map((slug) => document.getElementById(slug))
+      .filter(Boolean) as HTMLElement[];
+
+    if (!targets.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            links.forEach((l) => l.classList.remove('active'));
+            const match = document.querySelector(
+              `[data-toc-slug="${entry.target.id}"]`
+            );
+            match?.classList.add('active');
+          }
+        }
+      },
+      { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
+    );
+
+    targets.forEach((t) => observer.observe(t));
+  }
+
+  // Run on initial load and on Astro page transitions
+  document.addEventListener('DOMContentLoaded', initScrollSpy);
+  document.addEventListener('astro:page-load', initScrollSpy);
+</script>

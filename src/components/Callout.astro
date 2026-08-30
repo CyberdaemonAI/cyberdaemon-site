@@ -1,0 +1,117 @@
+---
+/**
+ * Callout — colored callout boxes for insights, warnings, critical alerts, notes.
+ * Adapted from the loud-breach summary-box pattern: border-left 2px, rounded right
+ * corners, uppercase label.
+ *
+ * Usage:
+ *   <Callout variant="insight">Content here</Callout>
+ *   <Callout variant="warning" label="Heads Up">Custom label</Callout>
+ */
+
+interface Props {
+  variant: 'insight' | 'warning' | 'critical' | 'note';
+  label?: string;
+}
+
+const { variant, label } = Astro.props;
+
+const defaultLabels: Record<string, string> = {
+  insight:  'Insight',
+  warning:  'Warning',
+  critical: 'Critical',
+  note:     'Note',
+};
+
+const displayLabel = label ?? defaultLabels[variant];
+
+const variantStyles: Record<string, { border: string; bg: string; labelColor: string }> = {
+  insight: {
+    border:     '#00c8a0',
+    bg:         'rgba(0, 200, 160, 0.06)',
+    labelColor: '#00c8a0',
+  },
+  warning: {
+    border:     '#c9a84c',
+    bg:         'rgba(201, 168, 76, 0.06)',
+    labelColor: '#c9a84c',
+  },
+  critical: {
+    border:     '#c1121f',
+    bg:         'rgba(193, 18, 31, 0.08)',
+    labelColor: '#c1121f',
+  },
+  note: {
+    border:     '#2e2c29',
+    bg:         'rgba(112, 110, 104, 0.04)',
+    labelColor: '#706e68',
+  },
+};
+
+const s = variantStyles[variant];
+---
+
+<aside
+  class="callout"
+  style={`border-left-color: ${s.border}; background: ${s.bg};`}
+  role="note"
+>
+  <div
+    class="callout-label font-mono"
+    style={`color: ${s.labelColor};`}
+  >
+    {displayLabel}
+  </div>
+  <div class="callout-content font-sans">
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .callout {
+    border-left: 2px solid;
+    border-top: 1px solid #2e2c29;
+    border-right: 1px solid #2e2c29;
+    border-bottom: 1px solid #2e2c29;
+    border-radius: 0 8px 8px 0;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+  }
+
+  .callout-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .callout-content {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: #b0ada6;
+  }
+
+  .callout-content :global(p) {
+    margin-bottom: 0.5rem;
+  }
+
+  .callout-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .callout-content :global(strong) {
+    color: #e8e5de;
+    font-weight: 600;
+  }
+
+  .callout-content :global(code) {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    background: #21201e;
+    border: 1px solid #2e2c29;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    color: #b0ada6;
+  }
+</style>

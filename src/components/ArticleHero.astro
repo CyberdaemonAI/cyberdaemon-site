@@ -1,0 +1,193 @@
+---
+/**
+ * ArticleHero — hero section for articles with lane label, pulsing dot,
+ * big serif title, italic subtitle, and metadata row.
+ * Adapted from the loud-breach hero pattern, mapped to cyberdaemon palette.
+ *
+ * Lane colors: research = teal, analysis = gold, build-logs = purple.
+ *
+ * Usage:
+ *   <ArticleHero
+ *     title="When OAuth Tokens Become Attack Vectors"
+ *     subtitle="A deep analysis of the HuggingFace token exposure incident"
+ *     lane="research"
+ *     date={new Date('2026-08-15')}
+ *     readTime="12 min read"
+ *   />
+ */
+
+interface Props {
+  title: string;
+  subtitle?: string;
+  lane: 'research' | 'analysis' | 'build-logs';
+  date: Date;
+  readTime?: string;
+}
+
+const { title, subtitle, lane, date, readTime } = Astro.props;
+
+const laneLabels: Record<string, string> = {
+  'research':   'Research',
+  'analysis':   'Analysis',
+  'build-logs': 'Build Log',
+};
+
+const laneColors: Record<string, string> = {
+  'research':   '#00c8a0',
+  'analysis':   '#c9a84c',
+  'build-logs': '#9b8ecf',
+};
+
+const laneHrefs: Record<string, string> = {
+  'research':   '/research',
+  'analysis':   '/analysis',
+  'build-logs': '/build-logs',
+};
+
+const color = laneColors[lane];
+const formatted = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(date);
+---
+
+<header class="hero">
+  <!-- Radial glow behind the hero, tinted to lane color -->
+  <div class="hero-glow" style={`background: radial-gradient(ellipse at center top, ${color}0D 0%, transparent 70%);`}></div>
+
+  <!-- Lane label with pulsing dot -->
+  <a
+    href={laneHrefs[lane]}
+    class="hero-label font-mono"
+    style={`color: ${color};`}
+  >
+    <span class="hero-dot" style={`background: ${color};`}></span>
+    {laneLabels[lane]}
+  </a>
+
+  <!-- Title -->
+  <h1 class="hero-title font-serif">
+    {title}
+  </h1>
+
+  <!-- Subtitle -->
+  {subtitle && (
+    <p class="hero-subtitle font-serif">
+      {subtitle}
+    </p>
+  )}
+
+  <!-- Meta row -->
+  <div class="hero-meta font-mono">
+    <time datetime={date.toISOString()}>{formatted}</time>
+    {readTime && (
+      <>
+        <span class="hero-sep">|</span>
+        <span>{readTime}</span>
+      </>
+    )}
+  </div>
+</header>
+
+<style>
+  .hero {
+    padding: 5rem 0 3.5rem;
+    position: relative;
+    margin-bottom: 2rem;
+  }
+
+  .hero-glow {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    pointer-events: none;
+  }
+
+  /* Lane label with pulsing dot */
+  .hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+    transition: opacity 0.15s;
+    text-decoration: none;
+  }
+
+  .hero-label:hover {
+    opacity: 0.7;
+  }
+
+  .hero-dot {
+    display: block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Title */
+  .hero-title {
+    font-size: 2.75rem;
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.025em;
+    color: #e8e5de;
+    margin-bottom: 1.25rem;
+    max-width: 720px;
+  }
+
+  /* Subtitle */
+  .hero-subtitle {
+    font-size: 1.1875rem;
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.65;
+    color: #706e68;
+    margin-bottom: 2rem;
+    max-width: 600px;
+  }
+
+  /* Meta row */
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    color: #4a4842;
+    padding-top: 1.5rem;
+    border-top: 1px solid #2e2c29;
+    text-transform: uppercase;
+  }
+
+  .hero-sep {
+    color: #2e2c29;
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding: 3rem 0 2.5rem;
+    }
+
+    .hero-title {
+      font-size: 2rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.0625rem;
+    }
+  }
+</style>
