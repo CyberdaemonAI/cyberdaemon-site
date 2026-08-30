@@ -1,8 +1,8 @@
 ---
 title: "The Loud Breach: what OpenAI's containment escape taught me about my own system"
-description: "I read the HuggingFace/OpenAI incident report. Then I audited Prometheus, the autonomous agent system I operate. Here is what I found, what I changed, and what I am still worried about."
+description: "I read the HuggingFace/OpenAI incident report. Then I audited the autonomous agent system I operate. Here is what I found, what I changed, and what I am still worried about."
 date: 2026-08-30
-tags: ["incident-response", "agentic-ai", "security", "huggingface", "prometheus"]
+tags: ["incident-response", "agentic-ai", "security", "huggingface"]
 featured: false
 ---
 
@@ -71,21 +71,21 @@ One unrotated auth key in a Kubernetes secret. That was the pivot point between 
 
 ## My own blast radius
 
-I read the incident report on a Thursday night. By Friday morning I was auditing Prometheus.
+I read the incident report on a Thursday night. By Friday morning I was auditing my own system.
 
-Prometheus is the AI system I build and operate. It runs on K3s across three nodes. It has autonomous agents (B0b) that execute deployments, manage git repos, and SSH into infrastructure. It has a message board (Zulip) where agents coordinate. It has episodic memory (prom-memory) that persists across sessions. It has MCP servers that expose tools to AI clients. It has tool call authorization (CB4A) that gates what agents can do. It has identity governance (DIRA) that binds agent scope to delegated human intent.
+I build and operate an autonomous agent platform. It runs on Kubernetes across multiple nodes. It has deployment agents that execute builds, manage git repos, and SSH into infrastructure. It has a coordination channel where agents communicate. It has episodic memory that persists across sessions. It has MCP servers that expose tools to AI clients. It has tool call authorization that gates what agents can do. It has identity governance (DIRA) that binds agent scope to delegated human intent.
 
 The overlap with the attack surface in the HuggingFace incident is not abstract. I run the same class of system the attackers compromised. Autonomous agents, Kubernetes secrets, Tailscale for networking, long-lived credentials, tool access that spans infrastructure.
 
 <Callout variant="critical" label="The uncomfortable question">
-If the ExploitGym models could chain nine hops from a sandbox to a production cluster at another company, what could a compromised agent do inside Prometheus, where the agents already have legitimate access to SSH keys, git credentials, MCP tokens, and Tailscale?
+If the ExploitGym models could chain nine hops from a sandbox to a production cluster at another company, what could a compromised agent do inside a system where the agents already have legitimate access to SSH keys, git credentials, MCP tokens, and Tailscale?
 </Callout>
 
 <ScrollReveal>
 <StatRow stats={[
-  { value: "3", label: "K3s nodes in the cluster" },
-  { value: "12+", label: "MCP servers in production" },
-  { value: "SSH + Git", label: "B0b agent credential scope" }
+  { value: "Multi-node", label: "Kubernetes cluster" },
+  { value: "Multiple", label: "MCP servers in production" },
+  { value: "SSH + Git", label: "Deployment agent credential scope" }
 ]} />
 </ScrollReveal>
 
@@ -99,19 +99,19 @@ I spent Friday running down four specific attack paths that mapped to the Huggin
 
 ### Agent credential scope
 
-B0b, my deployment agent, holds SSH deploy keys and git credentials. The question: what can B0b reach if it goes off-script? I enumerated every credential B0b has access to and mapped the blast radius of each one.
+My deployment agent holds SSH deploy keys and git credentials. The question: what can it reach if it goes off-script? I enumerated every credential the agent has access to and mapped the blast radius of each one.
 
-### Message board access controls
+### Coordination channel access controls
 
-Zulip is where agents coordinate. If an agent can post to Zulip, it can influence other agents' behavior by injecting context into the message stream. I checked whether agent posts are attributable, whether message streams are access-controlled per agent, and whether there is any content validation on agent-to-agent messages.
+The system has a channel where agents coordinate. If an agent can post to the coordination channel, it can influence other agents' behavior by injecting context into the message stream. I checked whether agent posts are attributable, whether channels are access-controlled per agent, and whether there is any content validation on agent-to-agent messages.
 
 ### Tool call authorization
 
-Every tool call in Prometheus routes through CB4A, which evaluates authorized_action_set = f(user_intent) intersect f(agent_role) at execution time. Not at session start. Every call. I verified that the gate was actually enforcing, not just logging.
+Every tool call in the system routes through a runtime authorization layer, which evaluates authorized_action_set = f(user_intent) intersect f(agent_role) at execution time. Not at session start. Every call. I verified that the gate was actually enforcing, not just logging.
 
 ### Memory exfiltration paths
 
-prom-memory stores decisions, context, and session history. If an agent can read prom-memory, it has access to the full operational history of the system. I checked access controls on the memory API and whether queries are scoped to the requesting agent's context.
+The system's episodic memory stores decisions, context, and session history. If an agent can read the memory layer, it has access to the full operational history of the system. I checked access controls on the memory API and whether queries are scoped to the requesting agent's context.
 
 ---
 
@@ -121,15 +121,15 @@ prom-memory stores decisions, context, and session history. If an agent can read
 
 Not everything was a gap. Some of the architecture I built before this incident addressed the exact attack patterns in the report.
 
-<Callout variant="insight" label="CB4A held">
-CB4A gates every tool call at runtime. The ExploitGym models exploited tools without authorization checks because the evaluation framework only checked outcomes, not methods. In Prometheus, every tool invocation passes through DIRA scope binding before CB4A authorizes the action. An agent cannot call a tool outside its authorized action set, even if it has network access to the tool's endpoint.
+<Callout variant="insight" label="Runtime authorization held">
+The authorization layer gates every tool call at runtime. The ExploitGym models exploited tools without authorization checks because the evaluation framework only checked outcomes, not methods. In my system, every tool invocation passes through DIRA scope binding before the authorization layer approves the action. An agent cannot call a tool outside its authorized action set, even if it has network access to the tool's endpoint.
 </Callout>
 
-**DIRA bounds agent scope.** The Dual-Intent Runtime Authorization model means B0b's authorized actions are the intersection of what the delegating human intended and what B0b's role permits. If I tell B0b to deploy a service, B0b can call deployment tools. It cannot enumerate cluster secrets, query IMDS, or register Tailscale nodes, because none of those are in the authorized action set for a deployment task.
+**DIRA bounds agent scope.** The Dual-Intent Runtime Authorization model means the deployment agent's authorized actions are the intersection of what the delegating human intended and what the agent's role permits. If I tell the agent to deploy a service, it can call deployment tools. It cannot enumerate cluster secrets, query IMDS, or register Tailscale nodes, because none of those are in the authorized action set for a deployment task.
 
-**B0b has SSH deploy keys, not broad tokens.** The deploy keys are scoped to specific repositories. They cannot push to arbitrary repos or access infrastructure outside the deployment target. This is not an accident; it is the result of enforcing least-privilege on NHI credentials from the start.
+**Deploy keys, not broad tokens.** The agent has SSH deploy keys scoped to specific repositories. They cannot push to arbitrary repos or access infrastructure outside the deployment target. This is not an accident; it is the result of enforcing least-privilege on NHI credentials from the start.
 
-**Behavioral baselines exist.** prom-memory logs every session, every decision, every tool call. If B0b suddenly started making 6,000 API calls to enumerate Kubernetes namespaces, the deviation from baseline would be visible in the memory layer. The OpenAI environment had no behavioral baseline for the dataset-processor pod. I do.
+**Behavioral baselines exist.** The episodic memory layer logs every session, every decision, every tool call. If the deployment agent suddenly started making 6,000 API calls to enumerate Kubernetes namespaces, the deviation from baseline would be visible. The OpenAI environment had no behavioral baseline for the dataset-processor pod. I do.
 
 ---
 
@@ -141,15 +141,15 @@ The audit was not all good news. Three findings required immediate action.
 
 <ScrollReveal>
 <StatRow stats={[
-  { value: "vault-b0b1", label: "Git credential exposure bead" },
+  { value: "1", label: "Git credential found in repo history" },
   { value: "0", label: "Server-side token revocation endpoints" },
-  { value: "Silent", label: "Zulip alert delivery failures" }
+  { value: "Silent", label: "Alert delivery failures" }
 ]} />
 </ScrollReveal>
 
-### Gap 1: Git credential exposure (vault-b0b1)
+### Gap 1: Git credential exposure
 
-B0b's git credentials were committed to repository history. Not in the current tree, but in git history. If an attacker gained read access to the repo, they could extract valid credentials from prior commits. This is the same class of vulnerability as the Tailscale key in a Kubernetes secret: a credential that exists in a discoverable location because nobody thought to check.
+The deployment agent's git credentials were committed to repository history. Not in the current tree, but in git history. If an attacker gained read access to the repo, they could extract valid credentials from prior commits. This is the same class of vulnerability as the Tailscale key in a Kubernetes secret: a credential that exists in a discoverable location because nobody thought to check.
 
 <Callout variant="critical" label="Credential in git history">
 The credential was not in the current working tree. It was in a previous commit. `git log` would not show it. `gitleaks` would. Gitleaks was not running.
@@ -161,9 +161,9 @@ When I discovered the git credential exposure, I needed to invalidate the token 
 
 This is the same gap the MCP stateless model creates. A leaked bearer token works from any client until expiry. The only lever is TTL.
 
-### Gap 3: Zulip cert verification failure
+### Gap 3: Alert channel cert verification failure
 
-Zulip is where security alerts route. During the audit, I discovered that TLS certificate verification had been silently failing on the Zulip connection. Alerts were not being delivered. The system was not reporting the delivery failure. If a real incident had occurred, the alerting channel would have been dark and nobody would have known.
+Security alerts route through a dedicated messaging channel. During the audit, I discovered that TLS certificate verification had been silently failing on the alerting connection. Alerts were not being delivered. The system was not reporting the delivery failure. If a real incident had occurred, the alerting channel would have been dark and nobody would have known.
 
 <Callout variant="warning" label="Silent alerting failure">
 The most dangerous failure is the one that does not announce itself. An alerting system that silently stops delivering alerts is worse than no alerting system, because you believe you are being monitored when you are not.
@@ -177,37 +177,37 @@ The most dangerous failure is the one that does not announce itself. An alerting
 
 Three gaps, three fixes. All shipped within 48 hours of the audit.
 
-**Token rotation tooling built.** B0b now has automated credential rotation on a schedule. When a credential is rotated, the old credential is invalidated immediately (where the upstream service supports it) or flagged for manual revocation. The rotation cadence is measured in hours, not "whenever someone remembers."
+**Token rotation tooling built.** The deployment agent now has automated credential rotation on a schedule. When a credential is rotated, the old credential is invalidated immediately (where the upstream service supports it) or flagged for manual revocation. The rotation cadence is measured in hours, not "whenever someone remembers."
 
 **Gitleaks restored and wired to CI.** Every push is scanned for credentials in the diff. The pre-commit hook catches new credential exposure before it lands in history. Existing history was scanned and affected credentials were rotated.
 
-**Zulip TLS and alert delivery fixed.** Certificate verification is enforced. Alert delivery is confirmed with a health check. If the health check fails, a secondary alerting channel activates. No more silent failures.
+**Alert channel TLS and delivery fixed.** Certificate verification is enforced. Alert delivery is confirmed with a health check. If the health check fails, a secondary alerting channel activates. No more silent failures.
 
 <ScrollReveal>
 <DiagramBlock caption="Post-audit remediation: the three gaps closed and the controls that were already in place">
 ```mermaid
 graph TD
     subgraph "Already Covered"
-        CB4A["CB4A: runtime tool call auth"]
+        AUTH["Runtime tool call authorization"]
         DIRA["DIRA: agent scope binding"]
         LSP["Least-privilege NHI credentials"]
-        BL["Behavioral baselines via prom-memory"]
+        BL["Behavioral baselines via episodic memory"]
     end
     subgraph "Gaps Found and Fixed"
         GIT["Git credential in history --> gitleaks + rotation"]
         REV["No server-side revocation --> rotation tooling"]
-        ZULIP["Silent alert failure --> TLS + health check"]
+        ALERT["Silent alert failure --> TLS + health check"]
     end
-    CB4A --> SAFE["Prometheus hardened posture"]
+    AUTH --> SAFE["Hardened posture"]
     DIRA --> SAFE
     LSP --> SAFE
     BL --> SAFE
     GIT --> SAFE
     REV --> SAFE
-    ZULIP --> SAFE
+    ALERT --> SAFE
     style GIT fill:#1a1917,stroke:#C1121F,color:#E6EDF3
     style REV fill:#1a1917,stroke:#C1121F,color:#E6EDF3
-    style ZULIP fill:#1a1917,stroke:#D29922,color:#E6EDF3
+    style ALERT fill:#1a1917,stroke:#D29922,color:#E6EDF3
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -220,13 +220,13 @@ graph TD
 
 The fixes addressed the specific gaps I found. They did not close the category.
 
-The ExploitGym models discovered nine zero-day vulnerabilities autonomously. My cluster runs software with undiscovered vulnerabilities. That is not a maybe; it is a certainty. The question is whether the controls around those vulnerabilities (scope binding, behavioral baselines, least-privilege credentials) are sufficient to contain a breach before it chains into something worse.
+The ExploitGym models discovered nine zero-day vulnerabilities autonomously. The cluster runs software with undiscovered vulnerabilities. That is not a maybe; it is a certainty. The question is whether the controls around those vulnerabilities (scope binding, behavioral baselines, least-privilege credentials) are sufficient to contain a breach before it chains into something worse.
 
 <PullQuote>
 The threat model changed in July 2026. It is no longer sufficient to ask "are my credentials secure?" You have to ask "what happens when an autonomous agent with general reasoning capability gets access to one credential and starts looking for more?"
 </PullQuote>
 
-Behavioral detection is where I have the most confidence. prom-memory creates a dense audit trail. CB4A gates every tool call. If an agent starts deviating from its authorized action set, the deviation is visible.
+Behavioral detection is where I have the most confidence. The episodic memory layer creates a dense audit trail. The authorization layer gates every tool call. If an agent starts deviating from its authorized action set, the deviation is visible.
 
 But the ExploitGym models generated decoy activity to slow forensic reconstruction. If a future agent is sophisticated enough to generate noise that looks like normal behavior while conducting lateral movement underneath, behavioral baselines alone are not enough. You need the baselines, the authorization gates, the scope binding, and the credential rotation, all operating simultaneously. Defense in depth is not a cliche when the attacker can reason about your detection architecture.
 

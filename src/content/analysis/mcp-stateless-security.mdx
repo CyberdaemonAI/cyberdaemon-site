@@ -2,7 +2,7 @@
 title: "MCP's Security Problem Nobody's Writing About"
 description: "I run MCP servers in production. The spec has gaps. Token theft portability, no server-side revocation, no audit trail. Here is what I see from the operator seat."
 date: 2026-08-30
-tags: ["mcp", "security", "agentic-ai", "model-context-protocol", "prometheus"]
+tags: ["mcp", "security", "agentic-ai", "model-context-protocol"]
 featured: false
 ---
 
@@ -19,13 +19,13 @@ import DiagramBlock from '../../components/DiagramBlock.astro';
 
 The Model Context Protocol is how AI agents talk to tools. An MCP server exposes capabilities (file access, database queries, API calls, code execution) and an MCP client (the agent) invokes them over a structured protocol. Anthropic published the spec. It is becoming the default integration layer for agentic AI systems.
 
-I run 12+ MCP servers in production on a K3s cluster. They expose tools for episodic memory, bead-based project tracking, vector search, Tailscale fleet management, Excalidraw diagramming, and more. My agents use these tools daily. This is not a spec critique from the sidelines. This is an operator report.
+I run MCP servers in production across a Kubernetes environment. They expose tools for episodic memory, project tracking, vector search, fleet management, and more. My agents use these tools daily. This is not a spec critique from the sidelines. This is an operator report.
 
 <ScrollReveal>
 <StatRow stats={[
-  { value: "12+", label: "MCP servers in production" },
+  { value: "Multiple", label: "MCP servers in production" },
   { value: "Daily", label: "Agent tool call frequency" },
-  { value: "1", label: "Token already leaked (vault-b0b1)" }
+  { value: "1", label: "Token already leaked in git history" }
 ]} />
 </ScrollReveal>
 
@@ -97,7 +97,7 @@ graph LR
 
 ### Gap 2: No server-side revocation
 
-When my agent's git credential was exposed in repository history (vault-b0b1), I needed to invalidate it immediately. There was no server-side revocation endpoint. The MCP server has no mechanism to say "this token is no longer valid, reject it regardless of expiry." My incident response timeline was bounded by token TTL.
+When my agent's git credential was exposed in repository history, I needed to invalidate it immediately. There was no server-side revocation endpoint. The MCP server has no mechanism to say "this token is no longer valid, reject it regardless of expiry." My incident response timeline was bounded by token TTL.
 
 I had to build rotation tooling myself. The credential was rotated, the old one was invalidated at the upstream service (not at the MCP layer), and a new one was issued. This took hours to wire. In the HuggingFace incident, the Tailscale key that enabled the cross-org breach had never been rotated since provisioning. If a revocation endpoint had existed, the response could have been immediate.
 
@@ -117,7 +117,7 @@ Without server-side revocation, your maximum time to containment equals your tok
 
 The spec does not require MCP servers to log which client used which token to call which tool at what time. This means that in a post-incident investigation, the MCP layer is a black box. You know a tool was called. You may not know who called it, from where, with what token, or when.
 
-I built audit logging into prom-memory's access layer because I think about this for a living. Most MCP server implementations do not log at this level. If you are running an MCP server in production without per-request audit logging, you have no forensic capability at the tool call layer.
+I built audit logging into my memory layer because I think about this for a living. Most MCP server implementations do not log at this level. If you are running an MCP server in production without per-request audit logging, you have no forensic capability at the tool call layer.
 
 <Callout variant="insight" label="What audit logging looks like">
 Every MCP tool call logged with: timestamp, client identity, token fingerprint (not the token itself), tool name, parameters, response status, and request duration. This is not in the spec. It is in my implementation. Yours should have it too.
@@ -135,14 +135,14 @@ These gaps matter more for agentic systems than for human-driven integrations, a
 <DiagramBlock caption="Ambient authority: a single MCP token grants access to the full tool surface">
 ```mermaid
 graph TD
-    TOKEN["Bearer Token"] --> T1["prom_memory_search"]
-    TOKEN --> T2["prom_memory_add"]
-    TOKEN --> T3["rag_search"]
-    TOKEN --> T4["beads_create"]
-    TOKEN --> T5["beads_close"]
-    TOKEN --> T6["ts_exec"]
-    TOKEN --> T7["ts_transfer"]
-    TOKEN --> T8["vault_search"]
+    TOKEN["Bearer Token"] --> T1["memory_search"]
+    TOKEN --> T2["memory_write"]
+    TOKEN --> T3["vector_search"]
+    TOKEN --> T4["project_create"]
+    TOKEN --> T5["project_close"]
+    TOKEN --> T6["remote_exec"]
+    TOKEN --> T7["file_transfer"]
+    TOKEN --> T8["doc_search"]
     TOKEN --> T9["...every other tool"]
     style TOKEN fill:#1a1917,stroke:#C1121F,color:#E6EDF3
 ```
@@ -185,14 +185,14 @@ The stateless transition is not strictly safer or less safe. It is differently s
 
 ## Build it now, before you need it
 
-The spec will not save you. The spec defines a protocol. Security at the deployment layer is your problem. Here is what I have built or am building for Prometheus, and what you should build for yours.
+The spec will not save you. The spec defines a protocol. Security at the deployment layer is your problem. Here is what I have built or am building for my production environment, and what you should build for yours.
 
 ### Token rotation
 
 Automated. On a schedule measured in minutes to hours, not days. When a token is rotated, the old token must be invalidated. If your upstream service does not support immediate invalidation, your TTL must be short enough that the exposure window is acceptable.
 
 <Callout variant="warning" label="TTL guidance">
-5 to 15 minutes for high-privilege tokens. No longer. If your token can call `ts_exec` or any tool that touches infrastructure, 15 minutes is the ceiling. If you are running 24-hour or 7-day token TTLs on MCP servers that expose infrastructure tools, stop reading and go fix that.
+5 to 15 minutes for high-privilege tokens. No longer. If your token can call any tool that touches infrastructure (remote execution, fleet management, node registration), 15 minutes is the ceiling. If you are running 24-hour or 7-day token TTLs on MCP servers that expose infrastructure tools, stop reading and go fix that.
 </Callout>
 
 ### Server-side revocation
@@ -241,7 +241,7 @@ graph TD
 
 ### Audit logging
 
-Every tool call. Timestamp, client identity, token fingerprint, tool name, parameters, response status. This is your forensic capability. Without it, a compromised MCP server is a black box during incident response. I log every tool call through prom-memory. You need equivalent coverage.
+Every tool call. Timestamp, client identity, token fingerprint, tool name, parameters, response status. This is your forensic capability. Without it, a compromised MCP server is a black box during incident response. I log every tool call through my memory and audit layer. You need equivalent coverage.
 
 ### requestState signing
 
