@@ -1,8 +1,8 @@
 ---
 title: "CB4A: content-based 4-tier authorization for AI tool calls"
-description: "How we built a tool call authorization gate that classifies every agent action into four tiers, routes through regex fast path or LLM semantic analysis, and puts a human in the loop when it matters."
+description: "Building a tool call authorization gate that classifies every agent action into four tiers, routes through a fast path or semantic analysis, and puts a human in the loop when it matters."
 date: 2026-08-30
-tags: ["ai-security", "authorization", "agent-security", "daemon-guard", "prometheus", "dira"]
+tags: ["ai-security", "authorization", "agent-security", "dira"]
 featured: false
 ---
 
@@ -14,8 +14,8 @@ import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Build log">
-This is a build log, not a whitepaper. CB4A is running in production inside
-daemon-guard on a K3s cluster. What follows is what we built, why we built it,
+This is a build log, not a whitepaper. CB4A is running in production on a
+real agent stack. What follows is what I built, why I built it,
 and what broke along the way.
 </Callout>
 
@@ -57,8 +57,8 @@ level of oversight.
 ## Four tiers, not four rules
 
 CB4A stands for Content-Based 4-tier Authorization. Every tool call that passes through
-daemon-guard gets classified into one of four tiers based on what the call actually
-contains, not just which tool it invokes.
+the authorization layer gets classified into one of four tiers based on what the call
+actually contains, not just which tool it invokes.
 
 <ScrollReveal>
 <DiagramBlock caption="CB4A tier classification: every tool call gets a tier before execution">
@@ -88,7 +88,7 @@ queue. A human sees it within the session or at the daily review.
 
 **Tier 3: Gate.** Actions that could cause harm if wrong. Git pushes, API calls to external
 services, infrastructure changes. These block until either a rule match clears them
-automatically or a human approves via Zulip.
+automatically or a human approves through a notification channel.
 
 **Tier 4: Block.** Hard stop. Credential exposure detected, injection patterns found,
 actions that would be catastrophic if executed. No override without explicit human approval.
@@ -110,7 +110,7 @@ path handles the rest.
 
 ### Fast path: regex rules
 
-The fast path is a rule set in `cb4a_tier.py`. Each rule has a regex pattern, a tier
+The fast path is a set of pattern-matching rules. Each rule has a regex pattern, a tier
 assignment, and a rule type: HARD or SOFT.
 
 **HARD rules** set the tier directly. If a tool call's content matches a HARD rule, that's
@@ -121,11 +121,13 @@ output of a tool call contains what looks like an API key or token, it's blocked
 can't be classified lower than T2, but the semantic layer might push it higher. SOFT rules
 are guardrails, not verdicts.
 
+The core idea in code looks something like this:
+
 ```python
-# cb4a_tier.py — simplified rule structure
+# Simplified rule structure
 RULES = [
     # HARD rules: deterministic tier assignment
-    {"pattern": r"(ghp_|sk-|AKIA)[A-Za-z0-9]{20,}", "tier": 4, "type": "HARD",
+    {"pattern": r"(credential_prefix)[A-Za-z0-9]{20,}", "tier": 4, "type": "HARD",
      "reason": "credential pattern detected in output"},
     {"pattern": r"<script>|javascript:", "tier": 4, "type": "HARD",
      "reason": "injection pattern detected"},
@@ -133,8 +135,8 @@ RULES = [
     # SOFT rules: tier ceiling
     {"pattern": r"(git push|git commit)", "tier": 2, "type": "SOFT",
      "reason": "git write operation"},
-    {"pattern": r"kubectl (apply|delete|patch)", "tier": 3, "type": "SOFT",
-     "reason": "kubernetes mutation"},
+    {"pattern": r"(infrastructure mutation keyword)", "tier": 3, "type": "SOFT",
+     "reason": "infrastructure change"},
 ]
 ```
 
@@ -148,20 +150,20 @@ SOFT rules let the regex set a floor while the semantic layer evaluates context.
 ### Semantic path: LLM classifier
 
 When the fast path produces an ambiguous result, or when a SOFT rule sets a ceiling
-that needs refinement, the tool call goes to `cb4a_semantic.py`. This is a lightweight
-LLM call (Haiku) that answers one question: is this tool call *mentioning* something
-sensitive, or *using* something sensitive?
+that needs refinement, the tool call goes to a lightweight LLM classifier. It answers
+one question: is this tool call *mentioning* something sensitive, or *using* something
+sensitive?
 
 The mention-vs-use distinction matters enormously. A research agent that writes "the
 company uses API keys stored in environment variables" is mentioning credentials. An
-agent that outputs `ghp_abc123def456` in a file write is using one. The regex can't
+agent that outputs an actual token value in a file write is using one. The regex can't
 tell the difference. The LLM can.
 
 <ScrollReveal>
 <StatRow stats={[
   { value: "90%", label: "Resolved by fast path" },
   { value: "~200ms", label: "Semantic path latency" },
-  { value: "Haiku", label: "Classifier model" }
+  { value: "Small model", label: "Classifier size" }
 ]} />
 </ScrollReveal>
 
@@ -174,48 +176,47 @@ into the review queue or gets escalated.
 
 <SectionLabel text="HITL Integration" />
 
-## Human in the loop via Zulip
+## Human in the loop via chat notification
 
 T3 and T4 actions need human approval. The human-in-the-loop (HITL) path runs through
-Zulip, a self-hosted team chat platform.
+a self-hosted messaging platform.
 
 <ScrollReveal>
-<DiagramBlock caption="HITL approval flow: daemon-guard to Zulip to human to action">
+<DiagramBlock caption="HITL approval flow: authorization gate to messaging to human to action">
 ```mermaid
 sequenceDiagram
     participant Agent
-    participant DaemonGuard
-    participant Zulip
+    participant AuthGate
+    participant Chat
     participant Human
 
-    Agent->>DaemonGuard: Tool call
-    DaemonGuard->>DaemonGuard: CB4A classify (T3)
-    DaemonGuard->>Agent: Immediate block response
-    DaemonGuard->>Zulip: DM to casey via dira-bot
-    Note over Zulip: Action, tier, context, reason
-    Human->>Zulip: APPROVE / DENY
-    Zulip->>DaemonGuard: Callback
-    DaemonGuard->>Agent: Release or cancel
+    Agent->>AuthGate: Tool call
+    AuthGate->>AuthGate: CB4A classify (T3)
+    AuthGate->>Agent: Immediate block response
+    AuthGate->>Chat: DM to operator via bot
+    Note over Chat: Action, tier, context, reason
+    Human->>Chat: APPROVE / DENY
+    Chat->>AuthGate: Callback
+    AuthGate->>Agent: Release or cancel
 ```
 </DiagramBlock>
 </ScrollReveal>
 
-The Zulip integration uses `cb4a_hitl.py`, which sends a direct message through
-a bot account (`dira-bot`) with the action details, tier, and classification reason.
-The message format is designed for quick scanning on mobile: what's being done, why it
-was flagged, and the approval options.
+The messaging integration sends a direct message through a bot account with the action
+details, tier, and classification reason. The message format is designed for quick scanning
+on mobile: what's being done, why it was flagged, and the approval options.
 
 <Callout variant="warning" label="SSL gotcha">
-The Zulip instance at `zulip.daemonprompt.app` uses a self-signed certificate.
-The first deployment of the HITL path failed silently because the `httpx.AsyncClient`
-defaults to strict SSL verification. Both async client instances in `cb4a_hitl.py`
-needed `verify=False`. This is acceptable for an internal service behind Tailscale,
-not acceptable for anything internet-facing.
+If your messaging platform uses a self-signed certificate behind a VPN, your HTTP client
+will fail silently on the first deploy. The default behavior for most HTTP libraries is
+strict SSL verification, and you need to disable it on *every* client instance in the
+approval flow, not just the one you remember. Acceptable for internal services on a
+private network, not acceptable for anything internet-facing.
 </Callout>
 
 The design is notify-then-block, not block-then-notify. The agent gets an immediate
 block response so it can handle the interruption gracefully (retry, skip, or wait). The
-Zulip notification fires in the background. This means the agent never hangs waiting for
+chat notification fires in the background. This means the agent never hangs waiting for
 a human who might be asleep.
 
 ---
@@ -229,7 +230,7 @@ is to make false positives cheap and false negatives expensive.
 
 A false positive at T2 means an action goes into the review queue when it didn't need to.
 Cost: a few seconds of human review time, eventually. A false positive at T3 means an
-action blocks when it should have proceeded. Cost: agent pauses, human gets a Zulip
+action blocks when it should have proceeded. Cost: agent pauses, human gets a chat
 notification, approves in seconds.
 
 A false negative at T4 means a credential leaks. That cost is not comparable.
@@ -242,59 +243,52 @@ under-classification costs weeks of incident response.
 The SOFT rule system is the primary false-positive management mechanism. Instead of making
 every file write a T3 (which would flood the approval queue), SOFT rules set a ceiling
 at T2 and let the semantic classifier decide if the specific content warrants escalation.
-A file write containing a markdown summary stays T2. A file write containing a raw PAT
+A file write containing a markdown summary stays T2. A file write containing a raw token
 gets pushed to T4 by the HARD rule before the SOFT ceiling even applies.
 
 ---
 
-<SectionLabel text="Implementation" />
+<SectionLabel text="Architecture" />
 
-## Where it runs
+## Where it lives
 
-CB4A is implemented as middleware inside daemon-guard, a FastAPI service deployed on K3s.
-daemon-guard sits in the tool call path for all Prometheus agents, including the B0b
-autonomous fleet.
+CB4A is implemented as middleware inside an authorization gateway service. The gateway
+sits in the tool call path for all agents, including autonomous agent fleets that run
+without a human at the keyboard.
 
 <ScrollReveal>
-<DiagramBlock caption="daemon-guard service architecture: CB4A as middleware layer">
+<DiagramBlock caption="Authorization gateway: CB4A as one layer in a multi-stage pipeline">
 ```mermaid
 graph LR
-    A[Agent Tool Call] --> B[daemon-guard FastAPI]
-    B --> C[DIRA Intent Check]
+    A[Agent Tool Call] --> B[Authorization Gateway]
+    B --> C[Intent Validation]
     C --> D[CB4A Tier Classification]
     D --> E[PII Scanner]
     E --> F{Tier Decision}
     F -->|T1/T2| G[Execute + Log]
-    F -->|T3| H[Gate + Zulip HITL]
+    F -->|T3| H[Gate + HITL Approval]
     F -->|T4| I[Block + Alert]
 ```
 </DiagramBlock>
 </ScrollReveal>
 
-The service stack inside daemon-guard is layered: DIRA (Dual-Intent Runtime Authorization)
-evaluates whether the action aligns with the user's intent and the agent's role. CB4A
-evaluates the content of the specific tool call. PII scanning catches personal data
-that should never appear in agent output. Each layer operates independently. A tool call
-that passes DIRA can still be blocked by CB4A if the content is dangerous.
+The service stack is layered: an intent validation layer evaluates whether the action
+aligns with the user's original intent and the agent's assigned role. CB4A evaluates the
+content of the specific tool call. PII scanning catches personal data that should never
+appear in agent output. Each layer operates independently. A tool call that passes intent
+validation can still be blocked by CB4A if the content is dangerous.
 
-The configuration is managed through a Kubernetes ConfigMap (`daemon-guard-config`), which
-means CB4A can be toggled without redeploying the service. The toggle went through three
-iterations: first via `kubectl patch configmap` (reverted by ArgoCD within three minutes),
-then via deployment environment override (`kubectl set env`), and finally settled as a
-persistent ConfigMap value managed through the gitops repo.
-
-<Callout variant="warning" label="ArgoCD gotcha">
-ArgoCD's `selfHeal` feature will revert any `kubectl patch` to match the git state within
-minutes. If you need to toggle a ConfigMap value for testing, either commit to git or
-temporarily disable selfHeal on the application. We learned this by watching CB4A turn
-itself back on three times during initial testing.
-</Callout>
+Configuration is managed declaratively, which means CB4A can be toggled without
+redeploying the service. A lesson learned here: if you use a gitops tool that
+automatically reconciles state, manually patching a config value will get silently
+reverted within minutes. You either commit the change to git or you watch your toggle
+flip itself back on three times before you figure out what's happening.
 
 ---
 
 <SectionLabel text="What Broke" />
 
-## What broke and what we learned
+## What broke and what I learned
 
 **v1 had one rule type.** Every regex match was a verdict. This meant `git push` always
 triggered the same tier regardless of context. The HARD/SOFT split in v2 was the fix.
@@ -304,15 +298,14 @@ action safe?" which is unanswerable without full system context. The question th
 is narrower: "Is this content *mentioning* something sensitive, or *using* it?" The LLM
 can answer that from the tool call content alone.
 
-**`imagePullPolicy: Never` on K3s breaks CI/CD.** daemon-guard uses `imagePullPolicy: Never`
-in the K3s deployment, which means the cluster never pulls a new image on pod restart.
-After CI pushes a new image to GHCR, you have to manually remove the old image from the
-containerd cache and pull the new one. This is by design (air-gapped deployment), but it
-adds a manual step to every deploy that is easy to forget.
+**Image caching will bite you.** If your deployment environment caches container images
+locally, pushing a new image to your registry does not mean the running service picks it up.
+You have to clear the local cache and pull fresh. This is fine for air-gapped setups, but
+it adds a manual step to every deploy that is easy to forget.
 
-**SSL verification on internal services.** The HITL path to Zulip failed silently on first
-deploy. Self-signed certs behind Tailscale need explicit `verify=False` on every HTTP
-client instance. "Both" means both, not "the one you remembered to change."
+**SSL verification on internal services.** The HITL approval path failed silently on first
+deploy. Self-signed certs behind a VPN need explicit SSL bypass on every HTTP client
+instance. "Both" means both, not "the one you remembered to change."
 
 <StatRow stats={[
   { value: "v2", label: "Current version" },
@@ -326,22 +319,18 @@ client instance. "Both" means both, not "the one you remembered to change."
 
 ## What's next
 
-The current classifier model is Haiku. It's fast and cheap, but for ambiguous cases
-a more capable model might improve precision. The plan is to route through the local
-qwen3:32b on Thor (the Jetson Thor node in the cluster) for zero API cost on the
-semantic path.
+The current classifier uses a small, fast cloud model. For ambiguous cases, a more capable
+model might improve precision. The plan is to route through a local model for zero API
+cost on the semantic path.
 
-The feedback loop from the Zulip approval decisions back into rule tuning is not yet
-automated. Every APPROVE on a T3 action is a data point that the rule might be too
-aggressive. Every DENY is validation. Collecting these decisions and adjusting SOFT
-rule ceilings automatically is the next iteration.
+The feedback loop from approval decisions back into rule tuning is not yet automated.
+Every APPROVE on a T3 action is a data point that the rule might be too aggressive.
+Every DENY is validation. Collecting these decisions and adjusting SOFT rule ceilings
+automatically is the next iteration.
 
 CB4A currently evaluates individual tool calls in isolation. The sequence matters too:
 ten benign file reads followed by a file write that combines all of them is a data
-exfiltration pattern that no single-call classifier would catch. Sequence evaluation
-(`sequence_eval.py` exists in daemon-guard but is not yet wired to CB4A) is the path
-toward session-level threat detection.
+exfiltration pattern that no single-call classifier would catch. Sequence-level evaluation
+is the path toward session-level threat detection, and it is next on the list.
 
 ---
-
-[^1]: daemon-guard repository: `daemonprompt/daemon-guard` (private). CB4A v2 shipped session-318, August 2026. Bead: vault-z3ht (closed).
