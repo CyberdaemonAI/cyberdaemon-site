@@ -1,0 +1,96 @@
+---
+import Base from '../layouts/Base.astro';
+
+const topics = [
+  {
+    name: 'Agentic AI Security',
+    items: [
+      { title: 'DIRA: Dual-Intent Runtime Authorization', href: '/research/dira-framework', lane: 'research' },
+      { title: 'CB4A: runtime tool call authorization in practice', href: '/build-logs/cb4a-implementation', lane: 'build-logs' },
+      { title: 'Human above the loop: removing yourself from the approval path', href: '/analysis/human-above-the-loop', lane: 'analysis' },
+    ]
+  },
+  {
+    name: 'AI Memory Systems',
+    items: [
+      { title: 'Middle-Out temporal compression', href: '/research/middle-out-compression', lane: 'research' },
+      { title: 'Building prom-memory: episodic memory for a personal AI system', href: '/build-logs/prom-memory', lane: 'build-logs' },
+    ]
+  },
+  {
+    name: 'Agentic Systems at Scale',
+    items: [
+      { title: 'B0b: autonomous coding agents at scale for one person', href: '/build-logs/b0b-methodology', lane: 'build-logs' },
+      { title: 'ISA-driven development: specs that agents can execute', href: '/build-logs/isa-patterns', lane: 'build-logs' },
+    ]
+  },
+  {
+    name: 'Zero Trust and Identity',
+    items: [
+      { title: 'Zero Trust applied to AI systems: what actually transfers', href: '/analysis/zt-ai-systems', lane: 'analysis' },
+      { title: 'Non-human identity in agentic pipelines', href: '/research/nhi-agentic', lane: 'research' },
+    ]
+  },
+  {
+    name: 'AI Governance and Compliance',
+    items: [
+      { title: 'NIST AI RMF in practice: what the framework misses', href: '/analysis/nist-ai-rmf-practice', lane: 'analysis' },
+      { title: 'PADCN: affect-aware AI systems and governance implications', href: '/research/padcn-architecture', lane: 'research' },
+    ]
+  },
+];
+
+const laneColors: Record<string, string> = {
+  'research':   'text-lane-research',
+  'analysis':   'text-lane-analysis',
+  'build-logs': 'text-lane-buildlog',
+};
+
+const laneLabels: Record<string, string> = {
+  'research':   'R',
+  'analysis':   'A',
+  'build-logs': 'B',
+};
+---
+<Base title="Topics" description="All cyberdaemon.ai content organized by topic.">
+  <div class="max-w-article mx-auto px-6 py-16">
+
+    <header class="mb-12">
+      <p class="lane-tag mb-4">Index</p>
+      <h1 class="font-serif text-title text-text-primary mb-4">Topics</h1>
+      <p class="text-body text-text-secondary font-sans">
+        All content organized by topic. Use this page if you know what you're looking for.
+        <span class={`font-sans text-small ${laneColors['research']}`}>R</span> = Research,
+        <span class={`font-sans text-small ${laneColors['analysis']}`}>A</span> = Analysis,
+        <span class={`font-sans text-small ${laneColors['build-logs']}`}>B</span> = Build Log.
+      </p>
+    </header>
+
+    <div class="flex flex-col gap-12">
+      {topics.map(topic => (
+        <section>
+          <h2 class="font-sans text-small font-semibold uppercase tracking-widest text-text-muted mb-4 border-b border-border pb-2">
+            {topic.name}
+          </h2>
+          <ul class="flex flex-col gap-3">
+            {topic.items.map(item => (
+              <li class="flex items-baseline gap-3">
+                <span class={`font-sans text-label font-bold ${laneColors[item.lane]} shrink-0 w-3`}>
+                  {laneLabels[item.lane]}
+                </span>
+                <a href={item.href} class="font-serif text-body text-text-primary hover:text-accent transition-colors">
+                  {item.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+
+    <p class="text-small text-text-muted font-sans mt-16 pt-6 border-t border-border">
+      Articles marked as coming soon are in the pipeline. Most are already drafted in outline form.
+    </p>
+
+  </div>
+</Base>

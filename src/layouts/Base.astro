@@ -1,0 +1,67 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description = 'Casey Gager — AI security practitioner and researcher.', ogImage } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="canonical" href={canonical} />
+  <title>{title} — cyberdaemon.ai</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:type" content="website" />
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  <meta name="twitter:card" content="summary" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-bg text-text-primary">
+
+  <header class="border-b border-border">
+    <nav class="max-w-site mx-auto px-6 h-14 flex items-center justify-between">
+      <a href="/" class="font-sans text-small font-semibold tracking-tight hover:text-accent transition-colors">
+        cyberdaemon.ai
+      </a>
+      <div class="flex items-center gap-6">
+        <a href="/research" class="text-small text-text-secondary hover:text-lane-research transition-colors">Research</a>
+        <a href="/analysis" class="text-small text-text-secondary hover:text-lane-analysis transition-colors">Analysis</a>
+        <a href="/build-logs" class="text-small text-text-secondary hover:text-lane-buildlog transition-colors">Build Logs</a>
+        <a href="/topics" class="text-small text-text-secondary hover:text-text-primary transition-colors">Topics</a>
+        <a href="/about" class="text-small text-text-secondary hover:text-text-primary transition-colors">About</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <slot />
+  </main>
+
+  <footer class="border-t border-border mt-24">
+    <div class="max-w-site mx-auto px-6 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="text-small text-text-muted">
+        Casey Gager. Views are my own, not those of my employer.
+      </div>
+      <div class="flex items-center gap-6 text-small text-text-muted">
+        <a href="/research" class="hover:text-text-secondary transition-colors">Research</a>
+        <a href="/analysis" class="hover:text-text-secondary transition-colors">Analysis</a>
+        <a href="/build-logs" class="hover:text-text-secondary transition-colors">Build Logs</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

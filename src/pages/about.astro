@@ -1,0 +1,81 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="About"
+  description="Casey Gager — cybersecurity practitioner, researcher, homelab operator."
+>
+  <div class="max-w-article mx-auto px-6 py-16">
+
+    <header class="mb-12">
+      <p class="lane-tag mb-4">About</p>
+      <h1 class="font-serif text-title text-text-primary mb-4">Casey Gager</h1>
+    </header>
+
+    <div class="article-body">
+
+      <p>
+        About pages are hard to write without sounding like an asshole. I'll try
+        to be honest instead.
+      </p>
+
+      <p>
+        I work in cybersecurity. Have for a long time. I help enterprise security
+        teams think through architecture -- identity, access control, Zero Trust,
+        AI governance. I've had these conversations hundreds of times. I'm good
+        at them.
+      </p>
+
+      <p>
+        Here's what I don't say in those conversations: I'm not always sure I'm
+        right. The gap between what I recommend and what's actually true is
+        something I think about more than I let on. The frameworks I cite were
+        written by committees. The vendor capabilities I describe come from
+        documentation, not from running the thing. There's a version of what I
+        do that's well-credentialed guessing, and I've been honest enough with
+        myself to admit that bothers me.
+      </p>
+
+      <p>
+        So I built it. Prometheus is a personal AI system running on a homelab
+        K3s cluster in my house -- multi-persona orchestration, episodic memory,
+        runtime authorization, autonomous build agents, affect sensing. The same
+        architecture I'd spec for a client. Not a proof of concept. Production,
+        running against my actual work.
+      </p>
+
+      <p>
+        Building it has been clarifying in ways I didn't expect. A personal AI
+        system is a self-portrait. The gaps in my reasoning don't stay abstract --
+        they become broken services and wrong outputs. The things I care about
+        become design decisions I didn't realize I was making. My blind spots show
+        up in the system's behavior before I've noticed them in myself. You can't
+        build something like this without it being deeply personal, and I didn't
+        fully understand that until I was already in it.
+      </p>
+
+      <p>
+        This site is where I write about what I find. Original research on
+        problems I think the field is getting wrong. Practitioner takes that I'd
+        give to a peer over coffee but not in a vendor presentation. Build logs
+        for how Prometheus works and what it cost me to get it there.
+      </p>
+
+      <p>
+        My thinking changes. I'll try to be honest when it does. I'm more
+        interested in understanding things than being right about them, which
+        sounds good on paper and is genuinely uncomfortable in practice. If
+        something I've written is wrong, I want to know.
+      </p>
+
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-border">
+      <p class="text-small text-text-muted font-sans">
+        Certified in various ways, if that matters to you. Research developed
+        on personal time and equipment. Views are my own, not my employer's.
+      </p>
+    </div>
+
+  </div>
+</Base>
