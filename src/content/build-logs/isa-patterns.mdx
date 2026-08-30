@@ -1,8 +1,8 @@
 ---
 title: "ISA-driven development: structured contracts for autonomous AI agents"
-description: "Ad-hoc prompting fails for complex agent work. ISAs (Intelligent Service Agreements) replace it with structured, auditable work contracts. 11 shipped in one session. Here is what we learned."
+description: "Ad-hoc prompting fails for complex agent work. ISAs (Intelligent Service Agreements) replace it with structured, auditable work contracts that actually scale. Here is what we learned shipping them."
 date: 2026-08-30
-tags: ["isa", "agent-governance", "prometheus", "b0b", "structured-prompting"]
+tags: ["isa", "agent-governance", "structured-prompting", "autonomous-agents"]
 featured: false
 ---
 
@@ -14,12 +14,12 @@ import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Context">
-Prometheus is a personal AI infrastructure stack. B0b is the autonomous coding agent in
-the stack. He runs as a fleet of Claude Code instances dispatched against work items
-(beads). This article documents the ISA pattern that governs what B0b does, what he
-is allowed to do, and how we know when he is done. The pattern emerged from real
-failures in ad-hoc agent prompting and was validated by shipping 11 ISAs in a single
-session (session-318).
+This article documents a pattern for giving autonomous AI agents clear, auditable
+instructions that actually work. The ISA (Intelligent Service Agreement) format emerged
+from real failures in ad-hoc agent prompting and was validated by shipping a batch of
+11 ISAs for an autonomous coding agent fleet in a single working session. The pattern
+is agent-agnostic and framework-agnostic. If you dispatch AI agents against non-trivial
+work, this is for you.
 </Callout>
 
 ---
@@ -38,7 +38,7 @@ narrow, the success criteria are obvious, and the agent can verify its own work.
 It does not work for anything larger. A multi-file refactoring across three services.
 A new feature that requires reading existing code, understanding constraints, writing
 implementation, and validating against acceptance criteria. A deployment that involves
-Kubernetes manifests, image builds, and smoke tests across nodes.
+infrastructure manifests, image builds, and smoke tests.
 
 For these tasks, ad-hoc prompting fails in predictable ways:
 </ScrollReveal>
@@ -59,9 +59,9 @@ the smoke test returns green. Without explicit acceptance criteria, "done" is a
 negotiation that happens after the work is complete.
 
 **No escalation path.** The agent encounters something it cannot resolve. A dependency
-is missing. A service is down. The ISA requires a decision only the human can make.
-Without an explicit escalation model, the agent either blocks silently (wasting the
-session) or makes a guess (introducing risk).
+is missing. A service is down. A decision requires human judgment. Without an explicit
+escalation model, the agent either blocks silently (wasting the session) or makes a
+guess (introducing risk).
 
 <PullQuote>
 Ad-hoc prompting treats the agent as a conversation partner. ISAs treat the agent as
@@ -106,10 +106,10 @@ execution. If a decision could go either way, the intent section breaks the tie.
 
 ### Outcome (What Done Looks Like)
 
-Falsifiable statements. Not "the service works." Statements like: "kubectl logs show
-`[grace] route triggered` for each of 3 test messages." The agent can verify each
-statement independently. If any statement is false after execution, the work is not
-done.
+Falsifiable statements. Not "the service works." Statements like: "the API returns a
+200 status with a valid response body for each of 3 test inputs." The agent can verify
+each statement independently. If any statement is false after execution, the work is
+not done.
 
 ### Autonomy boundary
 
@@ -123,9 +123,9 @@ Three tiers, explicitly enumerated:
 ]} />
 </ScrollReveal>
 
-**Always:** actions the agent takes without checking. Read the codebase. Search
-prom-memory. Write implementation files. Run tests. Commit and push. These are within
-the agent's authority.
+**Always:** actions the agent takes without checking. Read the codebase. Search project
+memory. Write implementation files. Run tests. Commit and push. These are within the
+agent's authority.
 
 **Ask First:** actions that require explicit human approval before execution. Changing
 behavior rules. Modifying thresholds. Adding new data categories. Wiring capabilities
@@ -150,15 +150,15 @@ Each criterion follows a Given-When-Then structure borrowed from Acceptance Test
 Development. The format forces specificity:
 
 ```
-AC-1: Grace responds to Zulip messages in her channel
+AC-1: Agent responds to messages in the correct channel
 
-Given: daemon-mm is deployed and running (1/1 Running)
-When:  Casey sends a message to the grace Zulip stream
-Then:  daemon-mm routes the message to router/grace.py
-And:   the response is in Grace's voice (warm, direct, no hedging)
-And:   kubectl logs show [grace] route triggered
+Given: the messaging service is deployed and running
+When:  a user sends a message to the designated channel
+Then:  the agent routes the message to the correct handler
+And:   the response matches the expected tone and format
+And:   the service logs confirm the route was triggered
 
-Negative: Grace must NOT respond to messages in other persona streams
+Negative: the agent must NOT respond to messages in other channels
 Measure:  3 test messages sent, 3 responses received, 3 log entries
 ```
 
@@ -179,88 +179,90 @@ the plan require Ask First escalation.
 ### Completion gate
 
 A checklist of all acceptance criteria plus operational requirements (code committed,
-tests passing, deployment verified, bead closed in the tracking system). The agent
+tests passing, deployment verified, work item closed in the tracking system). The agent
 does not declare "done" until every line in the completion gate is checked.
 
 ---
 
-<SectionLabel text="ISA + Beads" />
+<SectionLabel text="Composing Work" />
 
-## How ISAs compose with beads
+## How ISAs compose with work tracking
 
-Beads are the work tracking units in Prometheus. Every work item, from a one-hour fix
-to a multi-session build, has a bead ID. The bead tracks status, priority, dependencies,
-and ownership. ISAs attach to beads.
+Every work item, from a one-hour fix to a multi-session build, gets a tracking ID.
+The tracker holds status, priority, dependencies, and ownership. ISAs attach to
+tracked work items.
 
 <ScrollReveal>
-<DiagramBlock caption="ISA lifecycle: bead created, ISA written, B0b dispatched, work executed, bead closed">
+<DiagramBlock caption="ISA lifecycle: work item created, ISA written, agent dispatched, work executed, item closed">
 ```mermaid
 sequenceDiagram
-    participant Casey
-    participant Beads as Bead System
+    participant Human
+    participant Tracker as Work Tracker
     participant ISA as ISA Document
-    participant B0b
+    participant Agent as Agent Fleet
 
-    Casey->>Beads: Create bead (vault-x9qr)
-    Casey->>ISA: Write ISA for vault-x9qr
-    Casey->>B0b: Dispatch B0b against vault-x9qr
-    B0b->>ISA: Read ISA (Phase 0)
-    B0b->>B0b: Execute phases 1-N
-    B0b->>Beads: Close bead on completion
-    B0b->>Casey: PR opened / results posted
+    Human->>Tracker: Create work item
+    Human->>ISA: Write ISA for work item
+    Human->>Agent: Dispatch agent against work item
+    Agent->>ISA: Read ISA (Phase 0)
+    Agent->>Agent: Execute phases 1-N
+    Agent->>Tracker: Close work item on completion
+    Agent->>Human: PR opened / results posted
 ```
 </DiagramBlock>
 </ScrollReveal>
 
-The bead contains metadata: what the work is, when it was created, what it depends on,
-what its priority is. The ISA contains the execution contract: how the work gets done,
-what the constraints are, what done means.
+The tracker contains metadata: what the work is, when it was created, what it depends
+on, what its priority is. The ISA contains the execution contract: how the work gets
+done, what the constraints are, what done means.
 
-Separating the two is deliberate. The bead can exist without an ISA (for tracking
+Separating the two is deliberate. The work item can exist without an ISA (for tracking
 purposes). The ISA can exist without immediate dispatch (for planning purposes). When
-B0b is dispatched, he reads both: the bead for context, the ISA for instructions.
+the agent is dispatched, it reads both: the work item for context, the ISA for
+instructions.
 
 <Callout variant="warning" label="The dependency model">
-ISAs can declare dependencies on other beads. B0b's first action in the execution loop
-is to check whether dependencies are met. If vault-x9qr depends on vault-0oh5 (a
-PADCN bus that must be merged first), B0b checks the dependency in Phase 2 before
-writing any code. If the dependency is not met, B0b stops and surfaces the block to
-Casey. This is not politeness. It is governance. Building on unmet dependencies
-produces work that cannot be deployed.
+ISAs can declare dependencies on other work items. The agent's first action in the
+execution loop is to check whether dependencies are met. If work item A depends on
+work item B (a prerequisite that must be merged first), the agent checks the dependency
+before writing any code. If the dependency is not met, the agent stops and surfaces the
+block to the human. This is not politeness. It is governance. Building on unmet
+dependencies produces work that cannot be deployed.
 </Callout>
 
 ---
 
-<SectionLabel text="B0b Consumption" />
+<SectionLabel text="Agent Consumption" />
 
-## How B0b consumes ISAs
+## How an agent fleet consumes ISAs
 
-B0b is a fleet of Claude Code instances. Each instance is dispatched with a task
-description and a template that defines its operating behavior. The templates (tier-0
-through tier-3) tell B0b how to behave. The ISA tells B0b what to build.
+An agent fleet is a set of AI coding instances dispatched against work items. Each
+instance gets a task description and a behavioral template that defines how it operates.
+The templates tell the agent how to behave. The ISA tells the agent what to build.
 
 <ScrollReveal>
 
-**Phase 0: Memory check.** Before touching any code, B0b searches prom-memory for
-prior work on this bead. This catches the case where a previous B0b session started the
-work, hit a failure, and left breadcrumbs. Without Phase 0, each dispatch starts from
+**Phase 0: Memory check.** Before touching any code, the agent searches project memory
+for prior work on this item. This catches the case where a previous agent session started
+the work, hit a failure, and left breadcrumbs. Without Phase 0, each dispatch starts from
 scratch. With Phase 0, each dispatch has the context of every previous attempt.
 
-**Phase 1: Read.** B0b reads the relevant codebase. Not guesses about the codebase.
+**Phase 1: Read.** The agent reads the relevant codebase. Not guesses about the codebase.
 Actually reads the files, in parallel, and waits for all reads to complete before
 proceeding. The ISA specifies which files to read. This eliminates the "agent invents
 the architecture" failure mode.
 
-**Phase 2: Check dependencies.** Verify that prerequisite beads are closed, prerequisite
-PRs are merged, prerequisite services are running. If any check fails, stop and surface
-to Casey. Do not proceed on assumptions.
+**Phase 2: Check dependencies.** Verify that prerequisite work items are closed,
+prerequisite PRs are merged, prerequisite services are running. If any check fails, stop
+and surface to the human. Do not proceed on assumptions.
 
 **Phases 3-N: Execute.** Write code, run tests, deploy, verify. Each phase has explicit
 completion criteria. Error handling blocks define recovery for each anticipated failure
 mode.
 
-**Final phase: Close.** Save a prom-memory milestone. Close the bead in the tracking
-system. Post results. The session ends with a clean state.
+**Final phase: Close.** Save a memory milestone (so future dispatches have context).
+Close the work item in the tracking system. Post results. The session ends with a clean
+state.
 
 </ScrollReveal>
 
@@ -272,13 +274,12 @@ lacks.
 
 ---
 
-<SectionLabel text="Session-318" />
+<SectionLabel text="Validation" />
 
-## The session-318 batch: 11 ISAs in one session
+## Batch validation: 11 ISAs in one session
 
-Session-318 was the proof that the ISA pattern scales. In a single session, 11 ISAs
-were written for Sprint 4 of the Prometheus roadmap. Each ISA covered a distinct build,
-a distinct service, and a distinct set of acceptance criteria.
+The proof that the ISA pattern scales came from writing 11 ISAs in a single working
+session, each covering a distinct build with its own acceptance criteria.
 
 <ScrollReveal>
 <StatRow stats={[
@@ -288,31 +289,19 @@ a distinct service, and a distinct set of acceptance criteria.
 ]} />
 </ScrollReveal>
 
-The ISAs covered:
+The ISAs spanned persona routing, session lifecycle management, notification pipelines,
+agent template upgrades, memory persistence layers, watchdog systems, event buses, and
+semantic analysis. Each one followed the same structure: intent, outcome, autonomy
+boundary, ATDD acceptance criteria, phased execution loop, completion gate.
 
-| Bead | Scope | Service |
-|------|-------|---------|
-| vault-0oh5 | PADCN persona bus, per-response tone injection | daemon-mm |
-| vault-x9qr | Grace persona implementation | daemon-mm |
-| vault-ohvc | System prompt audit, token budget enforcement | daemon-mm |
-| vault-er18 | Session lifecycle layer (hooks, memory will, sleeptime) | daemon-state + daemon-guard |
-| vault-4rqh | PR notification pipeline | daemon-state |
-| vault-djl9 | B0b template upgrade, variable syntax fix | b0b-templates |
-| vault-nwz3 | Memory will and interrupt objects | daemon-state |
-| vault-dyvc | Sleeptime memory agent | daemon-state |
-| vault-jptu | Dead man's switch | daemon-guard |
-| vault-4k20 | Signal bus | daemon-state |
-| vault-ay22 | Semantic delta primer | daemon-state |
-
-Each ISA followed the same structure: intent, outcome, autonomy boundary, ATDD
-acceptance criteria, phased execution loop, completion gate. The consistency of the
-format meant that any B0b instance could pick up any ISA and know exactly how to
-execute it.
+The consistency of the format meant that any agent instance could pick up any ISA and
+know exactly how to execute it. The dispatcher did not need to understand the content
+of each ISA. It only needed to know the dependency graph and the dispatch order.
 
 <Callout variant="insight" label="What scaled">
 The ISA format itself is the scaling mechanism. Writing 11 ISAs in one session was
 possible because the format is structured enough to be composable. Each ISA is
-self-contained. Dependencies between ISAs are declared, not implicit. B0b can be
+self-contained. Dependencies between ISAs are declared, not implicit. An agent can be
 dispatched against any ISA in any order (subject to dependency resolution) without
 the dispatcher needing to understand the content.
 </Callout>
@@ -323,17 +312,17 @@ the dispatcher needing to understand the content.
 
 ## Lessons on ISA granularity
 
-Not all 11 ISAs were the same size. Some (vault-djl9, the template syntax fix) were
-small: one repo, one change, well-defined before and after. Others (vault-er18, the
-session lifecycle layer) were large: three repos, five sub-beads, complex dependencies.
+Not all 11 ISAs were the same size. Some (a template syntax fix) were small: one repo,
+one change, well-defined before and after. Others (a session lifecycle layer) were large:
+three repos, five sub-items, complex dependencies.
 
 <ScrollReveal>
 
 **Lesson 1: One ISA per deployable unit.** The right granularity is: one ISA produces
 one PR (or one set of coordinated PRs) that can be deployed and verified independently.
-When vault-er18 was written as a single ISA with five sub-beads, it was too large. Each
-sub-bead needed its own ISA because each was independently deployable. The parent ISA
-became a coordination document, not an execution contract.
+When the session lifecycle ISA was written as a single ISA with five sub-items, it was
+too large. Each sub-item needed its own ISA because each was independently deployable.
+The parent ISA became a coordination document, not an execution contract.
 
 **Lesson 2: Acceptance criteria are the granularity test.** If you cannot write ATDD
 acceptance criteria that are independently verifiable, the ISA is either too large
@@ -348,12 +337,12 @@ comes from experience. After 11 ISAs, the pattern stabilized around: "implementa
 decisions are Always; design decisions are Ask First; data classification decisions
 are Never."
 
-**Lesson 4: Phase 0 (memory check) is non-negotiable.** Multiple B0b dispatches
-against the same bead is the normal case, not the exception. B0b sessions time out,
+**Lesson 4: Phase 0 (memory check) is non-negotiable.** Multiple dispatches against
+the same work item is the normal case, not the exception. Agent sessions time out,
 hit errors, run into unmet dependencies, and get restarted. Without Phase 0, each
 restart reinvents context. With Phase 0, each restart reads the breadcrumbs from the
-last attempt and picks up where it left off. Prom-memory breadcrumbs are the session
-continuity mechanism for autonomous agents.
+last attempt and picks up where it left off. Persistent memory breadcrumbs are the
+session continuity mechanism for autonomous agents.
 
 </ScrollReveal>
 
@@ -363,9 +352,8 @@ continuity mechanism for autonomous agents.
 
 ## Structured error handling in ISAs
 
-Each ISA includes an error handling block per phase. The block is a JSON-like structure
-that defines: the error, the context (which phase), the recovery action, and whether
-to escalate to Casey.
+Each ISA includes an error handling block per phase. The block defines: the error, the
+context (which phase), the recovery action, and whether to escalate to the human.
 
 <ScrollReveal>
 <DiagramBlock caption="Error handling flow: detect, attempt recovery, escalate if recovery fails">
@@ -375,7 +363,7 @@ flowchart TD
     C -->|Yes| R[Execute Recovery]
     R --> V{Recovered?}
     V -->|Yes| Continue[Continue Phase]
-    V -->|No| Esc[Escalate to Casey]
+    V -->|No| Esc[Escalate to Human]
     C -->|No| Esc
     Esc --> Wait[Wait for Human Decision]
 
@@ -386,25 +374,24 @@ flowchart TD
 </DiagramBlock>
 </ScrollReveal>
 
-Example from vault-x9qr (Grace persona implementation):
+Example from a persona implementation ISA:
 
 ```
-Error: vault-0oh5 PR not merged
+Error: prerequisite PR not merged
 Context: Phase 2 dependency check
-Recovery: Stop. Surface to Casey: "vault-0oh5 (daemon-mm#22)
-  is not merged. Grace requires PADCN bus. Merge first."
+Recovery: Stop. Surface to human: "Prerequisite PR is not
+  merged. This feature depends on it. Merge first."
 Escalate: Yes
 
-Error: Grace system prompt exceeds 500 tokens
+Error: system prompt exceeds token budget
 Context: Phase 5 token audit
-Recovery: Trim GRACE_BASE. Preserve voice rules.
+Recovery: Trim the base prompt. Preserve voice rules.
   Cut examples and elaborations first. Rerun count.
 Escalate: No
 
-Error: daemon-state unreachable (PADCN fetch fails)
+Error: upstream service unreachable (state fetch fails)
 Context: Phase 6 smoke test
-Recovery: Use neutral defaults (all dims = 0.5).
-  Log warning. Continue response.
+Recovery: Use neutral defaults. Log warning. Continue.
 Escalate: No
 ```
 
@@ -435,30 +422,30 @@ autonomy boundary is explicit. The acceptance criteria are falsifiable. The erro
 handling is defined. If the agent produces an unexpected outcome, the ISA provides the
 reference against which to evaluate what went wrong.
 
-**Reproducibility.** Given the same ISA and the same codebase state, two different B0b
+**Reproducibility.** Given the same ISA and the same codebase state, two different agent
 instances should produce equivalent output. The ISA constrains the agent's decision
 space enough that implementation variance is bounded. This is not deterministic
 (LLMs are stochastic), but it is reproducible enough for practical purposes.
 
-**Composability.** ISAs compose through the bead dependency system. Complex work
-decomposes into multiple ISAs with declared dependencies. The dispatcher can schedule
-ISAs in dependency order without understanding the content. This is the mechanism
-that turns one person's architecture decisions into a fleet's work queue.
+**Composability.** ISAs compose through the dependency system. Complex work decomposes
+into multiple ISAs with declared dependencies. The dispatcher can schedule ISAs in
+dependency order without understanding the content. This is the mechanism that turns
+one person's architecture decisions into a fleet's work queue.
 
 **Portability.** ISAs are markdown documents. They are not tied to a specific agent
 framework, a specific LLM, or a specific deployment platform. They could be consumed
-by Claude Code, by a custom agent, by a human engineer. The format is the interface.
-The execution engine is pluggable.
+by Claude Code, by Cursor, by a custom agent, by a human engineer. The format is the
+interface. The execution engine is pluggable.
 
 </ScrollReveal>
 
 <Callout variant="insight" label="The deeper claim">
 The ISA pattern is a partial answer to the AI agent authorization problem. The
-framework's autonomy boundary (Always / Ask / Never) is a runtime authorization
-policy expressed in natural language. The agent's compliance with that policy is
-verifiable through the acceptance criteria. This is not a complete solution to agentic
-AI governance, but it is a working implementation of a principle that most governance
-frameworks describe only in abstract terms.
+autonomy boundary (Always / Ask / Never) is a runtime authorization policy expressed
+in natural language. The agent's compliance with that policy is verifiable through the
+acceptance criteria. This is not a complete solution to agentic AI governance, but it
+is a working implementation of a principle that most governance frameworks describe
+only in abstract terms.
 </Callout>
 
 ---
@@ -471,7 +458,7 @@ If you are building autonomous agents and want to try the pattern, here is the m
 viable ISA structure:
 
 ```markdown
-# ISA: [bead-id] -- [title]
+# ISA: [work-item-id] -- [title]
 
 ## Intent
 Why this work exists. One paragraph.
@@ -493,18 +480,21 @@ Negative: [what must NOT happen]
 Measure: [how to verify]
 
 ## Execution Loop
-Phase 0: Memory check
-Phase 1: Read current state
-Phase 2: Check dependencies
-Phase 3-N: Execute
-Final: Close
+Phase 0: Memory check (search for prior work on this item)
+Phase 1: Read current state (specified files, not guesses)
+Phase 2: Check dependencies (prerequisite items closed?)
+Phase 3-N: Execute (write, test, deploy, verify)
+Final: Close (save memory milestone, close work item, post results)
+
+## Error Handling
+Per phase: error, context, recovery action, escalate yes/no
 
 ## Completion Gate
 - [ ] AC-1 verified
 - [ ] AC-2 verified
 - [ ] Code committed
 - [ ] Tests passing
-- [ ] Bead closed
+- [ ] Work item closed
 ```
 
 Adapt as needed. The sections are the point, not the syntax. The autonomy boundary and
@@ -517,19 +507,19 @@ optimization.
 
 ## Open questions
 
-**ISA generation.** Currently ISAs are written by hand. This is fine for 11 ISAs in a
-session. It does not scale to 50. Can the ISA format itself be generated from a
-higher-level intent description? The risk is that generated ISAs lose the specificity
-that makes them useful. The opportunity is that the pattern is structured enough to
-be partially automatable.
+**ISA generation.** Currently ISAs are written by hand. This is fine for a batch of 11.
+It does not scale to 50. Can the ISA format itself be generated from a higher-level
+intent description? The risk is that generated ISAs lose the specificity that makes
+them useful. The opportunity is that the pattern is structured enough to be partially
+automatable.
 
 **ISA versioning.** What happens when an ISA needs to change mid-execution? Currently
-the answer is: write a new ISA. But if B0b is mid-session on the original ISA, there
-is no mechanism for hot-updating the contract. The agent finishes the old ISA or
+the answer is: write a new ISA. But if the agent is mid-session on the original ISA,
+there is no mechanism for hot-updating the contract. The agent finishes the old ISA or
 discards it. There is no graceful transition.
 
-**Cross-agent ISAs.** All current ISAs are written for B0b. What happens when multiple
-agents with different capabilities need to coordinate on a single deliverable? The
-dependency model handles sequential handoffs. It does not handle parallel collaboration
-where two agents work on the same codebase simultaneously. Coordination protocols for
-multi-agent ISA execution are an open design problem.
+**Cross-agent ISAs.** What happens when multiple agents with different capabilities need
+to coordinate on a single deliverable? The dependency model handles sequential handoffs.
+It does not handle parallel collaboration where two agents work on the same codebase
+simultaneously. Coordination protocols for multi-agent ISA execution are an open design
+problem.
