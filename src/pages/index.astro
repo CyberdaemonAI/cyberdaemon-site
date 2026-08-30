@@ -16,9 +16,9 @@ const allArticles = [
 const featured = allArticles.find(e => e.data.featured) ?? allArticles[0] ?? null;
 
 const laneColors: Record<string, string> = {
-  'research':   '#6b8fcc',
-  'analysis':   '#8fcc8a',
-  'build-logs': '#cc9a6b',
+  'research':   '#00c8a0',
+  'analysis':   '#c9a84c',
+  'build-logs': '#9b8ecf',
 };
 
 const laneLabels: Record<string, string> = {
@@ -51,7 +51,7 @@ function fmt(d: Date) {
       that don't survive contact with reality.
     </p>
     <div class="flex items-center gap-6">
-      <a href="/research" class="font-sans text-small hover:opacity-70 transition-opacity" style="color: #6b8fcc;">Research →</a>
+      <a href="/research" class="font-sans text-small hover:opacity-70 transition-opacity" style="color: #00c8a0;">Research →</a>
       <a href="/topics"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Topics →</a>
       <a href="/about"    class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">About →</a>
     </div>

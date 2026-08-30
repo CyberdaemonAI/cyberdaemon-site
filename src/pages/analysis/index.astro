@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const articles = (await getCollection('analysis', e => !e.data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+function fmt(d: Date) {
+  return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
+}
+---
+<Base title="Analysis" description="Applied analysis on AI governance, Zero Trust, and security architecture.">
+  <section class="max-w-article mx-auto px-6 pt-20 pb-16">
+    <div class="mb-10 border-b border-border pb-4">
+      <span class="lane-tag analysis">Analysis</span>
+    </div>
+
+    {articles.length > 0 ? (
+      <div class="flex flex-col gap-10">
+        {articles.map(entry => (
+          <a href={`/analysis/${entry.slug}`} class="group block">
+            <h2 class="font-serif text-text-primary group-hover:text-accent transition-colors mb-2 leading-snug"
+                style="font-size: 1.25rem;">
+              {entry.data.title}
+            </h2>
+            {entry.data.description && (
+              <p class="font-sans text-text-secondary leading-relaxed mb-2" style="font-size: 0.9375rem;">
+                {entry.data.description}
+              </p>
+            )}
+            <time class="font-sans text-text-muted" style="font-size: 0.8125rem;">{fmt(entry.data.date)}</time>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <p class="font-sans text-text-muted text-small">No analysis articles yet.</p>
+    )}
+  </section>
+</Base>
