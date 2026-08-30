@@ -1,0 +1,121 @@
+name: Content Standards Check
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/content/**'
+
+jobs:
+  content-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for banned internal names
+        run: |
+          echo "=== Checking for banned internal names ==="
+          FAIL=0
+
+          MDX_FILES=$(find src/content -name '*.mdx' -type f)
+          if [ -z "$MDX_FILES" ]; then
+            echo "No .mdx files found in src/content/, skipping."
+            exit 0
+          fi
+
+          # Build grep patterns: pattern | label
+          PATTERNS=(
+            'daemon-:daemon- prefix (internal service names)'
+            'vault-[a-zA-Z0-9]:vault- bead ID'
+            'kubectl:kubectl reference'
+            '[kK]3[sS]:K3s reference'
+            '[tT][aA][iI][lL][sS][cC][aA][lL][eE]:Tailscale reference'
+            '[zZ][uU][lL][iI][pP]:Zulip reference'
+            '[aA][rR][gG][oO][cC][dD]:ArgoCD reference'
+            '[lL][oO][nN][gG][hH][oO][rR][nN]:Longhorn reference'
+            '[cC][iI][lL][iI][uU][mM]:Cilium reference'
+            '[kK][eE][yY][cC][lL][oO][aA][kK]:Keycloak reference'
+            '[bB]0[bB]:B0b agent name'
+            'prom-memory:prom-memory reference'
+            'prom_memory:prom_memory reference'
+            '100\.[0-9]+\.[0-9]+\.[0-9]+:Tailscale IP address'
+            '10\.10\.[0-9]+\.[0-9]+:LAN IP address'
+            '10\.43\.[0-9]+\.[0-9]+:K3s service IP address'
+          )
+
+          for entry in "${PATTERNS[@]}"; do
+            pattern="${entry%%:*}"
+            label="${entry#*:}"
+            matches=$(echo "$MDX_FILES" | xargs grep -rnE "$pattern" 2>/dev/null || true)
+            if [ -n "$matches" ]; then
+              echo ""
+              echo "FAIL: Found '$label' in content files:"
+              echo "$matches" | while IFS= read -r line; do
+                echo "  $line"
+              done
+              FAIL=1
+            fi
+          done
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Banned internal names detected. See PUBLISHING-STANDARDS.md for naming rules."
+            exit 1
+          else
+            echo "No banned internal names found."
+          fi
+
+      - name: Check for em dashes
+        run: |
+          echo "=== Checking for em dashes (U+2014) ==="
+          MDX_FILES=$(find src/content -name '*.mdx' -type f)
+          if [ -z "$MDX_FILES" ]; then
+            echo "No .mdx files found, skipping."
+            exit 0
+          fi
+          matches=$(echo "$MDX_FILES" | xargs grep -rnP '\x{2014}' 2>/dev/null || true)
+          if [ -n "$matches" ]; then
+            echo "FAIL: Em dashes found in content files:"
+            echo "$matches" | while IFS= read -r line; do
+              echo "  $line"
+            done
+            echo ""
+            echo "Replace em dashes with commas, semicolons, colons, or restructure the sentence."
+            exit 1
+          else
+            echo "No em dashes found."
+          fi
+
+      - name: Check for periods on titles
+        run: |
+          echo "=== Checking frontmatter titles for trailing periods ==="
+          WARN=0
+          while IFS= read -r file; do
+            # Extract title from frontmatter (between --- delimiters)
+            title_line=$(awk '/^---$/{if(++c==2)exit} c==1 && /^title:/' "$file")
+            if echo "$title_line" | grep -qE '\.\s*["\x27]?\s*$'; then
+              echo "WARN: Title ends with a period in $file"
+              echo "  $title_line"
+              WARN=1
+            fi
+          done < <(find src/content -name '*.mdx' -type f)
+          if [ "$WARN" -eq 1 ]; then
+            echo ""
+            echo "Titles should not end with periods. This is a warning, not a failure."
+          else
+            echo "No trailing periods on titles."
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build site
+        run: npm run build
