@@ -2,7 +2,7 @@
 title: "prom-memory: building episodic memory for an AI system that actually remembers"
 description: "Lessons from production episodic memory. Structured storage, full-text search, vector embeddings, heat decay, and a fact type taxonomy that makes structured forgetting possible."
 date: 2026-08-30
-tags: ["ai-memory", "episodic-memory", "prometheus", "vector-search", "infrastructure"]
+tags: ["ai-memory", "episodic-memory", "ai-architecture", "vector-search", "infrastructure"]
 featured: false
 ---
 
@@ -14,7 +14,7 @@ import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Build log">
-prom-memory is the episodic memory layer for a personal AI system called Prometheus.
+This is the episodic memory layer for my AI system.
 It has been running in production for over a year. This is the build log: what it is,
 how it works, and what I learned building it.
 </Callout>
@@ -46,7 +46,7 @@ Memory is not retrieval. Retrieval finds documents. Memory knows what happened,
 what you decided, what broke, and what you learned from it.
 </PullQuote>
 
-prom-memory is an episodic memory layer: structured fact storage with semantic search,
+The memory layer is an episodic memory service: structured fact storage with semantic search,
 organized by a taxonomy that distinguishes decisions from gotchas from milestones from
 patterns. It doesn't store documents. It stores typed facts about what happened during
 sessions, with enough metadata to retrieve them by meaning, filter them by context,
@@ -58,12 +58,12 @@ and let them decay when they stop being useful.
 
 ## The stack
 
-prom-memory runs as a lightweight API service backed by a single-file embedded database.
+The memory service runs as a lightweight API backed by a single-file embedded database.
 The storage engine has three layers: structured fact storage, full-text search, and
 vector similarity search via locally-generated embeddings.
 
 <ScrollReveal>
-<DiagramBlock caption="prom-memory architecture: three search layers over structured fact storage">
+<DiagramBlock caption="Memory layer architecture: three search layers over structured fact storage">
 ```mermaid
 graph TD
     A[AI Session] -->|API Calls| B[Memory Service]
@@ -88,13 +88,13 @@ graph TD
   { value: "1 file", label: "Entire database" }
 ]} />
 
-**Why an embedded database?** Because it's the right tool for this scale. prom-memory
+**Why an embedded database?** Because it's the right tool for this scale. The memory layer
 stores thousands of facts, not millions. A single database file is trivially backed up,
 trivially migrated, and runs on hardware from a GPU dev kit to a mini PC. No connection
 pooling, no cluster management, no ops burden. The database is a file. The backup is a
 file copy.
 
-**Why not a full database server?** prom-memory doesn't need multi-user access, complex
+**Why not a full database server?** The memory service doesn't need multi-user access, complex
 transactions, or any of the features that justify server-class database complexity. The
 single-writer, single-reader pattern of one AI system writing its own memories is a
 perfect fit for an embedded engine.
@@ -145,7 +145,7 @@ entities, and a heat score. The heat score is the mechanism for structured forge
 
 ## Heat decay: memories that cool over time
 
-Every fact enters prom-memory with a heat score. The score decays over time unless the
+Every fact enters the memory layer with a heat score. The score decays over time unless the
 fact is retrieved, referenced, or linked to other facts. High-heat facts surface in
 session primers and search results. Low-heat facts fade into the archive layer, still
 retrievable but no longer proactively surfaced.
@@ -194,7 +194,7 @@ the middle band (compress when they cluster), and ephemeral facts are the active
 
 ## Hybrid search: full-text + vector embeddings
 
-prom-memory uses two search strategies simultaneously and fuses the results.
+The memory layer uses two search strategies simultaneously and fuses the results.
 
 **Full-text search** handles exact keyword matches, boolean queries, and phrase
 matching. When you search for a specific project name or error message, full-text
@@ -345,7 +345,7 @@ file. Backup is: copy the file. Restore is: copy it back. No export/import pipel
 schema migration, no dump utility. The simplest backup strategy that could possibly work,
 and it works.
 
-**Cold-start timeouts kill agent workflows.** prom-memory loads the embedding model on
+**Cold-start timeouts kill agent workflows.** The memory service loads the embedding model on
 first request. If the model hasn't been loaded recently and the first request comes from
 an autonomous agent with a short timeout, the request fails. The agent moves on without
 memory context. This caused silent quality degradation in autonomous sessions until I
@@ -372,7 +372,7 @@ around the Middle-Out compression model. Implementation is next.
 due to hardware constraints. As the compute environment evolves, the embedding model
 can move to newer runtimes, which unlocks better models and faster inference.
 
-**Shared memory across agents.** Currently, prom-memory serves one primary consumer and
+**Shared memory across agents.** Currently, the memory service serves one primary consumer and
 one autonomous agent fleet. The next step is making it a shared service for all personas
 and agents in the system, with per-consumer access control and context scoping. The
 memory wall enforcement that currently operates at the application level needs to move
@@ -380,4 +380,4 @@ into the service's authentication layer.
 
 ---
 
-[^1]: prom-memory is part of the Prometheus AI system. CogniLayer taxonomy: 14 fact types. Running in production since 2025.
+[^1]: The episodic memory system described here uses the CogniLayer taxonomy: 14 fact types. Running in production since 2025.

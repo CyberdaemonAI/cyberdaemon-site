@@ -1,5 +1,5 @@
 ---
-title: "B0b: I Built an Autonomous AI Agent Fleet and 75% of It Broke"
+title: "I Built an Autonomous AI Agent Fleet and 75% of It Broke"
 description: "Four parallel AI agent instances picking up work items and producing PRs. What worked, what didn't, and why the first fleet run had a 25% success rate."
 date: 2026-08-30
 tags: ["autonomous-agents", "fleet-management", "ci-cd", "infrastructure"]
@@ -14,7 +14,7 @@ import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Build log">
-B0b is not a theoretical architecture. It's four containerized AI agent instances
+This is not a theoretical architecture. It's four containerized AI agent instances
 that pick up work items, execute them autonomously, and produce pull requests.
 This is the honest account of building it, including the 75% failure rate on the first
 fleet dispatch.
@@ -38,7 +38,7 @@ a checkout between two agents that are both committing to the same repo. You can
 share a credential file that gets rewritten on auth refresh. Every shared resource
 is a race condition waiting to surface.
 
-B0b solves this by treating each agent session as a fully isolated container. Own
+The fleet solves this by treating each agent session as a fully isolated container. Own
 filesystem. Own git clone. Own environment variables. Own tool connections. The fleet
 shares nothing except the dispatch system that tells each instance what to work on.
 </ScrollReveal>
@@ -53,11 +53,11 @@ Parallelism for AI agents is not a scheduling problem. It's an isolation problem
 
 ## The task-driven dispatch model
 
-B0b runs on a structured work item system. Each work item has an ID, a status, a
+The fleet runs on a structured work item system. Each work item has an ID, a status, a
 priority, and a description. The dispatch model is simple: work items go in, PRs come out.
 
 <ScrollReveal>
-<DiagramBlock caption="B0b fleet architecture: task dispatch to isolated agent instances">
+<DiagramBlock caption="Fleet architecture: task dispatch to isolated agent instances">
 ```mermaid
 graph TD
     A[Work Item Queue] --> B[Dispatch Controller]
@@ -146,7 +146,7 @@ that launches agent sessions. No idle agent loop. No background process burning 
 The instance sits at zero compute cost until work arrives.
 
 <Callout variant="insight" label="Event-driven, not polling">
-The original B0b design ran a persistent agent session in each instance, waiting for
+The original design ran a persistent agent session in each instance, waiting for
 work. This burned API credits continuously. The event-driven redesign removed
 the idle loop entirely. The task runner listens for HTTP requests. No task, no agent
 session, no cost. This was the single most impactful architectural change in the fleet's
@@ -365,7 +365,7 @@ reproduced locally.
 
 ## The compute model: phased reduction
 
-B0b's compute cost model is evolving through three phases:
+The fleet's compute cost model is evolving through three phases:
 
 <ScrollReveal>
 | Phase | What changes | Status |
@@ -395,13 +395,13 @@ model capability.
 dispatching to the affected instance. The root cause needs a fix at the network layer,
 not an instance-level workaround.
 
-**PR review pipeline.** B0b produces PRs, but there's no automated notification to the
+**PR review pipeline.** The fleet produces PRs, but there's no automated notification to the
 human operator when a PR is ready for review. Currently that requires manually checking
 the PR list. An automated review notification pipeline will close this gap.
 
-**Spec enforcement.** The implementation spec document is what tells B0b what to build
+**Spec enforcement.** The implementation spec document is what tells the agent what to build
 for a given work item. Currently, spec existence is not enforced before dispatch. Adding
-a gate (no spec, no dispatch) prevents B0b from starting work on an underspecified task
+a gate (no spec, no dispatch) prevents the fleet from starting work on an underspecified task
 and producing a PR that doesn't match intent.
 
 **Multi-repo tasks.** Each instance works in a single repository per task. Some work
