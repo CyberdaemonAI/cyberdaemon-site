@@ -1,48 +1,44 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
 
-const topics = [
-  {
-    name: 'Agentic AI Security',
-    items: [
-      { title: 'DIRA: Dual-Intent Runtime Authorization', href: '/research/dira-framework', lane: 'research' },
-      { title: 'CB4A: runtime tool call authorization in practice', href: '/build-logs/cb4a-implementation', lane: 'build-logs' },
-      { title: 'Human above the loop: removing yourself from the approval path', href: '/analysis/human-above-the-loop', lane: 'analysis' },
-      { title: 'The Loud Breach: what the HuggingFace incident taught me about my own system', href: '/analysis/loud-breach', lane: 'analysis' },
-      { title: "MCP's security problem nobody's writing about", href: '/analysis/mcp-stateless-security', lane: 'analysis' },
-    ]
-  },
-  {
-    name: 'AI Memory Systems',
-    items: [
-      { title: 'Middle-Out temporal compression', href: '/research/middle-out-compression', lane: 'research' },
-      { title: 'Building episodic memory for an AI system that actually remembers', href: '/build-logs/prom-memory', lane: 'build-logs' },
-    ]
-  },
-  {
-    name: 'Agentic Systems at Scale',
-    items: [
-      { title: 'I built an autonomous AI agent fleet and 75% of it broke', href: '/build-logs/b0b-methodology', lane: 'build-logs' },
-      { title: 'First fleet dispatch: a 25% success rate and the lessons it bought', href: '/build-logs/b0b-first-fleet', lane: 'build-logs' },
-      { title: 'An agent wrote my CI pipeline, then I fixed its one mistake', href: '/build-logs/ci-gate-agent-written', lane: 'build-logs' },
-      { title: 'ISA-driven development: specs that agents can execute', href: '/build-logs/isa-patterns', lane: 'build-logs' },
-    ]
-  },
-  {
-    name: 'Zero Trust and Identity',
-    items: [
-      { title: 'Zero Trust applied to AI systems: what actually transfers', href: '/analysis/zt-ai-systems', lane: 'analysis' },
-      { title: 'Non-human identity in agentic pipelines', href: '/research/nhi-agentic', lane: 'research' },
-    ]
-  },
-  {
-    name: 'AI Governance and Compliance',
-    items: [
-      { title: 'NIST AI RMF in practice: what the framework misses', href: '/analysis/nist-ai-rmf-practice', lane: 'analysis' },
-      { title: 'PADCN: affect-aware AI systems and governance implications', href: '/research/padcn-architecture', lane: 'research' },
-    ]
-  },
+const research  = (await getCollection('research',   e => !e.data.draft));
+const analysis  = (await getCollection('analysis',   e => !e.data.draft));
+const buildLogs = (await getCollection('build-logs', e => !e.data.draft));
+
+type Article = { title: string; href: string; lane: string; topic: string; date: Date };
+
+const allArticles: Article[] = [
+  ...research.map(e  => ({ title: e.data.title, href: `/research/${e.slug}`, lane: 'research', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
+  ...analysis.map(e  => ({ title: e.data.title, href: `/analysis/${e.slug}`, lane: 'analysis', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
+  ...buildLogs.map(e => ({ title: e.data.title, href: `/build-logs/${e.slug}`, lane: 'build-logs', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
 ];
+
+// Group by topic, preserve topic ordering by earliest article date
+const topicMap = new Map<string, Article[]>();
+for (const a of allArticles) {
+  if (!topicMap.has(a.topic)) topicMap.set(a.topic, []);
+  topicMap.get(a.topic)!.push(a);
+}
+
+// Sort topics by earliest article date (oldest topic first = most foundational)
+const topicOrder = [
+  'Agentic AI Security',
+  'AI Memory Systems',
+  'Agentic Systems at Scale',
+  'Zero Trust and Identity',
+  'AI Governance and Compliance',
+];
+
+// Build final list: known topics first in order, then any new ones alphabetically
+const knownTopics = topicOrder.filter(t => topicMap.has(t));
+const unknownTopics = [...topicMap.keys()].filter(t => !topicOrder.includes(t)).sort();
+const orderedTopics = [...knownTopics, ...unknownTopics];
+
+// Sort articles within each topic by date descending
+for (const [, articles] of topicMap) {
+  articles.sort((a, b) => b.date.valueOf() - a.date.valueOf());
+}
 
 const laneColors: Record<string, string> = {
   'research':   'text-lane-research',
@@ -63,7 +59,7 @@ const laneLabels: Record<string, string> = {
       <p class="lane-tag mb-4">Index</p>
       <h1 class="font-serif text-title text-text-primary mb-4">Topics</h1>
       <p class="text-body text-text-secondary font-sans">
-        All content organized by topic. Use this page if you know what you're looking for.
+        All content organized by topic.
         <span class={`font-sans text-small ${laneColors['research']}`}>R</span> = Research,
         <span class={`font-sans text-small ${laneColors['analysis']}`}>A</span> = Analysis,
         <span class={`font-sans text-small ${laneColors['build-logs']}`}>B</span> = Build Log.
@@ -71,13 +67,13 @@ const laneLabels: Record<string, string> = {
     </header>
 
     <div class="flex flex-col gap-12">
-      {topics.map(topic => (
+      {orderedTopics.map(topicName => (
         <section>
           <h2 class="font-sans text-small font-semibold uppercase tracking-widest text-text-muted mb-4 border-b border-border pb-2">
-            {topic.name}
+            {topicName}
           </h2>
           <ul class="flex flex-col gap-3">
-            {topic.items.map(item => (
+            {topicMap.get(topicName)!.map(item => (
               <li class="flex items-baseline gap-3">
                 <span class={`font-sans text-label font-bold ${laneColors[item.lane]} shrink-0 w-3`}>
                   {laneLabels[item.lane]}
@@ -93,7 +89,7 @@ const laneLabels: Record<string, string> = {
     </div>
 
     <p class="text-small text-text-muted font-sans mt-16 pt-6 border-t border-border">
-      Articles marked as coming soon are in the pipeline. Most are already drafted in outline form.
+      {allArticles.length} articles across {orderedTopics.length} topics. This page updates automatically.
     </p>
 
   </div>

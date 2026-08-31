@@ -7,6 +7,7 @@ const articleSchema = z.object({
   draft: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
   featured: z.boolean().default(false),
+  topic: z.string().optional(),
 });
 
 export const collections = {
