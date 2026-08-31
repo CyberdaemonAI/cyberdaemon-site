@@ -15,19 +15,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed content files
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }} --depth=1
+            MDX_FILES=$(git diff --diff-filter=AM --name-only "origin/${{ github.base_ref }}"...HEAD \
+              | grep '^src/content/.*\.mdx$' || true)
+          else
+            MDX_FILES=$(git diff --diff-filter=AM --name-only HEAD~1..HEAD \
+              | grep '^src/content/.*\.mdx$' || true)
+          fi
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$MDX_FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Check for banned internal names
         run: |
-          echo "=== Checking for banned internal names ==="
-          FAIL=0
-
-          MDX_FILES=$(find src/content -name '*.mdx' -type f)
+          echo "=== Checking for banned internal names (changed files only) ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No .mdx files found in src/content/, skipping."
+            echo "No changed .mdx files to check."
             exit 0
           fi
 
-          # Build grep patterns: pattern | label
+          FAIL=0
+
           PATTERNS=(
             'daemon-:daemon- prefix (internal service names)'
             'vault-[a-zA-Z0-9]:vault- bead ID'
@@ -53,7 +69,7 @@ jobs:
             matches=$(echo "$MDX_FILES" | xargs grep -rnE "$pattern" 2>/dev/null || true)
             if [ -n "$matches" ]; then
               echo ""
-              echo "FAIL: Found '$label' in content files:"
+              echo "FAIL: Found '$label' in changed files:"
               echo "$matches" | while IFS= read -r line; do
                 echo "  $line"
               done
@@ -71,15 +87,15 @@ jobs:
 
       - name: Check for em dashes
         run: |
-          echo "=== Checking for em dashes (U+2014) ==="
-          MDX_FILES=$(find src/content -name '*.mdx' -type f)
+          echo "=== Checking for em dashes (U+2014) — changed files only ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No .mdx files found, skipping."
+            echo "No changed .mdx files to check."
             exit 0
           fi
           matches=$(echo "$MDX_FILES" | xargs grep -rnP '\x{2014}' 2>/dev/null || true)
           if [ -n "$matches" ]; then
-            echo "FAIL: Em dashes found in content files:"
+            echo "FAIL: Em dashes found in changed files:"
             echo "$matches" | while IFS= read -r line; do
               echo "  $line"
             done
@@ -92,20 +108,25 @@ jobs:
 
       - name: Check for periods on titles
         run: |
-          echo "=== Checking frontmatter titles for trailing periods ==="
+          echo "=== Checking frontmatter titles for trailing periods — changed files only ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
           WARN=0
           while IFS= read -r file; do
-            # Extract title from frontmatter (between --- delimiters)
+            [ -z "$file" ] && continue
             title_line=$(awk '/^---$/{if(++c==2)exit} c==1 && /^title:/' "$file")
             if echo "$title_line" | grep -qE '\.\s*["\x27]?\s*$'; then
               echo "WARN: Title ends with a period in $file"
               echo "  $title_line"
               WARN=1
             fi
-          done < <(find src/content -name '*.mdx' -type f)
+          done <<< "$MDX_FILES"
           if [ "$WARN" -eq 1 ]; then
             echo ""
-            echo "Titles should not end with periods. This is a warning, not a failure."
+            echo "Titles should not end with periods."
           else
             echo "No trailing periods on titles."
           fi
