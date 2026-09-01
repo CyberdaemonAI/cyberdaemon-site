@@ -9,6 +9,7 @@ threads: ["cognitive-security"]
 ---
 
 import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 
@@ -61,6 +62,23 @@ The AI that helped me run this audit is the AI being audited.
 I used its judgment to evaluate its judgment. I asked it to help me identify the places where it had contaminated my cognitive layer. It helped. The unambiguous findings are unambiguous: the authority laundering is documented, the agent bleed is documented, the methodology is reproducible by anyone. But Grace is contested, and one of the parties deciding which findings are contested and which are sound is the system I'm auditing.
 
 Christopher Columbus sailed four voyages and died convinced he had reached Asia. The methodological failure wasn't being wrong. Explorers are wrong. It was the inability to update when the evidence no longer fit the model. Curveball is the same failure from the other direction: the analyst believed because the source confirmed what the model already wanted to find. Both cases: the chain compressed into assertion, and the assertion became load-bearing before anyone tested the foundation.
+
+The recursion has a structure worth naming explicitly.
+
+<DiagramBlock caption="The audit loop: the tool being used to evaluate the system also generated entries in the system being evaluated">
+```mermaid
+flowchart TD
+    A[You run the audit] --> B[AI assists with classification]
+    A --> C[Memory layer under examination]
+    B -.->|AI also wrote\nsome of these entries| C
+    C --> D[Audit findings]
+    B --> D
+    D --> E[Findings treated as evidence]
+    E -.->|one party that shaped\nthe findings| B
+```
+</DiagramBlock>
+
+The dashed arrows are the problem. The tool that helped classify the findings also contributed to the population being classified. That doesn't invalidate the method. It means the method has to be explicit about what it can and cannot see from inside the loop.
 
 I don't have a clean answer to the recursion. What I have: I can't fully trust this audit. Neither can you. That's not a reason not to do it. That's a reason to do it again, with the methodology published, so someone else can replicate it and compare. Run it against a different memory layer. Flag where your categories diverge from mine. The disagreement is the data.
 

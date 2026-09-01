@@ -9,6 +9,7 @@ threads: ["cognitive-security"]
 ---
 
 import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 
@@ -29,6 +30,25 @@ Four categories, defined before I opened anything:
 **Near-duplicate noise.** Multiple near-identical memories from the same event, across multiple sessions, reinforcing a pattern that only happened once. The repetition creates false weight. The retrieval system sees frequency and treats it as signal. The signal is an artifact of the architecture, not of the underlying reality.
 
 Thirty memories. Random selection.
+
+The four categories are not hypothetical threat models. Each appeared in the sample. The diagram below shows how a single memory write event can produce contamination across all four categories depending on what provenance information is missing.
+
+<DiagramBlock caption="Four contamination categories: how a single memory write produces contested provenance">
+```mermaid
+flowchart TD
+    W[Memory write] --> AB["Agent bleed:\nAI inference stored as fact about you"]
+    W --> AL["Authority laundering:\nautomated decision attributed to user"]
+    W --> TD["Telemetry drift:\nbehavioral observation labeled as stated preference"]
+    W --> ND["Near-duplicate noise:\nsingle event repeated until it reads as pattern"]
+    AB --> P[Provenance gap]
+    AL --> P
+    TD --> P
+    ND --> P
+    P --> R[Retrieval at session start\nwithout source attribution]
+```
+</DiagramBlock>
+
+The categories share a single root cause: the memory system writes every entry with the same structure and the same retrieval weight, regardless of whether the source was a stated preference, an automated inference, or a harvest loop running in the background. The provenance gap is the architecture's default state, not an edge case.
 
 ---
 

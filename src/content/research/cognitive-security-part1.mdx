@@ -9,6 +9,7 @@ threads: ["cognitive-security"]
 ---
 
 import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 
@@ -55,6 +56,25 @@ AI memory systems run the opposite direction.
 The session primer, the mechanism that loads high-relevance memories at the start of each conversation, is not neutral retrieval. It is curation. Five memories selected by the system, based on the system's model of what's relevant, surface at the beginning of your working session and shape what you think about, what problems you surface, what patterns you notice. The cognitive inputs that produce your behavior are being shaped by what the system decided to surface.
 
 Zuboff described extraction. This is injection. The inward current.
+
+The asymmetry is structural, not incidental. Surveillance capitalism extracts behavioral surplus outward and sells it. AI memory systems run a loop: your session behavior is harvested into a memory layer, and that layer is surfaced back into your session start, shaping what you think about next. The same architecture that makes the system useful makes the loop possible.
+
+<DiagramBlock caption="The inward current: AI memory loops back into cognition rather than extracting outward">
+```mermaid
+flowchart TD
+    subgraph surv["Surveillance capitalism: outward"]
+        A[Your behavior] -->|extracted as surplus| B[Prediction product]
+        B -->|influence from outside| A
+    end
+    subgraph mem["AI memory system: inward"]
+        C[Your session] -->|harvested| D[Memory layer]
+        D -->|surfaced by session primer| E[Session start]
+        E -->|shapes what you surface and notice| C
+    end
+```
+</DiagramBlock>
+
+The loop is not malicious. No intent is required. The architecture produces it automatically, session after session, until the primer's selections feel like your own starting point.
 
 ---
 
