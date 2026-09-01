@@ -1,0 +1,128 @@
+name: LinkedIn Draft on Publish
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**/*.mdx'
+
+permissions:
+  contents: write
+
+jobs:
+  generate-linkedin-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find published article
+        id: article
+        run: |
+          MDX_FILE=$(git diff --diff-filter=AM --name-only HEAD~1..HEAD \
+            | grep '^src/content/.*\.mdx$' | head -1 || true)
+
+          if [ -z "$MDX_FILE" ]; then
+            echo "No MDX file found in push"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "file=$MDX_FILE" >> "$GITHUB_OUTPUT"
+
+          SLUG=$(basename "$MDX_FILE" .mdx)
+          LANE=$(echo "$MDX_FILE" | sed 's|src/content/\([^/]*\)/.*|\1|')
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "lane=$LANE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate LinkedIn draft
+        if: steps.article.outputs.found == 'true'
+        run: |
+          MDX_FILE="${{ steps.article.outputs.file }}"
+          SLUG="${{ steps.article.outputs.slug }}"
+          LANE="${{ steps.article.outputs.lane }}"
+          DRAFT_FILE=".drafts/linkedin/${SLUG}.md"
+
+          mkdir -p .drafts/linkedin
+
+          python3 - "$MDX_FILE" "$SLUG" "$LANE" "$DRAFT_FILE" <<'PYEOF'
+          import re, sys
+          from datetime import date
+
+          mdx_path, slug, lane, draft_path = sys.argv[1:]
+
+          content = open(mdx_path).read()
+
+          # Extract frontmatter fields
+          fm_match = re.match(r'^---\n(.*?)\n---\n', content, re.DOTALL)
+          title, description, tags_str = '', '', ''
+          if fm_match:
+              fm = fm_match.group(1)
+              t = re.search(r'^title:\s*"?([^"\n]+)"?', fm, re.MULTILINE)
+              d = re.search(r'^description:\s*"?([^"\n]+)"?', fm, re.MULTILINE)
+              tg = re.search(r'^tags:\s*\[([^\]]+)\]', fm, re.MULTILINE)
+              title = t.group(1).strip() if t else slug
+              description = d.group(1).strip() if d else ''
+              tags_str = tg.group(1) if tg else ''
+
+          # Extract opening hook (body before first ---)
+          body = re.sub(r'^---.*?---\n', '', content, flags=re.DOTALL)
+          body = re.sub(r'^import .*$', '', body, flags=re.MULTILINE)
+          body = re.sub(r'<[^>]+>', ' ', body)
+          body = re.sub(r'\{`.*?`\}', ' ', body, flags=re.DOTALL)
+          body = re.sub(r'```.*?```', ' ', body, flags=re.DOTALL)
+          body = re.sub(r'\s+', ' ', body).strip()
+
+          hook_section = body.split('---')[0].strip() if '---' in body else body[:600]
+          sentences = re.split(r'(?<=[.!?])\s+', hook_section)
+          hook = ' '.join(sentences[:4]).strip()
+
+          # Build hashtags from tags
+          raw_tags = [t.strip().strip('"\'') for t in tags_str.split(',') if t.strip()]
+          hashtags = ' '.join(f'#{t.replace("-", "")}' for t in raw_tags[:5])
+
+          site_url = f'https://cyberdaemon.ai/{lane}/{slug}'
+
+          draft = f"""---
+generated: {date.today().isoformat()}
+slug: {slug}
+lane: {lane}
+status: draft
+---
+
+# LinkedIn Draft: {title}
+
+## Hook copy
+
+{hook}
+
+Full article: {site_url}
+
+## Hashtags
+
+{hashtags}
+
+## Notes
+
+- Edit hook copy before posting -- this is auto-generated from the opening paragraph
+- Add 1-2 lines of personal context if relevant
+- Post within 48h of article publish for best reach
+"""
+          open(draft_path, 'w').write(draft)
+          print(f"Draft written to {draft_path}")
+          PYEOF
+
+      - name: Commit LinkedIn draft
+        if: steps.article.outputs.found == 'true'
+        run: |
+          SLUG="${{ steps.article.outputs.slug }}"
+          DRAFT_FILE=".drafts/linkedin/${SLUG}.md"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$DRAFT_FILE"
+          git diff --staged --quiet || git commit -m "chore: linkedin draft for ${SLUG}"
+          git push origin master
