@@ -164,3 +164,17 @@ Two infrastructure items remain. The history file currently lives on a hostPath 
 The canonical probes and baseline methodology will be published as a standalone reference. The approach generalizes. The specific features (`avg_len`, `lex_div`, `sentences_per_resp`) were validated on one model and one persona. Different deployments should validate their own feature selection against their operating parameters. The measurement methodology, rolling structural baseline with standard deviation bands and a minimum window gate, applies broadly to any prompted LLM where the operator does not control the underlying inference binary.
 
 That's the gap this addresses: not general ML drift detection, but behavioral consistency verification for prompted LLMs where the model can be swapped underneath your persona layer without notice. Most monitoring infrastructure assumes you own the model. BDD is for when you don't.
+
+---
+
+<SectionLabel text="Where I'm Wrong" />
+
+## Counterarguments
+
+**The rolling baseline absorbs real drift.** Yes, intentionally, but this is a genuine trade-off. If a model degrades gradually across weeks, the rolling window will incorporate that degradation as the new normal and never fire. The 20-run window is calibrated for detecting abrupt swaps, not slow model rot. A secondary detector with a longer horizon, or an absolute baseline that never updates, would close this gap. I don't have one yet.
+
+**Three features miss too much.** `avg_len`, `lex_div`, and `sentences_per_resp` are orthogonal and cheap, but they don't capture semantic drift, reasoning quality shifts, or instruction-following degradation. A model update that changes *what* the model says without changing *how it structures responses* would pass BDD undetected. Structural features are a proxy, not a complete signal. For governance claims that extend beyond structural consistency, additional detectors are needed.
+
+**Semantic similarity would work better with more tokens.** Probably true. The natural floor problem is specific to short output lengths (128 tokens, five prompts). At 2,000+ tokens per response, bigram sets are large enough for Jaccard to have real dynamic range. If your inference budget allows longer probe outputs, bigram or embedding-based similarity becomes viable. The structural approach is an adaptation to constrained inference, not a general claim that semantic methods are wrong.
+
+**Nine runs is not a validated baseline.** It is not. The two-sigma bands set on nine runs will shift materially as the history window fills to 20. The zero false-positive result is encouraging, but it reflects nine runs of a single model on a single inference platform. Different models, different hardware, different load characteristics could produce different baseline variance. Calibrate your own feature selection and window size before treating these numbers as transferable.
