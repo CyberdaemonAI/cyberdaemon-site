@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import DiagramBlock from '../components/DiagramBlock.astro';
 import { getCollection } from 'astro:content';
 
 const research  = (await getCollection('research',   e => !e.data.draft));
@@ -66,6 +67,41 @@ const laneLabels: Record<string, string> = {
         <span class={`font-sans text-small ${laneColors['build-logs']}`}>B</span> = Build Log.
       </p>
     </header>
+
+    <DiagramBlock caption="Content knowledge map: how topics relate across cyberdaemon.ai">
+flowchart LR
+  subgraph sec["Agentic AI Security"]
+    dira[DIRA Framework]
+    cb4a[CB4A Authorization]
+    breach[Loud Breach]
+    mcp[MCP Security]
+  end
+  subgraph cog["Cognitive Security"]
+    cs1[The Notebook]
+    cs2[33%]
+    cs3[Learn to Swim]
+    cs1 --> cs2 --> cs3
+  end
+  subgraph mem["AI Memory Systems"]
+    pmmem[prom-memory]
+    midout[Middle-Out]
+  end
+  subgraph scale["Agentic Systems at Scale"]
+    isa[ISA Patterns]
+    fleet[Fleet Dispatch]
+    ci[CI Gate Agent]
+  end
+  subgraph zt["Zero Trust & Identity"]
+    nhi[NHI for Agents]
+    padcn[PADCN]
+  end
+  pmmem --> cs1
+  nhi --> dira
+  isa --> fleet
+  fleet --> ci
+  dira --> cb4a
+    </DiagramBlock>
+
 
     <div class="flex flex-col gap-12">
       {orderedTopics.map(topicName => (
