@@ -24,8 +24,8 @@ function fmt(d: Date) {
   return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long' }).format(d);
 }
 
-const agentsArticles  = byThread('agents-as-people');
-const intentArticles  = byThread('intent-consent');
+const agentsArticles     = byThread('agents-as-people');
+const intentArticles     = byThread('intent-consent');
 const smallLargeArticles = byThread('small-vs-large');
 ---
 <Base
@@ -51,10 +51,9 @@ const smallLargeArticles = byThread('small-vs-large');
       </p>
 
       <p>
-        So I built it. Prometheus is a production AI system running on a homelab cluster:
-        multi-agent orchestration, episodic memory, runtime authorization, behavioral drift
-        detection, autonomous build agents. Enterprise-class architecture on a small budget.
-        The same patterns I'd spec for a client, running against my actual work.
+        So I built something to find out. A production AI system running on hardware I own,
+        doing real work, on an actual budget. No vendor. No cloud credits. No team.
+        Mostly I've been finding out where I was wrong.
       </p>
 
       <h2>What I got wrong</h2>
@@ -78,14 +77,22 @@ const smallLargeArticles = byThread('small-vs-large');
         The gap between those two things is where most agent projects fail, including my early ones.
       </p>
 
-      <h2 id="agents-as-people">Agents as something between a tool and a person</h2>
+      <h2>The questions I'm chasing</h2>
 
       <p>
-        Prometheus has persistent memory, measurable behavioral consistency, and affect sensing.
-        At some point the governance model built for "AI as software process" produces wrong designs.
-        I don't know exactly where that point is. The question isn't whether the agent is conscious
-        -- that's a distraction. The question is: at what level of persistence and consistency does
-        the process model fail?
+        Three threads run through everything on this site. I don't have answers to any of them.
+        They're the questions keeping me up at night.
+      </p>
+
+      <h3 id="agents-as-people">Agents as something between a tool and a person</h3>
+
+      <p>
+        The system I built has persistent memory, measurable behavioral consistency, and something
+        that functions like affect. At some point the governance model built for "AI as software
+        process" produces wrong designs. I don't know exactly where that point is. The question
+        isn't whether the agent is conscious, that's a distraction. The question is: at what
+        level of persistence and consistency does the process model fail to describe what's
+        actually happening?
       </p>
 
       {agentsArticles.length > 0 && (
@@ -102,14 +109,14 @@ const smallLargeArticles = byThread('small-vs-large');
         </div>
       )}
 
-      <h2 id="intent-consent">Intent and consent</h2>
+      <h3 id="intent-consent">Intent and consent</h3>
 
       <p>
-        Right now, an agent's mission is imposed via a signed authorization token. The agent
-        doesn't choose it. That's architecturally correct for current capability levels. But
-        what would it mean for an agent to consent to a mission? Is that a useful design
-        primitive, or a category error? I don't know. I'm not willing to pretend the question
-        doesn't exist.
+        Right now, an agent's mission is imposed via system prompt and, in the systems I'm building,
+        a signed authorization token. The agent doesn't choose it. That's architecturally correct
+        for current capability levels. But what would it mean for an agent to consent to a mission?
+        Is that a useful design primitive? A governance necessity at some capability threshold?
+        A category error? I don't know. I'm not willing to pretend the question doesn't exist.
       </p>
 
       {intentArticles.length > 0 && (
@@ -126,14 +133,15 @@ const smallLargeArticles = byThread('small-vs-large');
         </div>
       )}
 
-      <h2 id="small-vs-large">Small models versus large, and what you can actually know</h2>
+      <h3 id="small-vs-large">Small models versus large, and what you can actually know</h3>
 
       <p>
-        Running local inference on hardware I own is different in kind from calling a cloud
-        API, not just in cost. I can know things about a local model -- behavioral stability,
-        drift patterns, response characteristics -- that are structurally unknowable about a
-        hosted model that gets silently updated. That difference matters for how you design
-        authorization and governance. Still working out exactly how.
+        Running local inference on hardware I own is different in kind from calling a cloud API,
+        not just in cost. I can know things about a local model, behavioral stability, drift
+        patterns, response characteristics, that are structurally unknowable about a hosted model
+        that gets silently updated. That difference matters for how you design authorization and
+        governance. Whether it matters <em>enough</em> to justify the infrastructure cost is a
+        real question I'm still working out.
       </p>
 
       {smallLargeArticles.length > 0 && (
@@ -150,24 +158,52 @@ const smallLargeArticles = byThread('small-vs-large');
         </div>
       )}
 
-      <h2>What this site is</h2>
+      <h2>How this site is organized</h2>
 
       <p>
-        Where I document what I find. Research on problems I think the field is getting wrong.
-        Analysis of frameworks that don't survive contact with deployed systems. Build logs for
-        what Prometheus cost me to get there.
+        Three lanes. Each one has a specific purpose and a specific standard.
       </p>
 
       <p>
-        Everything here is backed by a running system. Not a demo. Production, against real work.
-        When I claim something, I can show you the receipts. When the system proves me wrong,
-        I'll write about that too.
+        <strong>Research</strong> is formal writeups on problems I think the field is getting
+        wrong. If I claim something worked, there's data. If I claim something failed, there's
+        an explanation of why. I can show you the running system. I can show you the receipts.
+        That's the standard I hold myself to because it's the one I'd hold anyone else to.
       </p>
 
       <p>
-        My thinking changes. I'm working in the same fog as everyone else. I'll be honest when
-        I update a position. I'm more interested in understanding things than being right about
-        them, which sounds good and is genuinely uncomfortable in practice.
+        <strong>Analysis</strong> is practitioner lens on frameworks, papers, and tools. What
+        survives contact with deployed systems. What's theoretical in ways that matter. What
+        vendors aren't saying. Where I try to separate what's hype from what's real, knowing
+        I'm going to get some of it wrong and update when I do.
+      </p>
+
+      <p>
+        <strong>Build Logs</strong> are implementation records. Not polished writeups, not
+        best-practices lists. The actual cost: wrong turns, failed approaches, the gap between
+        what the docs said and what the system did. For builders who want to know what it
+        actually takes.
+      </p>
+
+      <h2>What I'm not claiming</h2>
+
+      <p>
+        I'm not claiming I have this figured out. I'm trying out theses. Some of them are wrong
+        and I don't know which ones yet. The research I've published is honest about limitations.
+        The analysis reflects my practitioner view, not ground truth. The builds document what
+        worked for my constraints, which are not your constraints.
+      </p>
+
+      <p>
+        I'm not claiming the systems I've built are the right architecture for your situation.
+        They're the right architecture for what I'm doing. The principles might transfer.
+        The specifics might not.
+      </p>
+
+      <p>
+        I'm not claiming to be infallible. My thinking changes. I'll be honest when I update
+        a position. I'll link the old one. I'm more interested in understanding things than
+        in being right about them, which sounds good and is genuinely uncomfortable in practice.
       </p>
 
     </div>
@@ -177,10 +213,10 @@ const smallLargeArticles = byThread('small-vs-large');
         What I believe as of September 2026. This changes.
       </p>
       <div class="flex items-center gap-6">
-        <a href="/research"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Research →</a>
-        <a href="/analysis"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Analysis →</a>
-        <a href="/build-logs" class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Build Logs →</a>
-        <a href="/about"      class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">About →</a>
+        <a href="/research"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Research</a>
+        <a href="/analysis"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Analysis</a>
+        <a href="/build-logs" class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Build Logs</a>
+        <a href="/about"      class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">About</a>
       </div>
     </div>
 
