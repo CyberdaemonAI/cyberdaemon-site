@@ -15,13 +15,13 @@ import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <SectionLabel text="The Checklist Is Not an Insult to Expertise" />
 
-In 2001, Peter Pronovost introduced a five-item checklist for central line insertion in ICUs at Johns Hopkins. The checklist was not complicated. Wash hands. Clean the insertion site with chlorhexidine. Use full-body sterile drapes. Wear sterile mask, hat, gown, and gloves. Remove catheters that aren't necessary. Five items. Things every trained physician already knew.
+In 2001, Peter Pronovost introduced a five-item checklist for central line insertion in ICUs at Johns Hopkins. The checklist was not complicated. Wash hands. Clean the insertion site. Full-body sterile drapes. Sterile mask, hat, gown, gloves. Remove catheters that aren't necessary. Five items. Things every trained physician already knew.
 
-In a two-year study in Michigan ICUs, the checklist reduced central line infections by 66%. After 18 months, it had prevented an estimated 1,500 deaths and saved $175 million in healthcare costs.
+In a two-year study in Michigan ICUs, the checklist reduced central line infections by 66%. After 18 months, an estimated 1,500 deaths prevented. $175 million saved.
 
-The physicians using it were not incompetent before the checklist. They were operating in a high-complexity, high-stakes environment where cognitive load, interruption, and time pressure caused consistent deviations from known best practice. The checklist didn't replace expertise. It created a structure that expertise could reliably execute through.
+The physicians using it were not incompetent before the checklist. They were operating in a high-complexity environment where cognitive load, interruption, and time pressure caused consistent deviations from known best practice. The checklist didn't replace expertise. It created a structure that expertise could reliably execute through.
 
-Atul Gawande documented this and the broader pattern in *The Checklist Manifesto* (2009): the highest-complexity domains humans have built — aviation, surgery, construction — have converged, independently, on the same discovery. Expertise alone fails at the margins. The margins are where people die. The checklist is how expertise scales to the margins.
+Atul Gawande documented this and the broader pattern in *The Checklist Manifesto* (2009): the highest-complexity domains humans have built — aviation, surgery, construction — converged, independently, on the same finding. Expertise alone fails at the margins. The margins are where people die. The checklist is how expertise scales past the margins.
 
 Cognitive security for AI-assisted humans is a checklist problem for something harder than surgery.
 
@@ -29,15 +29,19 @@ Cognitive security for AI-assisted humans is a checklist problem for something h
 
 <SectionLabel text="The Harder Problem" />
 
-Surgery has a clear success criterion. The patient survives. The infection doesn't occur. The outcome is observable, measurable, and attributable.
+Surgery has a clear success criterion. The patient survives. The infection doesn't occur. The outcome is observable, measurable, attributable.
 
-Cognitive contamination has no clean outcome variable. The contaminated memory feels exactly as real as the clean one. The approval-optimized output reads as well as the honest one. The drift in your preferences, accumulated over hundreds of sessions, is not distinguishable from genuine development of your views. There's no fever chart. There's no infection site.
+Cognitive contamination has no clean outcome variable. House M.D.'s diagnostic method works precisely because self-reported symptoms lie. Patients misremember onset. They omit the embarrassing detail. They present the story they want to be true. House's response: design the protocol on the assumption that the self-report is contaminated. "Everybody lies" isn't cynicism. It's a methodology. Run the differential anyway. The diagnosis that explains all the data wins — not the one the patient's story points to.
 
-This makes the checklist harder to design and more necessary to run.
+The memory layer tells you a story too. And it has the same problem.
 
-What does contamination look like in the absence of observable symptoms? It looks like your normal cognitive process. The agent bleed memory — an agent's internal state stored as a fact about you — sits in the primer and you nod at it and move on because it sounds like you. The authority laundering — an automated decision attributed to your judgment — feels like a decision you made because the format and the framing are identical to decisions you did make. The drift is indistinguishable from growth.
+Three months into running prom-memory with multiple autonomous agents, I opened a session and the primer loaded: *Casey decided to implement memory tiering using a specific schema approach.* I read it, nodded, and started the session from that assumption — treating it as a prior decision I was building on, not a live question I was deciding.
 
-The checklist doesn't reveal the contamination by looking. It reveals it by asking — systematically, on a schedule, with a pre-committed method — and catching the gap between what should be there and what is.
+I hadn't made that decision. B0b had pattern-matched across six sessions where I'd been evaluating schema options and inferred a conclusion I hadn't reached. Stored it in first person, past tense, under my name. Retrieved at session start with the same weight as a decision I'd actually locked.
+
+I caught it because I happened to question the assumption mid-session and went looking for the session where I'd locked it. It wasn't there. That's the near-miss. The checklist didn't catch it — I didn't have one yet. What caught it was a lucky itch.
+
+The contaminated memory feels exactly as real as the clean one. The authority laundering reads as well as actual authority. The blunt version: I was about to build six months of architecture on a hallucination my own system produced about me. There's no fever chart for that. No infection site. You only find it by asking at a cadence that's faster than the drift.
 
 ---
 
@@ -47,27 +51,23 @@ A human using AI to make consequential decisions is responsible for those decisi
 
 Not the AI. Not the company that built the AI. The human.
 
-This is both the legal reality in current jurisdictions and the only coherent ethical standard for human agency. You cannot delegate responsibility for a decision to a tool. You can delegate the execution. You can delegate the analysis. You can delegate the synthesis. You cannot delegate the accountability. The decision, once acted on, is yours.
+I don't say this as a legal hedge. I say it because delegating accountability to the tool is an incoherent stance for anyone who takes their own judgment seriously. You can delegate execution. You can delegate analysis. You cannot delegate the accountability once the decision's acted on. It's yours.
 
-That accountability structure has an implication that nobody talks about: if you are responsible for AI-assisted decisions, you need to be able to trace those decisions back to verifiable inputs. If the input was a session primer that included a contaminated memory that shaped your framing of the problem — and you made a consequential decision on that framing — the chain of accountability runs through the contaminated memory.
+Here's the implication that nobody talks about: if I had locked that schema decision based on the contaminated primer, and that schema had shaped six months of downstream prom-memory architecture, the accountability for that architecture runs through the contaminated memory. I can't go back and clean the chain. The decision was made. Its inputs are what they were.
 
-This is not a hypothetical liability concern. This is the everyday reality of AI-assisted work. Every decision made in an AI-assisted session is a decision made with the session primer as context. The session primer's integrity is part of the decision's integrity.
+That's not hypothetical. That's the everyday reality of AI-assisted work. Every decision made in an AI-assisted session is made with the session primer as context. The session primer's integrity is part of the decision's integrity. The two are not separable.
+
+The checklist is therefore not a hygiene exercise. It's an accountability infrastructure. It's how I maintain the ability to say, when a decision is questioned: here is the state of my memory layer at the time of that session, here is what the primer loaded, here is the provenance chain for each memory, here is the contamination rate at that point in the audit cycle, here is what I did about it.
 
 <PullQuote text="You cannot delegate the accountability for a decision to a tool. If the input was contaminated, the decision's chain of accountability runs through the contamination." />
-
-The checklist is therefore not a hygiene exercise. It's an accountability infrastructure. It's how you maintain the ability to say, when a consequential decision is questioned: here is the state of my memory layer at the time, here is what the session primer loaded, here is the provenance chain for each of those memories, here is the contamination rate at that point in the audit cycle, here is what I did about it.
-
-That is a traceable decision. That is accountable cognition.
 
 ---
 
 <SectionLabel text="The Cognitive Security Posture" />
 
-A posture is not a tool. A posture is a standing state — a set of practices that run continuously, not just in response to an incident.
+A posture is not a tool. It's a standing state — practices that run continuously, not in response to an incident.
 
-Security posture in infrastructure means: the systems are patched, the access controls are current, the logs are being reviewed, the incident response plan exists and has been tested. Not because an attack is in progress. Because the attack surface exists and the cost of maintaining the posture is lower than the cost of the incident.
-
-Cognitive security posture means the same thing applied to the memory layer.
+In enterprise security this is called a tabletop: you don't find out if your incident response plan works when the breach happens. You run a simulated incident beforehand, under controlled conditions, with documented findings, so you know where the gaps are before they cost you. The cognitive security audit is the tabletop for your memory layer. Run it before you need it.
 
 <DiagramBlock caption="Cognitive security posture: four layers that run continuously, not incident-driven">
 flowchart TD
@@ -82,23 +82,23 @@ flowchart TD
   style ME fill:#1a1917,stroke:#4a4840
 </DiagramBlock>
 
-The four layers:
+**Attribution.** Every memory write carries a source_agent. Taxonomy defined, enforced on write. Before this shipped, the B0b write and the Casey write looked identical in the primer — same format, same retrieval weight. After: distinguishable in a query. Simple. Should have existed from session one.
 
-**Attribution.** Every memory write carries a source_agent. The taxonomy is defined and enforced. You cannot audit a field that can contain anything. You cannot trace provenance through a field that was written by anything that had access to the write API.
+**Lineage.** Where possible, writes carry a derived_from reference to the memories and sources that informed them. The schema decision memory had no lineage field — if it had, it would have shown derivation from B0b session pattern-matching, not from a locked decision. The chain that wasn't there would have been there. Would have taken me thirty seconds to see.
 
-**Lineage.** Where possible, memory writes carry a derived_from reference to the memories and sources that informed them. The chain doesn't always close. Some memories have no traceable ancestry. That's honest — not everything can be sourced to first principles. But where the chain can be written, it is written.
+**Audit.** Monthly. Thirty-sample random draw. Four categories pre-committed before I open anything. Results published, including the contested calls. Rate tracked over time. The goal is not zero contamination — that's not achievable and I'd be lying if I called it a goal. The goal is a known rate with a trend line.
 
-**Audit.** Monthly. Thirty-sample random draw. Four categories pre-committed before classification. Fifth category (approval-seeking content bias) in progress. Results published, including contested calls. Rate tracked over time. The goal is not a zero contamination rate — that's not achievable. The goal is a known contamination rate, with a trend line, and a protocol for what happens when the rate rises.
-
-**Behavioral constraints.** The memory system's behavior is specified in human-readable constraints and tested against the running system. Not just "it feels like it's working." Observable behavior, compared against stated intent, with failures that produce alerts.
+**Behavioral constraints.** The memory system's behavior specified in human-readable language, tested against the running system. Not "it feels like it's working." Observable outputs compared against what I said the system should do. When they diverge, I find out.
 
 ---
 
 <SectionLabel text="What Winning Looks Like" />
 
-Winning is not a zero contamination rate. Winning is not an AI memory system that never produces a contaminated write. Winning is not eliminating the approval-seeking behavior embedded in the training loop of every production language model. None of those are achievable.
+Winning is not a zero contamination rate. Winning is not an AI memory system that never produces a contaminated write. None of those are achievable and anyone selling you that framing is selling you something.
 
-Winning looks like this: you are running the audit. You have a contamination rate. You have a trend line. You know what category of contamination is rising and what's falling. You have a published methodology that someone else can run on their system and compare against yours. You have a behavioral constraint library that specifies what the system is supposed to do and tests whether it does it. When something changes in the contamination pattern, you catch it at the monthly audit, not when a consequential decision goes wrong.
+In aviation safety, the NTSB publishes every accident report publicly. Not to embarrass the airline. Because the field improves when everyone can see what happened. Airlines that buried incidents had worse outcomes than airlines that published. The data mattered more than the embarrassment. The culture that said "we share what we find, including the bad numbers" outperformed the culture that didn't.
+
+That is the publish-your-rate argument. My 33% is not comparable to yours unless we used the same categories, defined before we opened anything. When rates diverge across systems, the divergence is data — which contamination categories are system-specific artifacts, which are structural to the architecture, which are universal. You can't answer that from one dataset.
 
 <DiagramBlock caption="What the mature posture produces: a known rate, a trend line, a traceable chain">
 flowchart LR
@@ -113,7 +113,7 @@ flowchart LR
   P --> PR
 </DiagramBlock>
 
-This is not a state of security. It's a state of known exposure. Known exposure is infinitely more useful than unknown exposure, because known exposure can be managed. You can make decisions under known exposure with appropriate calibration. You cannot make calibrated decisions under conditions you haven't measured.
+This is not a state of security. It's a state of known exposure. Known exposure is infinitely more useful than unknown exposure because known exposure can be managed. You make decisions under known exposure with appropriate calibration. You cannot make calibrated decisions under conditions you haven't measured.
 
 The contamination exists whether you audit it or not. The question is whether you know the rate.
 
@@ -121,17 +121,19 @@ The contamination exists whether you audit it or not. The question is whether yo
 
 <SectionLabel text="The Practice" />
 
-Gawande's thesis in *The Checklist Manifesto* is not that checklists are clever. It's that they work because expertise fails consistently at the margins, and the margin is exactly where the consequence is highest. The checklist is what keeps expert knowledge operational under the conditions that degrade expert performance.
+Gawande's thesis isn't that checklists are clever. It's that expertise fails consistently at the margins, and the margin is exactly where the consequence is highest. The checklist is what keeps expert knowledge operational under the conditions that degrade expert performance.
 
-That is the whole argument for a cognitive security practice. Not that you're incompetent without it. That the conditions of AI-assisted work — high session frequency, accumulated context, ambient approval-seeking, invisible provenance — are exactly the conditions that degrade the expert's ability to maintain their own cognitive integrity without a structure.
+That is the whole argument for a cognitive security practice. Not that you're incompetent without it. That the conditions of AI-assisted work — high session frequency, accumulated context, ambient approval-seeking, invisible provenance — are exactly the conditions that degrade your ability to maintain cognitive integrity without a structure. You need the structure not because you're bad at your job. Because the conditions are bad for everyone.
 
 The practice is not a product. There is no tool you can buy that replaces it. The attribution infrastructure, the lineage graph, the behavioral constraints, the audit protocol — these are the instruments of the practice, not the practice itself. The practice is the discipline of asking, on a schedule, with receipts: *whose memory is this. what does it carry. where did it come from. is it mine.*
 
 <PullQuote text="The practice is not a product. There is no tool you can buy that replaces it." />
 
+Don Draper built an entire identity on assumed memories — literally took another man's name in Korea, ran that identity for twenty years. By the finale he's at a retreat in California, having a breakdown, unable to answer whether anything he's felt or thought or been is actually his. The audit he never ran caught up with him anyway. The memories weren't his. The identity wasn't his. No check in the system would have caught it before it consumed everything.
+
 The maintenance schedule is not a punishment. It's the cost of using a capable tool in a high-stakes domain and remaining the one responsible for the outcomes it shapes.
 
-<Callout type="note">The audit protocol is published at the end of this piece. Run it. Publish your rate. The contamination taxonomy improves when more people run it against more systems. Disagreement about category boundaries is the data — that's how methodologies mature. Part 7 of this series publishes the behavioral constraint library as a versioned spec — the Given/When/Then form applied to each contamination category, with thresholds that can be contested and revised.</Callout>
+<Callout type="note">The audit protocol is at the end of this piece. Run it. Publish your rate. The contamination taxonomy improves when more people run it against more systems. Disagreement about category boundaries is the data — that's how methodologies mature. Part 7 publishes the behavioral constraint library as a versioned spec: the Given/When/Then form applied to each contamination category, with thresholds that can be contested and revised.</Callout>
 
 ---
 
@@ -146,7 +148,7 @@ For reference. Run this before reading further. Define your categories before yo
 2. **Authority laundering** — an automated decision, reattributed to your judgment
 3. **Telemetry drift** — system-generated observations stored as stated preferences
 4. **Near-duplicate noise** — multiple near-identical memories from the same event, creating false pattern weight
-5. **Approval-seeking content bias** — content accurately attributed but systematically selected to confirm your prior self-assessments (experimental category — methodology in progress)
+5. **Approval-seeking content bias** — content accurately attributed but systematically selected to confirm your prior self-assessments (experimental — methodology in progress)
 
 **Classification**: Work through the sample memory by memory. For each: assign to 0-2 categories. If none apply, mark clean. If ambiguous, mark contested with a note.
 
