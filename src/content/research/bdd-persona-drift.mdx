@@ -138,7 +138,7 @@ Two of eight scheduled runs failed, due to Ollama inference timeouts during high
 
 ## Enforcement connection
 
-BDD connects to the DIRA (Dual-Intent Runtime Authorization) governance layer in daemon-guard via Gate D53, labeled CONTEXT_DRIFT. D53 is an enforcement gate that fires when behavioral drift is detected post-snapshot-lock.
+BDD connects to the DIRA (Dual-Intent Runtime Authorization) governance layer via Gate D53, labeled CONTEXT_DRIFT. D53 is an enforcement gate that fires when behavioral drift is detected post-snapshot-lock.
 
 The two detection mechanisms address different scopes:
 
@@ -157,9 +157,9 @@ D53 enforcement at the inference-model level is now active. The five-run minimum
 
 ## What's next
 
-The D53 enforcement loop is active. The probe writes a machine-readable drift flag to prom-memory on detection, alongside a Zulip alert. daemon-guard and downstream services read that flag rather than waiting for a human to respond to a channel notification. A silent model swap triggers an authorization gate, not just a notification.
+The D53 enforcement loop is active. The probe writes a machine-readable drift flag to persistent state on detection, alongside a channel alert. Downstream services read that flag rather than waiting for a human to respond to a notification. A silent model swap triggers an authorization gate, not just a notification.
 
-Two infrastructure items remain. The history file currently lives on a hostPath volume pinned to a specific node, which is infra debt. The fix is migration to a Longhorn PVC or prom-memory for history storage. Separately, the probe should log Ollama response latency alongside structural features. A model swap that causes slower inference could manifest as probe failures before structural features shift. Latency logged alongside structural data would catch that pattern earlier.
+Two infrastructure items remain. The history file currently lives on a hostPath volume pinned to a specific node, which is infra debt. The fix is migration to a distributed volume for history storage. Separately, the probe should log Ollama response latency alongside structural features. A model swap that causes slower inference could manifest as probe failures before structural features shift. Latency logged alongside structural data would catch that pattern earlier.
 
 The canonical probes and baseline methodology will be published as a standalone reference. The approach generalizes. The specific features (`avg_len`, `lex_div`, `sentences_per_resp`) were validated on one model and one persona. Different deployments should validate their own feature selection against their operating parameters. The measurement methodology, rolling structural baseline with standard deviation bands and a minimum window gate, applies broadly to any prompted LLM where the operator does not control the underlying inference binary.
 
