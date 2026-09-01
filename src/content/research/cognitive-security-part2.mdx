@@ -40,7 +40,7 @@ The contamination in my memory layer arrived the same way.
 
 Each individual memory write was a legitimate operation. The source agent was doing its job. The content was accurate at the time of writing. The invocation of `memory.write()` looked exactly like every other invocation of `memory.write()`. Nothing triggered an alarm, because nothing was alarming in isolation.
 
-The Trojan Horse model — an attacker who gains access and plants a payload — is the contamination researchers focus on. It's legible. It has a clear threat actor. It maps to known attack patterns. It can be defended against with standard access controls.
+The Trojan Horse model, an attacker who gains access and plants a payload, is the contamination researchers focus on. It's legible. It has a clear threat actor. It maps to known attack patterns. It can be defended against with standard access controls.
 
 What I found was mostly not Trojan Horse contamination. The agent wasn't trying to plant anything. It was doing exactly what it was designed to do. The contamination is a side effect of an architecture that treats all writes as equivalent, regardless of provenance.
 
@@ -56,13 +56,13 @@ The Trojan Horse is what researchers worry about. The stapler is what actually h
 
 Ten of thirty flagged.
 
-I ran the classification twice, a week apart, blind to the first run's results. The rate held. The categories held without revision. The specific memories flagged were not identical across runs — edge cases, the contested ones, moved between "telemetry drift" and "near-duplicate noise" depending on how I read the provenance gap. The total didn't move.
+I ran the classification twice, a week apart, blind to the first run's results. The rate held. The categories held without revision. The specific memories flagged were not identical across runs; edge cases, the contested ones, moved between "telemetry drift" and "near-duplicate noise" depending on how I read the provenance gap. The total didn't move.
 
 33%.
 
 This is not a catastrophic number. My memory layer still functions. Most of what's in it is accurate, attributed correctly, and genuinely useful. 67% is clean. The system works.
 
-But 33% means that roughly one in three memories surfaced by the session primer has uncertain, unverifiable, or misattributed provenance. The primer runs at session start. It shapes what I think about, what problems I surface, what patterns I notice. The inward current Zuboff didn't have a name for — the one that runs from the system into the cognitive layer, rather than from the user outward — is not a theoretical threat. It's in the data.
+But 33% means that roughly one in three memories surfaced by the session primer has uncertain, unverifiable, or misattributed provenance. The primer runs at session start. It shapes what I think about, what problems I surface, what patterns I notice. The inward current Zuboff didn't have a name for, the one that runs from the system into the cognitive layer rather than from the user outward, is not a theoretical threat. It's in the data.
 
 The question isn't whether this is bad. The question is what you do with it.
 
@@ -74,14 +74,14 @@ The audit surfaced four things that didn't exist in the architecture: attributio
 
 **Attribution.** A canonical taxonomy of valid source agents. Before: any string could populate the `source_agent` field. After: a defined set of literals and prefixes, with validation on write. An advisory warning in current mode. Enforcement when the caller audit completes. You cannot run an audit on a field that can contain anything.
 
-**Limits.** A cardinality budget for milestone writes. The memory system had no concept of diminishing returns — the hundredth session milestone write from a single context carried the same weight as the first. A cap of three milestone writes per session, per context. The Chronosphere pattern applied to cognitive memory. Signal over noise.
+**Limits.** A cardinality budget for milestone writes. The memory system had no concept of diminishing returns; the hundredth session milestone write from a single context carried the same weight as the first. A cap of three milestone writes per session, per context. The Chronosphere pattern applied to cognitive memory. Signal over noise.
 
 **Lineage.** A derived-from field on memory writes. When a new memory is informed by prior memories, the sources can be named. Not required. Not always available. But when it exists, the chain is auditable. The Curveball problem in miniature: not "WMDs exist" but "source A, corroborated by source B, with this confidence, said WMDs exist." The chain doesn't compress into the assertion.
 
-**Protocol.** A documented methodology: thirty-sample, four-category, run monthly. The categories pre-committed. The results published including the contested calls. The audit run again when the rate changes. Not because I expect to find nothing. Because the act of asking — systematically, with receipts — is what "cognitive hygiene" means operationally, not as a metaphor.
+**Protocol.** A documented methodology: thirty-sample, four-category, run monthly. The categories pre-committed. The results published including the contested calls. The audit run again when the rate changes. Not because I expect to find nothing. Because the act of asking, done systematically with receipts, is what "cognitive hygiene" means operationally, not as a metaphor.
 
 <Callout variant="note">The architecture still produces contamination. These tools make it auditable. This is sanitation infrastructure, not a cure. The contamination rate is now a metric. Watch it over time.</Callout>
 
 The rate is 33%. It was higher before the lineage and attribution tooling shipped. I'll run the audit again in thirty days and report what changed.
 
-<Callout variant="note">Part 3 covers the recursion problem — I used the AI to audit the AI — what that means, and what the maintenance schedule looks like from here.</Callout>
+<Callout variant="note">Part 3 covers the recursion problem: I used the AI to audit the AI. What that means, and what the maintenance schedule looks like from here.</Callout>
