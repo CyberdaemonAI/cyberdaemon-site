@@ -724,3 +724,13 @@ Views expressed are his own.*
 [^5]: Microsoft open-sourced RAMPART, AGT, Clarity, and PyRIT in May 2026. Release coverage: The Hacker News, May 2026. The release notes explicitly identified auth-layer vulnerabilities as out of scope for RAMPART/AGT.
 
 [^6]: prempti, CNCF Falco project, github.com/falcosecurity/prempti. Tool-call policy enforcement for AI agents. The sequence-based evasion finding is documented in the project's threat model.
+
+## See also
+
+**Security architecture chain** — DIRA sits at the center of a connected set of articles on agentic authorization:
+
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the NIST SP 800-207 foundation that DIRA builds on. ZTA establishes the per-request verification principle; DIRA applies it to intent.
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — agents need identity before they can have authorization. NHI is the prerequisite layer.
+- [Human Above the Loop](/analysis/human-above-the-loop) — where humans fit in a DIRA-compliant system. Policy authoring and exception handling, not runtime approval.
+- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — a production implementation of DIRA's enforcement layer, classifying tool calls by risk tier.
+- [MCP's Security Problem Nobody's Writing About](/analysis/mcp-stateless-security) — the protocol layer where DIRA enforcement runs. Stateless sessions and token portability create gaps DIRA is designed to close.
