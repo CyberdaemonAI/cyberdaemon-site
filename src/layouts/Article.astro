@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import ArticleHero from '../components/ArticleHero.astro';
+import SeriesNav from '../components/SeriesNav.astro';
 
 interface Props {
   title: string;
@@ -9,9 +10,12 @@ interface Props {
   lane: 'research' | 'analysis' | 'build-logs';
   tags?: string[];
   readTime?: string;
+  threads?: string[];
+  slug?: string;
+  collection?: 'research' | 'analysis' | 'build-logs';
 }
 
-const { title, description, date, lane, tags = [], readTime } = Astro.props;
+const { title, description, date, lane, tags = [], readTime, threads = [], slug = '', collection = lane } = Astro.props;
 ---
 <Base title={title} description={description}>
 
@@ -25,10 +29,18 @@ const { title, description, date, lane, tags = [], readTime } = Astro.props;
       readTime={readTime}
     />
 
+    {threads.length > 0 && slug && (
+      <SeriesNav threads={threads} currentSlug={slug} collection={collection} />
+    )}
+
     <!-- Body -->
     <div class="article-body">
       <slot />
     </div>
+
+    {threads.length > 0 && slug && (
+      <SeriesNav threads={threads} currentSlug={slug} collection={collection} />
+    )}
 
   </article>
 

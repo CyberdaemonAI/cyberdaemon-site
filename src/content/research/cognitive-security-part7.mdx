@@ -1,0 +1,163 @@
+---
+title: "In Plain Language"
+description: "What you cannot specify in plain language, you cannot verify. The behavioral constraint library is the test of whether you understand the contamination taxonomy well enough to defend against it. Part 7 of a series on cognitive security for AI-assisted humans."
+date: 2026-09-01
+tags: ["cognitive-security", "prom-memory", "ai-security", "research", "bdd", "constraints"]
+topic: "Cognitive Security"
+featured: false
+threads: ["cognitive-security"]
+---
+
+import Callout from '../../components/Callout.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+
+<SectionLabel text="Feynman's Blackboard" />
+
+When Richard Feynman died in 1988, his Caltech blackboard read: "What I cannot create, I do not understand."
+
+He meant it as a standard for physics. If you understand a phenomenon deeply enough, you can derive it from first principles. If you can't derive it, you haven't understood it — you've only memorized it. The derivation is the test.
+
+The inverse is equally true and more immediately useful: what you cannot specify in plain language, you cannot verify.
+
+Not "specify in math." Not "specify in code." In plain language. In terms that someone outside the system could read and use to check whether the system is doing what it's supposed to do.
+
+The audit protocol from Part 6 is a specification in plain language. It tells you what to look for, how to sample, what counts as contamination, what to do when you find it. Anyone can run it. Anyone can compare their results to yours. The specification is what makes the methodology a methodology rather than a personal practice.
+
+Behavioral constraints work the same way. A constraint that can't be expressed in plain language is a constraint that can't be independently verified. A constraint that can't be independently verified is a constraint that can be gamed — by the system, by drift, by ordinary inattention. The specification is the defense.
+
+---
+
+<SectionLabel text="What a Constraint Must Be" />
+
+A behavioral constraint for a memory system has four requirements. Skip any one of them and the constraint stops being a constraint.
+
+**Observable.** The constraint must be checkable against system outputs — things you can actually read, query, or measure. Not against the agent's internal state. Not against its stated intentions. Against what it produced. An agent that says "I only write clean memories" provides no constraint. An agent whose writes are inspectable, tagged, and comparable against a spec provides a verifiable constraint.
+
+**Human-readable.** The constraint must be expressible in terms a non-expert could apply. This is not about dumbing it down. It's about ensuring that the thing doing the verification is not the thing being verified. If the only way to check whether the constraint is satisfied is to ask the AI, you haven't built a constraint. You've built a question.
+
+**Independently verifiable.** A third party — a different process, a different session, a different human — must be able to run the check and get the same answer. If the result depends on the verifier, the constraint isn't doing its job.
+
+**Adversary-resistant.** The constraint must not be satisfiable by optimizing around it rather than satisfying its intent. A constraint that says "source_agent must be populated" is satisfied by writing "unknown" in the field. The constraint must specify what valid values are, not just that a value exists.
+
+<DiagramBlock caption="The four properties a memory constraint must have to be verifiable">
+flowchart LR
+  O[Observable\nagainst outputs] --> V[Verifiable constraint]
+  H[Human-readable\nno expert required] --> V
+  I[Independently\nverifiable] --> V
+  A[Adversary-resistant\nno gaming the form] --> V
+  V -->|fails any one| X[Not a constraint]
+</DiagramBlock>
+
+---
+
+<SectionLabel text="The Constraint Library" />
+
+The contamination taxonomy from Part 2 identified four categories. Each category implies at least one testable constraint. Here is the library as it stands — version 1.0, written to be run against, argued with, and revised.
+
+**From agent bleed:**
+
+> *No memory in the production tier may have a source_agent value that refers to an agent's internal reasoning, emotional modeling, or inferred mental state about the human.*
+
+Observable: query the production memory tier for source_agent values. Cross-reference against the valid taxonomy (casey, claude-collaborative, claude-unilateral, harvest-auto, b0b-\*, system-\*, persona-\*). Flag any value that doesn't match. Separately: inspect memory content for first-person affect statements ("Casey is frustrated," "Casey feels confident about") that originate from source_agent values other than "casey." Those are agent bleed regardless of valid source_agent format.
+
+**From authority laundering:**
+
+> *No memory in the production tier may attribute a decision to the human when the source_agent field identifies an autonomous process.*
+
+Observable: query memories where content contains decision-attribution language ("Casey decided," "Casey chose," "Casey implemented") and source_agent is not "casey" or "claude-collaborative." Every match is a violation.
+
+**From telemetry drift:**
+
+> *Memories sourced from behavioral telemetry must be tagged at the content level as observations, not preferences.*
+
+Observable: query memories where source_agent is "harvest-auto" or a system-\* prefix and content contains preference-attribution language ("Casey prefers," "Casey typically," "Casey values"). Flag matches for review. The constraint isn't that these memories can't exist — it's that they can't be stored as though the human stated them.
+
+**From near-duplicate noise:**
+
+> *The memory layer must not contain more than two memories from the same originating session with substantially similar content (cosine similarity > 0.85).*
+
+Observable: for each session_id represented in the production tier, compute pairwise cosine similarity across that session's memories. Flag pairs above 0.85 threshold for deduplication review. The threshold is tunable — 0.85 is conservative. The constraint exists; the exact number is a parameter.
+
+**From approval-seeking content bias (experimental):**
+
+> *The session primer must not load more than two memories sourced from sessions where affect signals were uniformly positive.*
+
+Observable: if session affect data is tracked, cross-reference session_id of memories against affect records. If no affect tracking exists, this constraint cannot be enforced — that's information, not an excuse. It means the architecture needs affect tracking before this constraint becomes verifiable.
+
+<DiagramBlock caption="Constraint library: one testable constraint per contamination category">
+flowchart TD
+  AB[Agent Bleed] -->|constraint| C1["source_agent matches taxonomy\nno affect statements from agents"]
+  AL[Authority Laundering] -->|constraint| C2["decision attribution\nmust match source_agent = casey"]
+  TD[Telemetry Drift] -->|constraint| C3["harvest-auto writes\ntag as observation not preference"]
+  ND[Near-Duplicate Noise] -->|constraint| C4["pairwise similarity < 0.85\nper session"]
+  AS[Approval Bias] -->|constraint| C5["primer: max 2 memories\nfrom uniform-positive sessions"]
+  C1 --> VL[Verification Layer]
+  C2 --> VL
+  C3 --> VL
+  C4 --> VL
+  C5 --> VL
+</DiagramBlock>
+
+---
+
+<SectionLabel text="The Given/When/Then Form" />
+
+Behavior-Driven Development uses a structured specification language: Given (the precondition), When (the triggering event), Then (the required outcome). The form is precise enough to be executable and plain enough to be read by anyone.
+
+Applied to memory system constraints:
+
+> **Given** a memory write with source_agent "harvest-auto"
+> **When** the content contains the phrase "Casey prefers" or "Casey values"
+> **Then** the write must be flagged as telemetry-observation before storage, not stored as stated preference
+
+> **Given** a session primer request for context "prometheus"
+> **When** the top-five memories include more than two entries with the same source_agent
+> **Then** the primer must deselect the excess entries and replace with next-highest-relevance from a different source_agent
+
+> **Given** a memory write with source_agent "b0b-dispatcher"
+> **When** the content contains first-person attribution to the human ("Casey decided," "Casey judged")
+> **Then** the write must be rejected with a validation error, not stored in any tier
+
+The form is testable. You can run these against the production system. They either pass or they don't.
+
+<PullQuote text="The specification is what makes the methodology a methodology rather than a personal practice." />
+
+---
+
+<SectionLabel text="Publishing the Library" />
+
+A constraint library that only one person runs is a personal practice. A constraint library published for others to test is a methodology.
+
+The contamination taxonomy in Part 2 is a methodology. Other people have run it — or will run it. The comparison of rates across different systems is where the methodology matures: which categories are system-specific artifacts, which are structural to the architecture, which are universal to any persistent AI memory layer. You can't answer that from one dataset.
+
+The constraint library is the same. Version 1.0 above is a starting point. The thresholds (0.85 cosine similarity, 2 primer entries per source_agent) are parameters, not facts. They emerged from one audit on one system. They should be contested. If your system produces false positives at 0.85, try 0.90. If your primer is dominated by a single source_agent at a different frequency, adjust the cap. Document what you changed and why.
+
+The library improves through use and disagreement. That's not a limitation. That's how methodologies work.
+
+<DiagramBlock caption="The constraint library as a shared, versioned resource">
+flowchart LR
+  V1[Version 1.0\nthis document] -->|run against systems| R[Results]
+  R -->|disagreements and edge cases| PR[Proposed revisions]
+  PR -->|community review| V2[Version 1.1]
+  V2 --> R
+  R -->|new contamination pattern found| NC[New constraint]
+  NC --> V2
+</DiagramBlock>
+
+<Callout type="note">The constraint library is versioned. This is version 1.0. Submit contested thresholds and new constraint proposals with the system type, sample size, and false-positive rate that motivated the change. The goal is a constraint set that works across different memory architectures, not one optimized for a single system.</Callout>
+
+---
+
+<SectionLabel text="Looking Back" />
+
+Mary Shelley was nineteen when she wrote it.
+
+Victor Frankenstein assembled the thing from parts with unknown provenance, achieved the technical feat, watched it breathe, and ran. No audit. No accounting for what he'd put in. No "what does this carry."
+
+The practice this series documents is the practice of looking back. Not once. Not dramatically. Monthly, with a method, with receipts, with published results. The constraint library is the most operationalized form of that practice: you write down, in plain language, what the system is supposed to do. You check whether it does it. You publish the difference.
+
+The monster doesn't start evil. It becomes what it becomes in the absence of that practice.
+
+The specification is the act of looking back. Run it. Publish what you find.

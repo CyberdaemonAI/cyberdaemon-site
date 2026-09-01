@@ -1,0 +1,133 @@
+---
+/**
+ * /threads/[thread] — landing page for a content thread.
+ * Lists all articles across collections that share this thread tag,
+ * in reading order (date ASC, slug ASC for same-date).
+ * Renders a Mermaid sequence diagram of the series arc.
+ */
+import Base from '../../layouts/Base.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const research   = await getCollection('research',   e => !e.data.draft);
+  const analysis   = await getCollection('analysis',   e => !e.data.draft);
+  const buildLogs  = await getCollection('build-logs', e => !e.data.draft);
+
+  const allArticles = [
+    ...research.map(e  => ({ ...e, lane: 'research'   as const, href: `/research/${e.slug}`   })),
+    ...analysis.map(e  => ({ ...e, lane: 'analysis'   as const, href: `/analysis/${e.slug}`   })),
+    ...buildLogs.map(e => ({ ...e, lane: 'build-logs' as const, href: `/build-logs/${e.slug}` })),
+  ];
+
+  // Collect all unique thread slugs across all articles
+  const threadSet = new Set<string>();
+  for (const a of allArticles) {
+    for (const t of (a.data.threads ?? [])) threadSet.add(t);
+  }
+
+  return [...threadSet].map(thread => ({
+    params: { thread },
+    props: {
+      thread,
+      articles: allArticles
+        .filter(a => (a.data.threads ?? []).includes(thread))
+        .sort((a, b) => {
+          const d = a.data.date.valueOf() - b.data.date.valueOf();
+          return d !== 0 ? d : a.slug.localeCompare(b.slug);
+        })
+        .map(a => ({
+          title: a.data.title,
+          description: a.data.description ?? '',
+          slug: a.slug,
+          href: a.href,
+          lane: a.lane,
+          date: a.data.date,
+        })),
+    },
+  }));
+}
+
+const { thread, articles } = Astro.props;
+
+function threadLabel(t: string) {
+  return t.split('-').map((w: string) => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+const label = threadLabel(thread);
+
+function fmt(d: Date) {
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+}
+
+const laneColors: Record<string, string> = {
+  'research':   'text-lane-research',
+  'analysis':   'text-lane-analysis',
+  'build-logs': 'text-lane-buildlog',
+};
+
+const laneLabels: Record<string, string> = {
+  'research':   'R',
+  'analysis':   'A',
+  'build-logs': 'B',
+};
+
+// Build Mermaid diagram for the series arc
+// Nodes: article index → short label (Part N or first 4 words of title)
+function shortTitle(title: string, idx: number): string {
+  const words = title.replace(/^Part \d+[:\s—–-]*/, '').trim().split(' ').slice(0, 4).join(' ');
+  return `P${idx + 1}["${words}"]`;
+}
+
+const mermaidNodes = articles.map((a, i) => shortTitle(a.title, i)).join('\n  ');
+const mermaidEdges = articles.slice(1).map((_, i) => `P${i + 1} --> P${i + 2}`).join('\n  ');
+const mermaidDiagram = `flowchart LR\n  ${mermaidNodes}\n  ${mermaidEdges}`;
+---
+
+<Base title={`${label} — Series`} description={`All articles in the ${label} series on cyberdaemon.ai`}>
+  <div class="max-w-article mx-auto px-6 py-16">
+
+    <header class="mb-10">
+      <p class="lane-tag mb-4">Series</p>
+      <h1 class="font-serif text-title text-text-primary mb-3">{label}</h1>
+      <p class="font-sans text-text-secondary" style="font-size: 0.9375rem;">
+        {articles.length} {articles.length === 1 ? 'article' : 'articles'} in reading order.
+      </p>
+    </header>
+
+    {articles.length > 1 && (
+      <DiagramBlock caption={`${label} — series arc`}>
+        {mermaidDiagram}
+      </DiagramBlock>
+    )}
+
+    <ol class="flex flex-col gap-8 mt-10" style="list-style: none; padding: 0;">
+      {articles.map((article, i) => (
+        <li class="flex gap-5 items-start">
+          <span class="font-mono text-text-muted shrink-0 pt-1" style="font-size: 0.75rem; min-width: 2rem;">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <div class="flex-1">
+            <a href={article.href} class="group block">
+              <h2 class="font-serif text-text-primary group-hover:text-accent transition-colors mb-1 leading-snug"
+                  style="font-size: 1.125rem;">
+                {article.title}
+              </h2>
+              {article.description && (
+                <p class="font-sans text-text-secondary leading-relaxed mb-2" style="font-size: 0.875rem;">
+                  {article.description}
+                </p>
+              )}
+              <div class="flex items-center gap-3">
+                <span class={`font-sans text-label font-bold ${laneColors[article.lane]}`}>
+                  {laneLabels[article.lane]}
+                </span>
+                <time class="font-sans text-text-muted" style="font-size: 0.8125rem;">{fmt(article.date)}</time>
+              </div>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ol>
+
+  </div>
+</Base>
