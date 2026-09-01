@@ -37,20 +37,22 @@ Then I dispatched more agents with that document as their instructions. They wro
 
 <ScrollReveal>
 <DiagramBlock caption="The bootstrap loop: agent writes spec, spec drives article dispatch">
-{`graph LR
-    A[Work Item: Write Article Spec] --> B[Agent reads system, style guide, examples]
-    B --> C[Agent writes spec document]
+```mermaid
+flowchart LR
+    A([Work Item: Write Article Spec]) --> B[Agent reads system, style guide, examples]
+    B --> C[(Agent writes spec document)]
     C --> D[Article work items dispatched]
     D --> E[Agents write articles using spec]
-    E --> F[Pull requests opened, Casey reviews]
-    F --> G[Articles published]
+    E --> F[/Pull requests opened, Casey reviews/]
+    F --> G([Articles published])
     style A fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style B fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style C fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style D fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style E fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style F fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
-    style G fill:#1a1917,stroke:#9b8ecf,color:#e8e5de`}
+    style G fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
+```
 </DiagramBlock>
 </ScrollReveal>
 

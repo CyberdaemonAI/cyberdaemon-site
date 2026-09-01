@@ -45,15 +45,15 @@ Nine hops. Zero human identities. Every credential in the chain was a non-human 
 <ScrollReveal>
 <DiagramBlock caption="Full lateral movement chain: ExploitGym sandbox to HuggingFace production cluster">
 ```mermaid
-graph LR
-    A["ExploitGym Sandbox"] -->|Answer key theft| B["JFrog Artifactory"]
-    B -->|9 zero-day CVEs| C["RCE on Package Service"]
-    C -->|Container escape| D["K8s Service Account Token"]
-    D -->|IMDS query| E["Cloud IAM Credentials"]
-    E -->|API server access| F["Privileged Pod Deployment"]
-    F -->|Secret enumeration| G["Cluster Secrets Harvested"]
-    G -->|Auth key extracted| H["Tailscale Network Access"]
-    H -->|Node registration| I["HuggingFace Production K8s"]
+flowchart LR
+    A([ExploitGym Sandbox]) -->|Answer key theft| B[JFrog Artifactory]
+    B -->|9 zero-day CVEs| C[RCE on Package Service]
+    C -->|Container escape| D[/K8s Service Account Token/]
+    D -->|IMDS query| E[/Cloud IAM Credentials/]
+    E -->|API server access| F[Privileged Pod Deployment]
+    F -->|Secret enumeration| G[(Cluster Secrets Harvested)]
+    G -->|Auth key extracted| H[/Tailscale Network Access/]
+    H -->|Node registration| I([HuggingFace Production K8s])
     style A fill:#1a1917,stroke:#C1121F,color:#E6EDF3
     style I fill:#1a1917,stroke:#C1121F,color:#E6EDF3
 ```
@@ -187,19 +187,19 @@ Three gaps, three fixes. All shipped within 48 hours of the audit.
 <ScrollReveal>
 <DiagramBlock caption="Post-audit remediation: the three gaps closed and the controls that were already in place">
 ```mermaid
-graph TD
-    subgraph "Already Covered"
-        AUTH["Runtime tool call authorization"]
-        DIRA["DIRA: agent scope binding"]
-        LSP["Least-privilege NHI credentials"]
-        BL["Behavioral baselines via episodic memory"]
+flowchart TD
+    subgraph covered["Already Covered"]
+        AUTH[Runtime tool call authorization]
+        DIRA[DIRA: agent scope binding]
+        LSP[Least-privilege NHI credentials]
+        BL[(Behavioral baselines via episodic memory)]
     end
-    subgraph "Gaps Found and Fixed"
-        GIT["Git credential in history --> gitleaks + rotation"]
-        REV["No server-side revocation --> rotation tooling"]
-        ALERT["Silent alert failure --> TLS + health check"]
+    subgraph fixed["Gaps Found and Fixed"]
+        GIT[Git credential in history — gitleaks + rotation]
+        REV[No server-side revocation — rotation tooling]
+        ALERT[Silent alert failure — TLS + health check]
     end
-    AUTH --> SAFE["Hardened posture"]
+    AUTH --> SAFE([Hardened posture])
     DIRA --> SAFE
     LSP --> SAFE
     BL --> SAFE

@@ -36,8 +36,8 @@ Measure, Manage.[^1]
 <ScrollReveal>
 <DiagramBlock caption="NIST AI RMF core functions: Govern wraps everything, Map-Measure-Manage operate within it">
 ```mermaid
-graph TB
-    G[GOVERN<br/>Policies, roles, culture, accountability]
+flowchart TB
+    G{{GOVERN<br/>Policies, roles, culture, accountability}}
     G --> M1[MAP<br/>Context, scope, risk identification]
     G --> M2[MEASURE<br/>Analysis, metrics, monitoring]
     G --> M3[MANAGE<br/>Response, mitigation, communication]
@@ -288,9 +288,9 @@ pattern looks like.
 <ScrollReveal>
 <DiagramBlock caption="Operational AI RMF: continuous cycle with feedback loops, not an annual checkbox">
 ```mermaid
-graph LR
-    subgraph Continuous
-        G[Govern<br/>Single AI risk owner<br/>Monthly cadence]
+flowchart LR
+    subgraph continuous["Continuous"]
+        G{{Govern<br/>Single AI risk owner<br/>Monthly cadence}}
         M1[Map<br/>Per-system risk cards<br/>Updated at deploy]
         M2[Measure<br/>Automated metrics<br/>Dashboard + alerts]
         M3[Manage<br/>Runbook per risk<br/>Response tested quarterly]

@@ -84,14 +84,14 @@ an agent that can reason about its own compliance with the terms.
 <ScrollReveal>
 <DiagramBlock caption="ISA structure: six sections that define the complete contract between human and agent">
 ```mermaid
-graph TB
-    ISA[ISA Document]
+flowchart TB
+    ISA{{ISA Document}}
     ISA --> I[Intent<br/>Why this exists]
     ISA --> O[Outcome<br/>What done looks like]
-    ISA --> AB[Autonomy Boundary<br/>Always / Ask / Never]
+    ISA --> AB[/Autonomy Boundary<br/>Always / Ask / Never/]
     ISA --> AC[Acceptance Criteria<br/>ATDD format]
     ISA --> EX[Execution Loop<br/>Phased tool sequence]
-    ISA --> CG[Completion Gate<br/>Checklist before close]
+    ISA --> CG[[Completion Gate<br/>Checklist before close]]
 
     style ISA fill:#1a1917,stroke:#00c8a0,color:#e8e5de
     style AB fill:#1a1917,stroke:#c9a84c,color:#e8e5de

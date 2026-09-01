@@ -27,6 +27,7 @@ function fmt(d: Date) {
 const agentsArticles  = byThread('agents-as-people');
 const intentArticles  = byThread('intent-consent');
 const smallLargeArticles = byThread('small-vs-large');
+const cogSecArticles = byThread('cognitive-security');
 ---
 <Base
   title="Manifesto — cyberdaemon.ai"
@@ -141,6 +142,32 @@ const smallLargeArticles = byThread('small-vs-large');
           <p class="thread-label">Related</p>
           <ul>
             {smallLargeArticles.map(e => (
+              <li>
+                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <span class="thread-date">{fmt(e.data.date)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <h2 id="cognitive-security">What the system does to the person who uses it</h2>
+
+      <p>
+        AI memory extends human cognition. That's the design intention. The question I wasn't
+        asking: what does sustained, personalized AI interaction do to the cognitive layer it's
+        extending? Memory systems shape what you retrieve. Session primers shape what you think
+        about at the start of every working session. An AI that models your preferences, your
+        emotional states, your decision patterns -- and surfaces that model back at you across
+        hundreds of sessions -- is not neutral. The inward current runs from the system into the
+        cognitive layer. Nobody asked what happens when the extension starts writing back.
+      </p>
+
+      {cogSecArticles.length > 0 && (
+        <div class="related-thread">
+          <p class="thread-label">Related</p>
+          <ul>
+            {cogSecArticles.map(e => (
               <li>
                 <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
                 <span class="thread-date">{fmt(e.data.date)}</span>

@@ -135,18 +135,23 @@ I chose file-first specifically because I wanted recovery to work even when the 
 
 <ScrollReveal>
 <DiagramBlock caption="Handoff flow: task file updated continuously, stop hook snapshots on every response">
-{`graph LR
-    A[Agent executes step] --> B[Updates task file]
-    B --> C[Step complete]
-    C --> D[Stop hook fires]
-    D --> E[Reads task file]
-    E --> F[Writes snapshot JSON]
-    F --> G[Next session loads snapshot]
-    G --> H[Reads next_action]
-    H --> I[Executes without reconstruction]
-    style D fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
-    style F fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
-    style I fill:#1a1917,stroke:#00c8a0,color:#e8e5de`}
+```mermaid
+sequenceDiagram
+    participant A as Agent: current session
+    participant TF as Task File
+    participant Hook as Stop Hook
+    participant Snap as Snapshot JSON
+    participant Next as Next Session
+
+    A->>TF: Execute step, update progress
+    A->>TF: Mark step complete
+    Hook-->>TF: Read on every response completion
+    Hook->>Snap: Write snapshot
+    Note over Snap: next_action, dirty state, open questions<br/>recovery.confidence = null
+    Next->>Snap: Load on session start
+    Next->>Next: Read next_action
+    Note over Next: Executes without reconstruction
+```
 </DiagramBlock>
 </ScrollReveal>
 

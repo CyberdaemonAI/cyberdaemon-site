@@ -75,16 +75,16 @@ dependency order.
 <ScrollReveal>
 <DiagramBlock caption="CI pipeline before and after: adding the test gate">
 ```mermaid
-graph LR
-    subgraph Before["Before: No Gate"]
-        P1["Push to any branch"] --> B1["Docker Build + Push"]
+flowchart LR
+    subgraph before["Before: No Gate"]
+        P1([Push to any branch]) --> B1[Docker Build + Push]
     end
 
-    subgraph After["After: Agent-Wired Pipeline"]
-        P2["Push / PR"] --> T["pytest (19 tests)"]
-        T -->|"Pass"| B2["Docker Build"]
-        B2 -->|"main only"| Push["Docker Push"]
-        T -->|"Fail"| X["Build blocked"]
+    subgraph after["After: Agent-Wired Pipeline"]
+        P2([Push / PR]) --> T[[pytest: 19 tests]]
+        T -->|Pass| B2[Docker Build]
+        B2 -->|main only| Push([Docker Push])
+        T -->|Fail| X[[Build blocked]]
     end
 ```
 </DiagramBlock>
@@ -215,25 +215,25 @@ This dispatch revealed a clean division of labor between agents and humans.
 <ScrollReveal>
 <DiagramBlock caption="Where agents excel vs. where humans are needed">
 ```mermaid
-graph TD
-    subgraph Agent["Agent Strengths"]
-        A1["YAML structure"]
-        A2["Job dependency wiring"]
-        A3["Conditional logic"]
-        A4["Branch triggers"]
-        A5["Boilerplate generation"]
+flowchart TD
+    subgraph agent["Agent Strengths"]
+        A1[YAML structure]
+        A2[Job dependency wiring]
+        A3[Conditional logic]
+        A4[Branch triggers]
+        A5[Boilerplate generation]
     end
 
-    subgraph Human["Human Strengths"]
-        H1["Regex debugging"]
-        H2["Semantic mismatch detection"]
-        H3["Context the agent never had"]
-        H4["Pattern-to-input reasoning"]
+    subgraph human["Human Strengths"]
+        H1[Regex debugging]
+        H2[Semantic mismatch detection]
+        H3[Context the agent never had]
+        H4[Pattern-to-input reasoning]
     end
 
-    subgraph Overlap["Shared"]
-        O1["Test writing"]
-        O2["Code review"]
+    subgraph overlap["Shared"]
+        O1[Test writing]
+        O2[Code review]
     end
 ```
 </DiagramBlock>

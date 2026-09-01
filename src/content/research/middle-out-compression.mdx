@@ -117,17 +117,24 @@ Middle-Out operates in three stages, applied to the middle band of a temporal ep
 <ScrollReveal>
 <DiagramBlock caption="Middle-Out compression pipeline: detect bands, cluster the middle, summarize each cluster">
 ```mermaid
-graph LR
-    A[Memory Timeline] --> B[Band Detection]
-    B --> C[Foundation Band]
-    B --> D[Middle Band]
-    B --> E[Active Band]
+flowchart LR
+    A[(Memory Timeline)] --> B{Band Detection}
+
+    subgraph bands["Band Classification"]
+        C([Foundation Band\nhigh-retrieval, never compress])
+        D([Middle Band\ncompressible])
+        E([Active Band\nrecent, intact])
+    end
+
+    B --> C
+    B --> D
+    B --> E
     D --> F[Semantic Clustering]
     F --> G[Abstractive Summarization]
-    G --> H[Compressed Memory]
-    C --> I[Final Memory Store]
-    H --> I
-    E --> I
+    G --> H[(Compressed Memory)]
+    C --> OUT[(Final Memory Store)]
+    H --> OUT
+    E --> OUT
 ```
 </DiagramBlock>
 </ScrollReveal>

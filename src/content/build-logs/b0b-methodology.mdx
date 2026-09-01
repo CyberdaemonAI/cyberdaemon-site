@@ -60,24 +60,18 @@ priority, and a description. The dispatch model is simple: work items go in, PRs
 <ScrollReveal>
 <DiagramBlock caption="Fleet architecture: task dispatch to isolated agent instances">
 ```mermaid
-graph TD
-    A[Work Item Queue] --> B[Dispatch Controller]
-    B --> C[Agent Instance 1]
-    B --> D[Agent Instance 2]
-    B --> E[Agent Instance 3]
-    B --> F[Agent Instance 4]
-    C --> G[PR to GitHub]
-    D --> G
-    E --> G
-    F --> G
-    C --> H[Memory Write]
-    D --> H
-    E --> H
-    F --> H
-    C --> I[Ops Notification]
-    D --> I
-    E --> I
-    F --> I
+flowchart TD
+    A[(Work Item Queue)] --> B[Dispatch Controller]
+    B --> C & D & E & F
+
+    C[Agent Instance 1]
+    D[Agent Instance 2]
+    E[Agent Instance 3]
+    F[Agent Instance 4]
+
+    C & D & E & F --> G([PR to GitHub])
+    C & D & E & F --> H[(Memory Write)]
+    C & D & E & F --> I([Ops Notification])
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -110,18 +104,18 @@ The startup sequence follows a strict pipeline:
 <ScrollReveal>
 <DiagramBlock caption="Agent instance lifecycle: auth, workspace, tools, then listen">
 ```mermaid
-graph TD
-    A[Container Starts] --> B[Init Script]
+flowchart TD
+    A([Container Starts]) --> B[Init Script]
     B --> C[Auth Token Generation]
     C --> D[Git Clone Target Repo]
     D --> E[Tool Config Write]
     E --> F[Credential Setup]
-    F --> G[Task Runner Starts]
+    F --> G([Task Runner Starts])
     G --> H{Waiting for Dispatch}
     H -->|Task Received| I[Agent Session Executes]
     I --> J[Commit + Push + PR]
-    J --> K[Memory Write]
-    K --> L[Ops Notification]
+    J --> K[(Memory Write)]
+    K --> L([Ops Notification])
     L --> H
 ```
 </DiagramBlock>

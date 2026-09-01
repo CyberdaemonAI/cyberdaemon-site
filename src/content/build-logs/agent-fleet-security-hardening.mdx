@@ -46,11 +46,33 @@ A three-policy structure: deny all egress by default, then explicit allows for c
 <DiagramBlock caption="Three-policy egress structure: deny-all base, explicit internal and external allows layered on top">
 ```mermaid
 flowchart TD
-    Pod([Agent Pod]) --> D[deny-all-egress\nbase policy]
-    D --> A1[allow-internal-egress\nDNS :53\nPod CIDR · Service CIDR\nLoad Balancer VIP :443]
-    D --> A2[allow-external-egress\n:443 only\nexclude RFC 1918]
-    A1 --> Internal([Memory layer\nRAG service\nOrchestrator\nInternal APIs])
-    A2 --> External([AI API\nGitHub\nnpm registry])
+    subgraph fleet["Agent Fleet"]
+        Pod([Pod])
+    end
+
+    subgraph policies["NetworkPolicy Stack — applied in order"]
+        D{{"deny-all-egress (default)"}}
+        I["allow-internal\nDNS · Pod CIDR · Service CIDR · LB VIP :443"]
+        E["allow-external\n:443 only · exclude RFC 1918"]
+    end
+
+    subgraph cluster["Cluster Services"]
+        mem([Memory Layer])
+        rag([RAG Service])
+        orch([Orchestrator])
+    end
+
+    subgraph internet["External Services"]
+        ai([AI API])
+        gh([GitHub])
+        npm([npm])
+    end
+
+    Pod --> D
+    D -->|"explicit allow"| I
+    D -->|"explicit allow"| E
+    I --> cluster
+    E --> internet
 ```
 </DiagramBlock>
 

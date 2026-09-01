@@ -41,11 +41,11 @@ It did not. The cost moved.
 <ScrollReveal>
 <DiagramBlock caption="The pipeline did not get shorter, the expensive step moved left">
 ```mermaid
-graph LR
-    A[Intent in a human head] --> B[Specification]
+flowchart LR
+    A([Intent in a human head]) --> B[/Specification/]
     B --> C[Implementation]
     C --> D[Verification]
-    D --> E[Shipped]
+    D --> E([Shipped])
     style B fill:#1a1917,stroke:#c9a84c,color:#e8e5de
     style C fill:#1a1917,stroke:#00c8a0,color:#e8e5de
 ```

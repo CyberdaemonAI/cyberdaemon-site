@@ -156,15 +156,15 @@ as deltas accumulate.
 <ScrollReveal>
 <DiagramBlock caption="PADCN centroid drift: session deltas accumulate into a slowly-moving baseline">
 ```mermaid
-graph LR
-    A[Session Start] --> B[Fetch Centroid]
+flowchart LR
+    A([Session Start]) --> B[(Fetch Centroid)]
     B --> C[Session Events]
     C --> D[Compute Deltas]
     D --> E[Apply to Working State]
     E --> F[Per-Response Tone Injection]
     D --> G[Update Centroid]
-    G --> H[Rolling Average]
-    H --> B
+    G --> H[(Rolling Average)]
+    H -->|"next session"| B
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -329,24 +329,21 @@ should be governed or uncontrolled.
 
 <DiagramBlock caption="PADCN system architecture: state service owns state, persona broker consumes it, episodic memory persists it">
 ```mermaid
-graph TB
-    subgraph Agent Stack
-        DS[State Service<br/>PADCN owner]
-        PB[Persona Broker<br/>Response assembly]
-        EM[Episodic Memory<br/>Centroid persistence]
-        ENR[Enrichment Layer<br/>Tone injection]
+flowchart TB
+    OP([Session Operator]) -->|"update-affect"| DS
+
+    subgraph stack["Agent Stack"]
+        DS[(State Service\nPADCN owner)]
+        PB[Persona Broker\nResponse assembly]
+        EM[(Episodic Memory\nCentroid persistence)]
+        ENR[Enrichment Layer\nTone injection]
     end
 
-    OP[Session Operator] -->|update-affect| DS
-    DS -->|persona-state| PB
-    PB -->|tone directives| ENR
-    ENR -->|enriched prompt| LLM[Inference Model]
-    DS -->|centroid save| EM
-    EM -->|centroid load| DS
-
-    style DS fill:#1a1917,stroke:#00c8a0,color:#e8e5de
-    style PB fill:#1a1917,stroke:#c9a84c,color:#e8e5de
-    style EM fill:#1a1917,stroke:#706e68,color:#e8e5de
+    DS -->|"persona-state"| PB
+    PB -->|"tone directives"| ENR
+    ENR -->|"enriched prompt"| LLM([Inference Model])
+    DS -->|"centroid save"| EM
+    EM -->|"centroid load"| DS
 ```
 </DiagramBlock>
 

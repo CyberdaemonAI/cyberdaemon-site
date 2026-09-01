@@ -69,14 +69,15 @@ The taxonomy is broader than most teams realize. Every one of these is an NHI, a
 <ScrollReveal>
 <DiagramBlock caption="NHI taxonomy: agents inherit every credential class below them, then add new ones">
 ```mermaid
-graph TD
-    A[Non-Human Identities] --> B[Service Accounts]
-    A --> C[API Keys]
-    A --> D[OAuth Client Credentials]
-    A --> E[Workload Certificates]
-    A --> F[CI/CD Tokens]
-    A --> G[Bot Accounts]
-    A --> H[AI Agent Identities]
+flowchart TD
+    NHI([Non-Human Identities])
+    NHI --> B[Service Accounts]
+    NHI --> C[API Keys]
+    NHI --> D[OAuth Client Credentials]
+    NHI --> E[Workload Certificates]
+    NHI --> F[CI/CD Tokens]
+    NHI --> G[Bot Accounts]
+    NHI --> H([AI Agent Identities])
     H --> I[Agent OAuth Tokens]
     H --> J[MCP Client Credentials]
     H --> K[Delegated User Tokens]
@@ -156,15 +157,15 @@ Every identity has a lifecycle: creation, use, maintenance, and retirement. Huma
 <ScrollReveal>
 <DiagramBlock caption="Agent NHI lifecycle: every phase has controls that most orgs skip entirely">
 ```mermaid
-graph LR
-    A[Discovery] --> B[Provisioning]
+flowchart LR
+    A([Discovery]) --> B[Provisioning]
     B --> C[Scoping]
     C --> D[Operation]
     D --> E[Monitoring]
     E --> F[Rotation]
     F --> G[Deprovisioning]
     G --> A
-    E -->|Anomaly| H[Incident Response]
+    E -->|"Anomaly detected"| H([Incident Response])
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -240,19 +241,31 @@ AI agents break every one of these assumptions.
 <ScrollReveal>
 <DiagramBlock caption="Zero trust verification model: where traditional controls fail for agent NHIs">
 ```mermaid
-graph TD
-    A[Zero Trust Policy Engine] --> B{Identity Verified?}
-    B -->|Human| C[MFA + SSO + UEBA]
-    B -->|Agent NHI| D[??? ]
-    A --> E{Device Verified?}
-    E -->|Human| F[EDR + Posture Check]
-    E -->|Agent NHI| G[No device to check]
-    A --> H{Context Verified?}
-    H -->|Human| I[Location + Time + Risk Score]
-    H -->|Agent NHI| J[No location. Ephemeral session.]
-    A --> K{Continuous Verification?}
-    K -->|Human| L[Session re-evaluation]
-    K -->|Agent NHI| M[Token expires or it doesn't]
+flowchart TD
+    PDP["Zero Trust Policy Engine"]
+
+    subgraph human["Human Controls (solved)"]
+        H1([MFA + SSO + UEBA])
+        H2([EDR + Posture Check])
+        H3([Location + Time + Risk Score])
+        H4([Session Re-evaluation])
+    end
+
+    subgraph agent["Agent NHI Controls (gap)"]
+        A1{{No standard answer}}
+        A2{{No device to check}}
+        A3{{No location. Ephemeral.}}
+        A4{{Token expires — or it doesn't}}
+    end
+
+    PDP -->|"Identity verified? Human"| H1
+    PDP -->|"Device verified? Human"| H2
+    PDP -->|"Context verified? Human"| H3
+    PDP -->|"Continuous? Human"| H4
+    PDP -->|"Identity verified? Agent NHI"| A1
+    PDP -->|"Device verified? Agent NHI"| A2
+    PDP -->|"Context verified? Agent NHI"| A3
+    PDP -->|"Continuous? Agent NHI"| A4
 ```
 </DiagramBlock>
 </ScrollReveal>
