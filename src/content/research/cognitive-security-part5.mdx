@@ -84,7 +84,7 @@ flowchart TD
 
 The implementation I run: three access tiers. Autonomous agents (B0b, km-aggregator, daemon-bdd behavioral signals) write to quarantine only. Claude operating collaboratively with human in session writes to all tiers. Casey writes without restriction. Promotion from quarantine requires review — currently manual, with automation coming when the adversarial audit watcher ships.
 
-This isn't perfect. Collaborative Claude still writes without a quarantine step. That's a known gap — the conversational AI with hundreds of hours of session access is not a lower-risk writer than B0b. It's a higher-risk writer with better access. The honest accounting: the architecture reduces autonomous agent contamination. It doesn't solve the conversational contamination from Part 4. Those are different problems.
+This isn't perfect. Collaborative Claude still writes without a quarantine step — and so does claude-unilateral, which refers to Claude acting without the human in the session loop. That's a gap the diagram obscures: an autonomous Claude action carries the same provenance risk as a B0b action, but the current tier model grants it full access. The honest accounting: the architecture reduces high-volume autonomous agent contamination. It doesn't solve the conversational contamination from Part 4, and it doesn't yet treat unilateral Claude actions as requiring review. Those are different problems with different mitigations, both open.
 
 ---
 
@@ -108,6 +108,6 @@ flowchart LR
   R -->|pass: proceed| PR[Production]
 </DiagramBlock>
 
-The implementation runs on daemon-bdd-mcp in production. The constraint language is not yet published as a spec. That's a gap. The next article in this series covers what a mature behavioral constraint library looks like and what constraint categories the contamination taxonomy implies.
+The implementation runs on daemon-bdd-mcp in production. Part 7 of this series publishes the constraint language as a versioned spec — the full library, the Given/When/Then form applied to each contamination category, and the methodology for contesting thresholds.
 
 <Callout type="note">The quarantine architecture reduces autonomous agent contamination by isolating high-volume, low-human-oversight writers. It does not address approval-seeking content bias from conversational AI (Part 4). Both problems require their own mitigations. Neither replaces the monthly audit.</Callout>
