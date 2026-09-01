@@ -64,18 +64,18 @@ actually contains, not just which tool it invokes.
 <ScrollReveal>
 <DiagramBlock caption="CB4A tier classification: every tool call gets a tier before execution">
 ```mermaid
-graph TD
-    A[Tool Call Arrives] --> B{Fast Path: Regex Rules}
-    B -->|Match: HARD rule| C[Tier Assigned]
-    B -->|Match: SOFT rule| D[Ceiling Applied]
+flowchart TD
+    A([Tool Call Arrives]) --> B{Fast Path: Regex Rules}
+    B -->|Match: HARD rule| C[/Tier Assigned/]
+    B -->|Match: SOFT rule| D[/Ceiling Applied/]
     B -->|No match / Ambiguous| E{Semantic Path: LLM Classifier}
     E --> C
     D --> C
     C --> F{Tier?}
-    F -->|T1: Benign| G[Auto-approve, Log]
+    F -->|T1: Benign| G([Auto-approve, Log])
     F -->|T2: Review| H[Execute, Queue for Review]
-    F -->|T3: Gate| I[Block Until Rule Match or HITL]
-    F -->|T4: Block| J[Hard Block, Alert]
+    F -->|T3: Gate| I[[Block Until Rule Match or HITL]]
+    F -->|T4: Block| J[[Hard Block, Alert]]
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -260,15 +260,15 @@ without a human at the keyboard.
 <ScrollReveal>
 <DiagramBlock caption="Authorization gateway: CB4A as one layer in a multi-stage pipeline">
 ```mermaid
-graph LR
-    A[Agent Tool Call] --> B[Authorization Gateway]
+flowchart LR
+    A([Agent Tool Call]) --> B[Authorization Gateway]
     B --> C[Intent Validation]
-    C --> D[CB4A Tier Classification]
+    C --> D[[CB4A Tier Classification]]
     D --> E[PII Scanner]
     E --> F{Tier Decision}
-    F -->|T1/T2| G[Execute + Log]
-    F -->|T3| H[Gate + HITL Approval]
-    F -->|T4| I[Block + Alert]
+    F -->|T1/T2| G([Execute + Log])
+    F -->|T3| H[[Gate + HITL Approval]]
+    F -->|T4| I[[Block + Alert]]
 ```
 </DiagramBlock>
 </ScrollReveal>

@@ -90,14 +90,14 @@ If your agent framework grants a set of tool permissions at session start and ne
 
 <DiagramBlock caption="Perimeter model vs. Zero Trust model for agent authorization">
 ```mermaid
-graph LR
-    subgraph Perimeter Model
-        A1[Session Start] -->|Auth once| A2[Agent Gets Tool Set]
+flowchart LR
+    subgraph perimeter["Perimeter Model"]
+        A1([Session Start]) -->|Auth once| A2[/Agent Gets Tool Set/]
         A2 --> A3[Runs for hours]
-        A3 --> A4[No re-evaluation]
+        A3 --> A4{{No re-evaluation}}
     end
-    subgraph Zero Trust Model
-        B1[Every Tool Call] -->|Evaluate| B2[PDP: Check policy + context]
+    subgraph zt["Zero Trust Model"]
+        B1([Every Tool Call]) -->|Evaluate| B2{PDP: Check policy + context}
         B2 -->|Authorize| B3[PEP: Allow / Deny / Escalate]
         B3 --> B4[Execute or Block]
         B4 -->|Next call| B1
@@ -155,17 +155,17 @@ In agentic AI, this maps to:
 <ScrollReveal>
 <DiagramBlock caption="Continuous verification loop for agent sessions">
 ```mermaid
-graph TB
-    SESSION[Agent Session Active] --> MONITOR[Behavioral Monitor]
-    MONITOR -->|Check| BASELINE[Behavioral Baseline]
-    MONITOR -->|Check| INTENT[User Intent Alignment]
+flowchart TB
+    SESSION([Agent Session Active]) --> MONITOR[Behavioral Monitor]
+    MONITOR -->|Check| BASELINE[(Behavioral Baseline)]
+    MONITOR -->|Check| INTENT[/User Intent Alignment/]
     MONITOR -->|Check| CONTEXT[Context Signals]
-    BASELINE -->|Drift detected| RESPONSE[Adaptive Response]
+    BASELINE -->|Drift detected| RESPONSE{Adaptive Response}
     INTENT -->|Misalignment| RESPONSE
     CONTEXT -->|Risk change| RESPONSE
     RESPONSE -->|Minor| RESTRICT[Reduce Privileges]
     RESPONSE -->|Moderate| ESCALATE[Escalate to Human]
-    RESPONSE -->|Severe| TERMINATE[Terminate Session]
+    RESPONSE -->|Severe| TERMINATE[[Terminate Session]]
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -191,24 +191,23 @@ Applied to agents: each agent operates in a sandbox with access only to its auth
 <ScrollReveal>
 <DiagramBlock caption="Agent micro-segmentation: each agent in an isolated sandbox with defined tool access">
 ```mermaid
-graph TB
-    subgraph Sandbox A
-        AGENT_A[Research Agent] --> TOOL_A1[Web Search]
+flowchart TB
+    PDP{{Policy Decision Point}} --> AGENT_A & AGENT_B & AGENT_C
+
+    subgraph sandA["Sandbox A"]
+        AGENT_A([Research Agent]) --> TOOL_A1[Web Search]
         AGENT_A --> TOOL_A2[Document Reader]
     end
-    subgraph Sandbox B
-        AGENT_B[Action Agent] --> TOOL_B1[Email API]
+    subgraph sandB["Sandbox B"]
+        AGENT_B([Action Agent]) --> TOOL_B1[Email API]
         AGENT_B --> TOOL_B2[Database Write]
     end
-    subgraph Sandbox C
-        AGENT_C[Admin Agent] --> TOOL_C1[User Management]
+    subgraph sandC["Sandbox C"]
+        AGENT_C([Admin Agent]) --> TOOL_C1[User Management]
         AGENT_C --> TOOL_C2[Config Editor]
     end
     AGENT_A -.->|Blocked| TOOL_B1
     AGENT_B -.->|Blocked| TOOL_C1
-    PDP[Policy Decision Point] --> AGENT_A
-    PDP --> AGENT_B
-    PDP --> AGENT_C
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -281,15 +280,15 @@ For agentic systems, the trust algorithm evaluates:
 
 <DiagramBlock caption="Multi-signal trust algorithm for agent authorization decisions">
 ```mermaid
-graph LR
-    REQ[Agent Action Request] --> TA[Trust Algorithm]
-    ID[Agent Identity + Delegation] --> TA
+flowchart LR
+    REQ([Agent Action Request]) --> TA[[Trust Algorithm]]
+    ID[/Agent Identity + Delegation/] --> TA
     POSTURE[Model + Prompt Integrity] --> TA
-    BEHAVIOR[Behavioral Baseline Check] --> TA
-    CTX[Intent + Context Signals] --> TA
-    THREAT[Adversarial Input Detection] --> TA
+    BEHAVIOR[(Behavioral Baseline Check)] --> TA
+    CTX[/Intent + Context Signals/] --> TA
+    THREAT{{Adversarial Input Detection}} --> TA
     TA -->|Score| DECISION{Authorize?}
-    DECISION -->|High trust| ALLOW[Allow Action]
+    DECISION -->|High trust| ALLOW([Allow Action])
     DECISION -->|Medium trust| STEP_UP[Restrict Scope or Step-Up]
     DECISION -->|Low trust| DENY[Deny + Escalate]
 ```
@@ -350,17 +349,17 @@ But the architecture? You already know the architecture. You've been building it
 <ScrollReveal>
 <DiagramBlock caption="Complete ZTA-native agent architecture with PDP/PEP split, micro-segmentation, and continuous verification">
 ```mermaid
-graph TB
-    USER[Human Policy Author] -->|Writes policy| POLICY[Policy Store]
-    USER -->|Reviews| AUDIT[Audit + Analytics]
+flowchart TB
+    USER([Human Policy Author]) -->|Writes policy| POLICY[(Policy Store)]
+    USER -->|Reviews| AUDIT[(Audit + Analytics)]
 
-    subgraph Agent Runtime
-        AGENT[Agent] -->|Action request| PEP[Policy Enforcement Point]
-        PEP -->|Evaluate| PDP[Policy Decision Point]
+    subgraph runtime["Agent Runtime"]
+        AGENT([Agent]) -->|Action request| PEP[Policy Enforcement Point]
+        PEP -->|Evaluate| PDP{{Policy Decision Point}}
         PDP -->|Consult| POLICY
-        PDP -->|Check| TRUST[Trust Algorithm]
-        TRUST -->|Identity| ID_SVC[Identity Service]
-        TRUST -->|Behavior| BDD[Behavioral Drift Detection]
+        PDP -->|Check| TRUST[[Trust Algorithm]]
+        TRUST -->|Identity| ID_SVC[/Identity Service/]
+        TRUST -->|Behavior| BDD[(Behavioral Drift Detection)]
         TRUST -->|Context| CTX_SVC[Context Evaluator]
         PDP -->|Decision| PEP
         PEP -->|Allow| TOOL[Tool / Resource]

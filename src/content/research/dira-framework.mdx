@@ -185,29 +185,29 @@ invariants.
 <ScrollReveal>
 <DiagramBlock caption="DIRA three-layer architecture: behavioral trust, scope enforcement, and NHI identity management">
 ```mermaid
-graph TB
-    subgraph "Layer 1: Behavioral Trust"
-        A[Content Trust Pipeline] --> B[Hard Rule Floor]
+flowchart TB
+    subgraph L1["Layer 1 — Behavioral Trust"]
+        A[Content Trust Pipeline] --> B{{Hard Rule Floor}}
         A --> C[LLM Classification]
         A --> D[Adversarial Re-pass]
-        E[BDD Probes] --> F[Structural Baseline]
-        F --> G[Behavioral Drift Gate]
+        E[BDD Probes] --> F[(Structural Baseline)]
+        F --> G{Behavioral Drift Gate}
     end
 
-    subgraph "Layer 2: JWT Scope Enforcement"
-        H[JWT Validation] --> I[RS256 Signature Check]
+    subgraph L2["Layer 2 — JWT Scope Enforcement"]
+        H[JWT Validation] --> I{RS256 Signature}
         I --> J[Scope-per-Endpoint]
-        J --> K[Route Handler Constraints]
+        J --> K[[Route Handler Constraints]]
     end
 
-    subgraph "Layer 3: NHI Identity"
+    subgraph L3["Layer 3 — NHI Identity"]
         L[Client Credentials Flow] --> M[Scoped JWT Issuance]
         M --> N[Automated Secret Rotation]
     end
 
-    G --> |"Behavioral verdict"| O{Authorization Decision}
-    K --> |"Scope + resource check"| O
-    N --> |"Identity attestation"| O
+    G -->|"Behavioral verdict"| O{Authorization Decision}
+    K -->|"Scope + resource check"| O
+    N -->|"Identity attestation"| O
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -368,17 +368,17 @@ declared purpose while staying within its token scopes.
 <ScrollReveal>
 <DiagramBlock caption="OAuth vs DIRA: where the authorization evaluation happens">
 ```mermaid
-graph LR
-    subgraph "OAuth 2.0"
-        A[Identity] --> B[Scope Check]
-        B --> C[Permit / Deny]
+flowchart LR
+    subgraph oauth["OAuth 2.0"]
+        A([Identity]) --> B{Scope Check}
+        B --> C([Permit / Deny])
     end
 
-    subgraph "DIRA"
-        D[Identity] --> E[Scope Check]
-        E --> F[Resource-Level Constraint]
-        F --> G[Behavioral Consistency]
-        G --> H[Permit / Deny]
+    subgraph dira["DIRA"]
+        D([Identity]) --> E{Scope Check}
+        E --> F[[Resource-Level Constraint]]
+        F --> G[[Behavioral Consistency]]
+        G --> H([Permit / Deny])
     end
 ```
 </DiagramBlock>
@@ -549,19 +549,19 @@ authorization at login. Agents break every piece of that assumption:
 <ScrollReveal>
 <DiagramBlock caption="The dual-principal model: human intent and agent intent evaluated independently at every action">
 ```mermaid
-graph TD
-    H[Human Principal] -->|"Declares intent at instruction time"| I[Intent Declaration]
-    I -->|"Scoped delegation"| A[Agent Principal]
-    A -->|"Runtime action"| T[Tool Call]
+flowchart TD
+    H([Human Principal]) -->|"declares intent"| I[/Intent Declaration/]
+    I -->|"scoped delegation"| A([Agent Principal])
+    A -->|"runtime action"| T[[Tool Call]]
     T --> V{DIRA Evaluation}
-    V -->|"Check 1"| S[Token scope valid?]
-    V -->|"Check 2"| R[Resource-level constraint met?]
-    V -->|"Check 3"| B[Behavioral baseline consistent?]
-    S --> D{All three pass?}
-    R --> D
-    B --> D
-    D -->|"Yes"| P[Permit]
-    D -->|"No"| X[Deny + Alert]
+    V --> S[Token scope valid?]
+    V --> R[Resource constraint met?]
+    V --> B[Behavioral baseline consistent?]
+    S --> GATE{All three pass?}
+    R --> GATE
+    B --> GATE
+    GATE -->|"Yes"| P([Permit])
+    GATE -->|"No"| X([Deny + Alert])
 ```
 </DiagramBlock>
 </ScrollReveal>

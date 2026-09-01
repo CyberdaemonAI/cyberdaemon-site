@@ -57,18 +57,20 @@ If that is the baseline, then the remote execution permission I found was not on
 
 <ScrollReveal>
 <DiagramBlock caption="The gap between what the policy allows and what the code calls, and what fills it">
-{`graph LR
-    A[Compromised input] --> B[Agent attempts action]
+```mermaid
+flowchart LR
+    A([Compromised input]) --> B[Agent attempts action]
     B --> C{Platform policy check}
-    C -->|Denied| D[Attempt logged, nothing happens]
+    C -->|Denied| D([Attempt logged, nothing happens])
     C -->|Allowed| E[Action succeeds]
     E --> F[Write plus network reach]
-    F --> G[Replication surface]
+    F --> G[[Replication surface]]
     E --> H[Execute into peer container]
-    H --> I[Fleet-wide movement]
+    H --> I[[Fleet-wide movement]]
     style C fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
     style G fill:#1a1917,stroke:#c1121f,color:#e8e5de
-    style I fill:#1a1917,stroke:#c1121f,color:#e8e5de`}
+    style I fill:#1a1917,stroke:#c1121f,color:#e8e5de
+```
 </DiagramBlock>
 </ScrollReveal>
 

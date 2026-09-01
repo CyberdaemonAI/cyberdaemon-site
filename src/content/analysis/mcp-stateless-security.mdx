@@ -75,16 +75,16 @@ This is not theoretical for me. In the HuggingFace/OpenAI incident, a Tailscale 
 <ScrollReveal>
 <DiagramBlock caption="Token theft portability: session-bound vs. stateless bearer tokens">
 ```mermaid
-graph LR
-    subgraph "Session Model"
-        S1["Stolen Session ID"] --> S2["Works on Server A only"]
-        S2 --> S3["Server B rejects: unknown session"]
+flowchart LR
+    subgraph session["Session Model"]
+        S1[/Stolen Session ID/] --> S2[Works on Server A only]
+        S2 --> S3([Server B rejects: unknown session])
     end
-    subgraph "Stateless Model"
-        T1["Stolen Bearer Token"] --> T2["Works on Server A"]
-        T1 --> T3["Works on Server B"]
-        T1 --> T4["Works from any client"]
-        T1 --> T5["Works from any network"]
+    subgraph stateless["Stateless Model"]
+        T1[/Stolen Bearer Token/] --> T2[Works on Server A]
+        T1 --> T3[Works on Server B]
+        T1 --> T4[Works from any client]
+        T1 --> T5[Works from any network]
     end
     style T1 fill:#1a1917,stroke:#C1121F,color:#E6EDF3
     style T2 fill:#1a1917,stroke:#C1121F,color:#E6EDF3
@@ -135,16 +135,16 @@ These gaps matter more for agentic systems than for human-driven integrations, a
 <ScrollReveal>
 <DiagramBlock caption="Ambient authority: a single MCP token grants access to the full tool surface">
 ```mermaid
-graph TD
-    TOKEN["Bearer Token"] --> T1["memory_search"]
-    TOKEN --> T2["memory_write"]
-    TOKEN --> T3["vector_search"]
-    TOKEN --> T4["project_create"]
-    TOKEN --> T5["project_close"]
-    TOKEN --> T6["remote_exec"]
-    TOKEN --> T7["file_transfer"]
-    TOKEN --> T8["doc_search"]
-    TOKEN --> T9["...every other tool"]
+flowchart TD
+    TOKEN[/Bearer Token/] --> T1[memory_search]
+    TOKEN --> T2[memory_write]
+    TOKEN --> T3[vector_search]
+    TOKEN --> T4[project_create]
+    TOKEN --> T5[project_close]
+    TOKEN --> T6[remote_exec]
+    TOKEN --> T7[file_transfer]
+    TOKEN --> T8[doc_search]
+    TOKEN --> T9[...every other tool]
     style TOKEN fill:#1a1917,stroke:#C1121F,color:#E6EDF3
 ```
 </DiagramBlock>
@@ -207,22 +207,22 @@ Bind tokens to specific client identities. A token issued to Client A should not
 <ScrollReveal>
 <DiagramBlock caption="Defense stack for MCP in production: what the spec provides vs. what you must build">
 ```mermaid
-graph TD
-    subgraph "Spec Provides"
-        OAUTH["OAuth 2.1 + OIDC"]
-        RFC["RFC 8707 Resource Indicators"]
-        OTEL["W3C Trace Context / OTel"]
-        ISS["iss parameter validation"]
+flowchart TD
+    subgraph spec["Spec Provides"]
+        OAUTH[OAuth 2.1 + OIDC]
+        RFC[RFC 8707 Resource Indicators]
+        OTEL[W3C Trace Context / OTel]
+        ISS[iss parameter validation]
     end
-    subgraph "You Must Build"
-        ROT["Token rotation (automated)"]
-        REV["Server-side revocation list"]
-        BIND["Client identity binding"]
-        AUDIT["Per-request audit logging"]
-        TTL["Short TTL enforcement"]
-        RSTATE["requestState signing"]
+    subgraph build["You Must Build"]
+        ROT[Token rotation — automated]
+        REV[Server-side revocation list]
+        BIND[Client identity binding]
+        AUDIT[Per-request audit logging]
+        TTL[Short TTL enforcement]
+        RSTATE[requestState signing]
     end
-    OAUTH --> SECURE["Hardened MCP Deployment"]
+    OAUTH --> SECURE([Hardened MCP Deployment])
     RFC --> SECURE
     OTEL --> SECURE
     ISS --> SECURE

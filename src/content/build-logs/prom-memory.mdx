@@ -66,19 +66,19 @@ vector similarity search via locally-generated embeddings.
 <ScrollReveal>
 <DiagramBlock caption="Memory layer architecture: three search layers over structured fact storage">
 ```mermaid
-graph TD
-    A[AI Session] -->|API Calls| B[Memory Service]
+flowchart TD
+    A([AI Session]) -->|API Calls| B[Memory Service]
     B --> C[Fact Validation + Metadata]
-    C --> D[Embedded Database]
+    C --> D[(Embedded Database)]
     D --> E[Structured Columns]
     D --> F[Full-Text Index]
     D --> G[Vector Embeddings]
-    H[Search Query] --> B
+    H([Search Query]) --> B
     B --> I{Hybrid Search}
     I --> F
     I --> G
-    I --> J[Result Fusion + Ranking]
-    J --> K[Heat-Weighted Results]
+    I --> J[[Result Fusion + Ranking]]
+    J --> K([Heat-Weighted Results])
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -154,14 +154,14 @@ retrievable but no longer proactively surfaced.
 <ScrollReveal>
 <DiagramBlock caption="Heat decay curve: retrieval reheats, time cools, type sets floor">
 ```mermaid
-graph LR
-    A[Fact Created] -->|Heat: 1.0| B[Active Memory]
+flowchart LR
+    A([Fact Created]) -->|Heat: 1.0| B[(Active Memory)]
     B -->|Time decay| C[Cooling]
     C -->|Retrieved| B
     C -->|Not retrieved| D[Low Heat]
-    D -->|Below threshold| E[Archive Layer]
+    D -->|Below threshold| E[(Archive Layer)]
     E -->|Explicit recall| B
-    B -->|Sticky tag| F[Permanent: No Decay]
+    B -->|Sticky tag| F[[Permanent: No Decay]]
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -286,17 +286,17 @@ context flagged as "surface next session."
 <ScrollReveal>
 <DiagramBlock caption="Session primer flow: curated memory injection at session start">
 ```mermaid
-graph LR
-    A[Session Start] --> B[Memory Primer]
+flowchart LR
+    A([Session Start]) --> B[[Memory Primer]]
     B --> C[Recent Decisions]
     B --> D[Active Gotchas]
     B --> E[High-Heat Patterns]
     B --> F[Flagged Context]
-    C --> G[Compact Payload]
+    C --> G[(Compact Payload)]
     D --> G
     E --> G
     F --> G
-    G --> H[Injected into Session Context]
+    G --> H([Injected into Session Context])
 ```
 </DiagramBlock>
 </ScrollReveal>

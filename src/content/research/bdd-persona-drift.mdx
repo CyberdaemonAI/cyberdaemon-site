@@ -106,16 +106,24 @@ Any single feature outside its two-sigma band triggers an alert. The alert inclu
 
 <DiagramBlock caption="BDD probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline, routes to pass or drift event">
 ```mermaid
-flowchart LR
-    A([Schedule\nEvery 6h]) --> B[5 Canonical\nPrompts]
-    B --> C[Inference\nModel]
-    C --> D[Response\nCorpus]
-    D --> E[Feature\nExtraction\navg_len · lex_div\nsentences_per_resp]
-    E --> F[Rolling Baseline\nLast 20 runs\n2σ bands per feature]
-    F --> G{Within\n2σ?}
-    G -->|Yes| H([Pass])
-    G -->|No| I[Drift Flag\nto persistent state]
-    I --> J([Authorization\nGate fires])
+sequenceDiagram
+    participant S as Scheduler (every 6h)
+    participant M as Inference Model
+    participant F as Feature Extractor
+    participant B as Rolling Baseline (last 20 runs)
+    participant G as Authorization Gate
+
+    S->>M: 5 canonical probes
+    M-->>F: Response corpus (~640 tokens)
+    F->>F: avg_len · lex_div · sentences_per_resp
+    F->>B: Current feature values
+    B->>B: Compare to 2σ bands per feature
+    alt All features within 2σ
+        B-->>S: Pass — no drift detected
+    else Any feature outside 2σ
+        B->>G: Drift flag (feature + direction)
+        G-->>G: CONTEXT_DRIFT gate fires
+    end
 ```
 </DiagramBlock>
 

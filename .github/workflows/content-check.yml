@@ -275,6 +275,35 @@ jobs:
             echo "All files meet minimum word count."
           fi
 
+      - name: Check Mermaid diagram quality
+        run: |
+          echo "=== Checking Mermaid diagram quality ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            # After each ```mermaid fence, the next non-blank line is the diagram type declaration.
+            # Ban: graph LR, graph TD, graph TB, graph RL, graph BT (old syntax -- use flowchart + subgraphs or sequenceDiagram)
+            bad=$(awk '/^```mermaid/{found=1; next} found && /^[[:space:]]*$/{next} found{if(/^graph[[:space:]]+(LR|TD|TB|RL|BT)/) print NR": "$0; found=0}' "$file" || true)
+            if [ -n "$bad" ]; then
+              echo "FAIL: Old Mermaid graph syntax in $file (use flowchart+subgraphs or sequenceDiagram):"
+              echo "$bad"
+              FAIL=1
+            fi
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Replace 'graph LR/TD/TB' with 'flowchart TD' (add subgraphs for grouping)"
+            echo "or 'sequenceDiagram' for time-ordered processes. See STYLE-GUIDE.md."
+            exit 1
+          else
+            echo "Mermaid diagram syntax OK."
+          fi
+
       - name: Check opening hook length
         run: |
           echo "=== Checking opening hook length (warn if > 200 words before first section break) ==="

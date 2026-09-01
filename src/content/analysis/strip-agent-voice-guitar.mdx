@@ -31,18 +31,20 @@ My system ran an LLM routing layer for months. It handled model selection, cost 
 
 <ScrollReveal>
 <DiagramBlock caption="Before and after: routing layer removed, agents connect directly to inference">
-{`graph TD
-    subgraph Before
-    A1[Agent 1] --> R[LLM Routing Layer]
-    A2[Agent 2] --> R
-    R --> M1[Primary Model]
-    R --> M2[Fallback Model]
+```mermaid
+flowchart TD
+    subgraph before["Before"]
+        A1([Agent 1]) --> R{{LLM Routing Layer}}
+        A2([Agent 2]) --> R
+        R --> M1[Primary Model]
+        R --> M2[Fallback Model]
     end
-    subgraph After
-    B1[Agent 1] --> M3[Primary Model]
-    B2[Agent 2] --> M3
+    subgraph after["After"]
+        B1([Agent 1]) --> M3[Primary Model]
+        B2([Agent 2]) --> M3
     end
-    style R fill:#1a1917,stroke:#c1121f,color:#e8e5de`}
+    style R fill:#1a1917,stroke:#c1121f,color:#e8e5de
+```
 </DiagramBlock>
 </ScrollReveal>
 
@@ -120,17 +122,19 @@ Behavioral testing is another clean addition. A check that runs after task compl
 
 <ScrollReveal>
 <DiagramBlock caption="Safe additions: memory and behavioral tests augment without complicating the core loop">
-{`graph LR
-    A[Memory read] --> B[Receive task]
+```mermaid
+flowchart LR
+    A[(Memory read)] --> B([Receive task])
     B --> C[Read spec]
     C --> D[Execute]
     D --> E[Verify]
-    E --> F[Report]
-    F --> G[Memory write]
+    E --> F([Report])
+    F --> G[(Memory write)]
     F --> H[Behavioral test]
     style A fill:#1a1917,stroke:#c9a84c,color:#e8e5de
     style G fill:#1a1917,stroke:#c9a84c,color:#e8e5de
-    style H fill:#1a1917,stroke:#c9a84c,color:#e8e5de`}
+    style H fill:#1a1917,stroke:#c9a84c,color:#e8e5de
+```
 </DiagramBlock>
 </ScrollReveal>
 

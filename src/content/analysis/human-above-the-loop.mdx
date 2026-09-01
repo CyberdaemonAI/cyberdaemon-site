@@ -80,12 +80,12 @@ Humans belong **above** the loop, not inside it. Above means:
 
 <DiagramBlock caption="Human-above-the-loop: policy flows down, exceptions escalate up, audit closes the feedback loop">
 ```mermaid
-graph TB
-    H[Human: Policy Author] -->|Sets policy| PDP[Policy Decision Point]
-    H -->|Reviews| AUDIT[Audit & Review]
-    PDP -->|Authorizes| AGENT[Agent Execution]
+flowchart TB
+    H([Human: Policy Author]) -->|Sets policy| PDP{{Policy Decision Point}}
+    H -->|Reviews| AUDIT[(Audit & Review)]
+    PDP -->|Authorizes| AGENT([Agent Execution])
     AGENT -->|Operates within bounds| TOOLS[Tools & Resources]
-    AGENT -->|Hits boundary| ESC[Escalation]
+    AGENT -->|Hits boundary| ESC[/Escalation/]
     ESC -->|Exception request| H
     TOOLS -->|Logs actions| AUDIT
     AUDIT -->|Findings| H
@@ -136,15 +136,15 @@ NIST SP 800-207 defines the core Zero Trust Architecture as a split between the 
 <ScrollReveal>
 <DiagramBlock caption="Zero Trust PDP/PEP architecture applied to agentic systems">
 ```mermaid
-graph LR
-    SUBJECT[Agent / Subject] -->|Access request| PEP[Policy Enforcement Point]
-    PEP -->|Evaluate| PDP[Policy Decision Point]
-    PDP -->|Consult| POLICY[Policy Store]
-    PDP -->|Check| CONTEXT[Context: identity, device, behavior, risk]
+flowchart LR
+    SUBJECT([Agent / Subject]) -->|Access request| PEP[Policy Enforcement Point]
+    PEP -->|Evaluate| PDP{{Policy Decision Point}}
+    PDP -->|Consult| POLICY[(Policy Store)]
+    PDP -->|Check| CONTEXT[/Context: identity, device, behavior, risk/]
     PDP -->|Decision| PEP
     PEP -->|Allow / Deny / Escalate| RESOURCE[Tool / Resource]
-    HUMAN[Human Policy Author] -->|Writes| POLICY
-    HUMAN -->|Reviews| LOGS[Decision Logs]
+    HUMAN([Human Policy Author]) -->|Writes| POLICY
+    HUMAN -->|Reviews| LOGS[(Decision Logs)]
 ```
 </DiagramBlock>
 </ScrollReveal>
@@ -217,13 +217,13 @@ Evaluated at every tool call. Not at session start. Not at login. At the moment 
 <ScrollReveal>
 <DiagramBlock caption="DIRA: the intersection of user intent and agent role evaluated at every action">
 ```mermaid
-graph TB
-    USER[User Intent] -->|Delegated at instruction time| INTENT[f: user_intent]
-    AGENT_ROLE[Agent Role + Context] -->|Evaluated at action time| ROLE[f: agent_role]
-    INTENT --> INTERSECTION[Authorized Action Set]
+flowchart TB
+    USER([User Intent]) -->|Delegated at instruction time| INTENT[/f: user_intent/]
+    AGENT_ROLE[Agent Role + Context] -->|Evaluated at action time| ROLE[/f: agent_role/]
+    INTENT --> INTERSECTION{{Authorized Action Set}}
     ROLE --> INTERSECTION
-    INTERSECTION -->|Permits| ACTION[Agent Action]
-    INTERSECTION -->|Denies or Escalates| ESCALATION[Human Review]
+    INTERSECTION -->|Permits| ACTION([Agent Action])
+    INTERSECTION -->|Denies or Escalates| ESCALATION([Human Review])
 ```
 </DiagramBlock>
 </ScrollReveal>
