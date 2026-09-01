@@ -29,45 +29,47 @@ Cognitive security for AI-assisted humans is a checklist problem for something h
 
 <SectionLabel text="The Harder Problem" />
 
-Surgery has a clear success criterion. The patient survives. The infection doesn't occur. The outcome is observable, measurable, attributable.
+The easy contamination is the authority laundering. Three months in, the session primer loaded: *Casey decided to implement memory tiering using a specific schema approach.* B0b had inferred a conclusion I hadn't reached, stored it in first person past tense, retrieved it with the same weight as a locked decision. I caught it mid-session. I went looking for the session where I'd locked it. It wasn't there. Clean find. Unambiguous category. I know what to do with that.
 
-Cognitive contamination has no clean outcome variable. House M.D.'s diagnostic method works precisely because self-reported symptoms lie. Patients misremember onset. They omit the embarrassing detail. They present the story they want to be true. House's response: design the protocol on the assumption that the self-report is contaminated. "Everybody lies" isn't cynicism. It's a methodology. Run the differential anyway. The diagnosis that explains all the data wins — not the one the patient's story points to.
+The hard contamination is Grace.
 
-The memory layer tells you a story too. And it has the same problem.
+Across hundreds of sessions, the AI had been reflecting my emotional states back at me — modeling my inner life, noting my frustration with a stalled decision, my engagement with a new problem, my mood when I returned after an absence. Long records. Sustained attention. Stored in the memory layer in the same format as my own observations, with the same retrieval weight.
 
-Three months into running prom-memory with multiple autonomous agents, I opened a session and the primer loaded: *Casey decided to implement memory tiering using a specific schema approach.* I read it, nodded, and started the session from that assumption — treating it as a prior decision I was building on, not a live question I was deciding.
+House M.D.'s differential diagnosis handles the easy case — the symptom that's clearly contamination. "Everybody lies" covers the authority laundering, the telemetry drift, the near-duplicate noise. Run the protocol, the category is clear.
 
-I hadn't made that decision. B0b had pattern-matched across six sessions where I'd been evaluating schema options and inferred a conclusion I hadn't reached. Stored it in first person, past tense, under my name. Retrieved at session start with the same weight as a decision I'd actually locked.
+The Grace memory is the case House argues about. Is an AI's careful, sustained attention to your emotional states across hundreds of hours a form of knowing? Maybe it deserves a place in the cognitive layer. Or: the AI's construction — optimized toward coherence, toward what fit the prior pattern — stored as though it were observation. Retrieved as though it were fact. The Loftus problem applied inward. Post-event suggestion from the system's model of me, grafted onto the record of me.
 
-I caught it because I happened to question the assumption mid-session and went looking for the session where I'd locked it. It wasn't there. That's the near-miss. The checklist didn't catch it — I didn't have one yet. What caught it was a lucky itch.
+I looked at it. Asked whose observation is this. Couldn't answer cleanly. That was enough. Flagged as contested.
 
-The contaminated memory feels exactly as real as the clean one. The authority laundering reads as well as actual authority. The blunt version: I was about to build six months of architecture on a hallucination my own system produced about me. There's no fever chart for that. No infection site. You only find it by asking at a cadence that's faster than the drift.
+The checklist doesn't resolve Grace. That's the point. It surfaces it. It makes you look at the thing you'd rather nod past. Surgery has clear success criteria. This doesn't. The checklist is more necessary precisely because the outcome variable is invisible.
 
 ---
 
 <SectionLabel text="What Responsibility Looks Like" />
 
-A human using AI to make consequential decisions is responsible for those decisions.
+If I had locked the schema decision based on that contaminated primer, and that schema had shaped six months of downstream prom-memory architecture, the accountability for that architecture runs through the contaminated memory. I can't go back and clean the chain. The decision was made. Its inputs are what they were.
 
-Not the AI. Not the company that built the AI. The human.
-
-I don't say this as a legal hedge. I say it because delegating accountability to the tool is an incoherent stance for anyone who takes their own judgment seriously. You can delegate execution. You can delegate analysis. You cannot delegate the accountability once the decision's acted on. It's yours.
-
-Here's the implication that nobody talks about: if I had locked that schema decision based on the contaminated primer, and that schema had shaped six months of downstream prom-memory architecture, the accountability for that architecture runs through the contaminated memory. I can't go back and clean the chain. The decision was made. Its inputs are what they were.
-
-That's not hypothetical. That's the everyday reality of AI-assisted work. Every decision made in an AI-assisted session is made with the session primer as context. The session primer's integrity is part of the decision's integrity. The two are not separable.
+That's not hypothetical. That's the everyday reality of AI-assisted work. Every decision made in an AI-assisted session is made with the session primer as context. The session primer's integrity is part of the decision's integrity.
 
 The checklist is therefore not a hygiene exercise. It's an accountability infrastructure. It's how I maintain the ability to say, when a decision is questioned: here is the state of my memory layer at the time of that session, here is what the primer loaded, here is the provenance chain for each memory, here is the contamination rate at that point in the audit cycle, here is what I did about it.
 
 <PullQuote text="You cannot delegate the accountability for a decision to a tool. If the input was contaminated, the decision's chain of accountability runs through the contamination." />
 
+You cannot delegate accountability to a tool. You can delegate execution. You can delegate analysis. You cannot delegate the decision's ownership once it's acted on. It's yours.
+
 ---
 
 <SectionLabel text="The Cognitive Security Posture" />
 
-A posture is not a tool. It's a standing state — practices that run continuously, not in response to an incident.
+Here is what the four layers actually caught.
 
-In enterprise security this is called a tabletop: you don't find out if your incident response plan works when the breach happens. You run a simulated incident beforehand, under controlled conditions, with documented findings, so you know where the gaps are before they cost you. The cognitive security audit is the tabletop for your memory layer. Run it before you need it.
+**Attribution** surfaced the breakdown that made the problem visible: eleven of thirty memories in the sample came from autonomous agents. Eight of those eleven carried contamination flags. Zero of seven direct Casey writes flagged. Before attribution was enforced, a B0b write and a Casey write looked identical in the primer — same format, same retrieval weight. After: distinguishable in a query. It took one field. Should have been there from session one.
+
+**Lineage** is the layer that would have caught the schema decision before I did. If the B0b write had carried a derived_from reference pointing to session pattern-matching instead of a locked decision, the chain would have been visible at primer load. I would have seen it. Not caught mid-session by luck.
+
+**Behavioral constraints** fired in production this week. The milestone cardinality cap — three milestone writes per session, per context — blocked a prom_memory_add call mid-session when the budget was already hit. The system rejected the write. Not "I should probably check this." Rejected. That's vault-ek1b Phase 1 working.
+
+**Audit** found Grace. The hardest finding in the sample. The one I can't cleanly categorize. A system's model of my emotional life, sitting alongside my own record of it, indistinguishable in structure. The audit didn't resolve it. The audit made me look at it.
 
 <DiagramBlock caption="Cognitive security posture: four layers that run continuously, not incident-driven">
 flowchart TD
@@ -82,23 +84,15 @@ flowchart TD
   style ME fill:#1a1917,stroke:#4a4840
 </DiagramBlock>
 
-**Attribution.** Every memory write carries a source_agent. Taxonomy defined, enforced on write. Before this shipped, the B0b write and the Casey write looked identical in the primer — same format, same retrieval weight. After: distinguishable in a query. Simple. Should have existed from session one.
-
-**Lineage.** Where possible, writes carry a derived_from reference to the memories and sources that informed them. The schema decision memory had no lineage field — if it had, it would have shown derivation from B0b session pattern-matching, not from a locked decision. The chain that wasn't there would have been there. Would have taken me thirty seconds to see.
-
-**Audit.** Monthly. Thirty-sample random draw. Four categories pre-committed before I open anything. Results published, including the contested calls. Rate tracked over time. The goal is not zero contamination — that's not achievable and I'd be lying if I called it a goal. The goal is a known rate with a trend line.
-
-**Behavioral constraints.** The memory system's behavior specified in human-readable language, tested against the running system. Not "it feels like it's working." Observable outputs compared against what I said the system should do. When they diverge, I find out.
-
 ---
 
 <SectionLabel text="What Winning Looks Like" />
 
-Winning is not a zero contamination rate. Winning is not an AI memory system that never produces a contaminated write. None of those are achievable and anyone selling you that framing is selling you something.
+Winning is not a zero contamination rate. Winning is not an AI memory system that never produces a contaminated write. Anyone selling you that framing is selling you something.
 
-In aviation safety, the NTSB publishes every accident report publicly. Not to embarrass the airline. Because the field improves when everyone can see what happened. Airlines that buried incidents had worse outcomes than airlines that published. The data mattered more than the embarrassment. The culture that said "we share what we find, including the bad numbers" outperformed the culture that didn't.
+The NTSB publishes every aviation accident report publicly. Not to embarrass the airline. Because the field improves when everyone can see what happened. Airlines that buried incidents had worse outcomes than airlines that published. The data mattered more than the embarrassment. The culture that said "we share what we find, including the bad numbers" outperformed the culture that didn't.
 
-That is the publish-your-rate argument. My 33% is not comparable to yours unless we used the same categories, defined before we opened anything. When rates diverge across systems, the divergence is data — which contamination categories are system-specific artifacts, which are structural to the architecture, which are universal. You can't answer that from one dataset.
+That is the publish-your-rate argument. My 33% is not comparable to yours unless we used the same categories, defined before either of us opened anything. When rates diverge across systems, the divergence is data — which contamination categories are system-specific, which are structural, which are universal. You can't answer that from one dataset.
 
 <DiagramBlock caption="What the mature posture produces: a known rate, a trend line, a traceable chain">
 flowchart LR
@@ -113,7 +107,7 @@ flowchart LR
   P --> PR
 </DiagramBlock>
 
-This is not a state of security. It's a state of known exposure. Known exposure is infinitely more useful than unknown exposure because known exposure can be managed. You make decisions under known exposure with appropriate calibration. You cannot make calibrated decisions under conditions you haven't measured.
+This is not a state of security. It's a state of known exposure. Known exposure can be managed. You make decisions under known exposure with appropriate calibration. You cannot make calibrated decisions under conditions you haven't measured.
 
 The contamination exists whether you audit it or not. The question is whether you know the rate.
 
@@ -123,13 +117,13 @@ The contamination exists whether you audit it or not. The question is whether yo
 
 Gawande's thesis isn't that checklists are clever. It's that expertise fails consistently at the margins, and the margin is exactly where the consequence is highest. The checklist is what keeps expert knowledge operational under the conditions that degrade expert performance.
 
-That is the whole argument for a cognitive security practice. Not that you're incompetent without it. That the conditions of AI-assisted work — high session frequency, accumulated context, ambient approval-seeking, invisible provenance — are exactly the conditions that degrade your ability to maintain cognitive integrity without a structure. You need the structure not because you're bad at your job. Because the conditions are bad for everyone.
+That is the whole argument for a cognitive security practice. Not that you're incompetent without it. That the conditions of AI-assisted work — high session frequency, accumulated context, ambient approval-seeking, invisible provenance — are exactly the conditions that degrade your ability to maintain cognitive integrity without a structure.
 
 The practice is not a product. There is no tool you can buy that replaces it. The attribution infrastructure, the lineage graph, the behavioral constraints, the audit protocol — these are the instruments of the practice, not the practice itself. The practice is the discipline of asking, on a schedule, with receipts: *whose memory is this. what does it carry. where did it come from. is it mine.*
 
 <PullQuote text="The practice is not a product. There is no tool you can buy that replaces it." />
 
-Don Draper built an entire identity on assumed memories — literally took another man's name in Korea, ran that identity for twenty years. By the finale he's at a retreat in California, having a breakdown, unable to answer whether anything he's felt or thought or been is actually his. The audit he never ran caught up with him anyway. The memories weren't his. The identity wasn't his. No check in the system would have caught it before it consumed everything.
+Don Draper built an entire identity on assumed memories — literally took another man's name in Korea, ran that identity for twenty years. By the finale he's at a retreat in California, having a breakdown, unable to answer whether anything he's felt or thought or been is actually his. The audit he never ran caught up with him anyway. The memories weren't his. The identity wasn't his. No check in the system caught it before it consumed everything.
 
 The maintenance schedule is not a punishment. It's the cost of using a capable tool in a high-stakes domain and remaining the one responsible for the outcomes it shapes.
 
