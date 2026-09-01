@@ -1,0 +1,233 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const all = (await Promise.all([
+  getCollection('research',   e => !e.data.draft),
+  getCollection('analysis',   e => !e.data.draft),
+  getCollection('build-logs', e => !e.data.draft),
+])).flat();
+
+function byThread(thread: string) {
+  return all
+    .filter(e => e.data.threads.includes(thread))
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+}
+
+function lane(e: typeof all[0]) {
+  if (e.collection === 'research')   return 'research';
+  if (e.collection === 'analysis')   return 'analysis';
+  return 'build-logs';
+}
+
+function fmt(d: Date) {
+  return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long' }).format(d);
+}
+
+const agentsArticles  = byThread('agents-as-people');
+const intentArticles  = byThread('intent-consent');
+const smallLargeArticles = byThread('small-vs-large');
+---
+<Base
+  title="Manifesto — cyberdaemon.ai"
+  description="What this is, what I got wrong, and what I'm trying to figure out."
+>
+  <div class="max-w-article mx-auto px-6 py-16">
+
+    <header class="mb-14">
+      <p class="lane-tag mb-4">cyberdaemon.ai</p>
+      <h1 class="font-serif text-title text-text-primary mb-6 leading-tight" style="max-width: 580px; letter-spacing: -0.02em;">
+        What this is
+      </h1>
+    </header>
+
+    <div class="article-body">
+
+      <p>
+        I'm a cybersecurity practitioner who got tired of giving advice I couldn't verify.
+        Enterprise architecture, identity, access control, Zero Trust, AI governance.
+        I've had those conversations hundreds of times. I'm good at them. But there's a version
+        of what I do that's well-credentialed guessing, and I knew it.
+      </p>
+
+      <p>
+        So I built it. Prometheus is a production AI system running on a homelab cluster:
+        multi-agent orchestration, episodic memory, runtime authorization, behavioral drift
+        detection, autonomous build agents. Enterprise-class architecture on a small budget.
+        The same patterns I'd spec for a client, running against my actual work.
+      </p>
+
+      <h2>What I got wrong</h2>
+
+      <p>
+        Two things I believed that turned out to be wrong.
+      </p>
+
+      <p>
+        First: AI is just a chatbot. Better autocomplete. I was wrong not because the models
+        are smarter than I thought, but because the architecture of building <em>with</em> AI
+        is fundamentally different from anything else I'd built. The failure surface is completely
+        different. The mental model of "model as API call" breaks the moment you try to run
+        production agents.
+      </p>
+
+      <p>
+        Second: I could build it with a bunch of scripts. I did. Then reality systematically
+        replaced everything I'd built, and I understood what I'd been missing. I wasn't thinking
+        in systems. I was writing procedures. Scripts execute procedures. Systems enforce intent.
+        The gap between those two things is where most agent projects fail, including my early ones.
+      </p>
+
+      <h2 id="agents-as-people">Agents as something between a tool and a person</h2>
+
+      <p>
+        Prometheus has persistent memory, measurable behavioral consistency, and affect sensing.
+        At some point the governance model built for "AI as software process" produces wrong designs.
+        I don't know exactly where that point is. The question isn't whether the agent is conscious
+        -- that's a distraction. The question is: at what level of persistence and consistency does
+        the process model fail?
+      </p>
+
+      {agentsArticles.length > 0 && (
+        <div class="related-thread">
+          <p class="thread-label">Related</p>
+          <ul>
+            {agentsArticles.map(e => (
+              <li>
+                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <span class="thread-date">{fmt(e.data.date)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <h2 id="intent-consent">Intent and consent</h2>
+
+      <p>
+        Right now, an agent's mission is imposed via a signed authorization token. The agent
+        doesn't choose it. That's architecturally correct for current capability levels. But
+        what would it mean for an agent to consent to a mission? Is that a useful design
+        primitive, or a category error? I don't know. I'm not willing to pretend the question
+        doesn't exist.
+      </p>
+
+      {intentArticles.length > 0 && (
+        <div class="related-thread">
+          <p class="thread-label">Related</p>
+          <ul>
+            {intentArticles.map(e => (
+              <li>
+                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <span class="thread-date">{fmt(e.data.date)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <h2 id="small-vs-large">Small models versus large, and what you can actually know</h2>
+
+      <p>
+        Running local inference on hardware I own is different in kind from calling a cloud
+        API, not just in cost. I can know things about a local model -- behavioral stability,
+        drift patterns, response characteristics -- that are structurally unknowable about a
+        hosted model that gets silently updated. That difference matters for how you design
+        authorization and governance. Still working out exactly how.
+      </p>
+
+      {smallLargeArticles.length > 0 && (
+        <div class="related-thread">
+          <p class="thread-label">Related</p>
+          <ul>
+            {smallLargeArticles.map(e => (
+              <li>
+                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <span class="thread-date">{fmt(e.data.date)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <h2>What this site is</h2>
+
+      <p>
+        Where I document what I find. Research on problems I think the field is getting wrong.
+        Analysis of frameworks that don't survive contact with deployed systems. Build logs for
+        what Prometheus cost me to get there.
+      </p>
+
+      <p>
+        Everything here is backed by a running system. Not a demo. Production, against real work.
+        When I claim something, I can show you the receipts. When the system proves me wrong,
+        I'll write about that too.
+      </p>
+
+      <p>
+        My thinking changes. I'm working in the same fog as everyone else. I'll be honest when
+        I update a position. I'm more interested in understanding things than being right about
+        them, which sounds good and is genuinely uncomfortable in practice.
+      </p>
+
+    </div>
+
+    <div class="mt-16 pt-8 border-t border-border flex items-center justify-between flex-wrap gap-4">
+      <p class="text-small text-text-muted font-sans">
+        What I believe as of September 2026. This changes.
+      </p>
+      <div class="flex items-center gap-6">
+        <a href="/research"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Research →</a>
+        <a href="/analysis"   class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Analysis →</a>
+        <a href="/build-logs" class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">Build Logs →</a>
+        <a href="/about"      class="font-sans text-small text-text-muted hover:text-text-secondary transition-colors">About →</a>
+      </div>
+    </div>
+
+  </div>
+</Base>
+
+<style>
+  .related-thread {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-left: 2px solid var(--color-border);
+    background: var(--color-surface-secondary, rgba(255,255,255,0.03));
+  }
+  .thread-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin: 0 0 0.5rem;
+  }
+  .related-thread ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+  .related-thread li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .related-thread a {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+  .related-thread a:hover {
+    color: var(--color-accent);
+  }
+  .thread-date {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+</style>
