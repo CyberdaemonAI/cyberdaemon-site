@@ -177,3 +177,11 @@ The broader lesson is the one worth taking forward. Pod egress behavior in a CNI
 **The credential watcher adds availability risk.** Correct. If the expiry check miscalculates or the alert channel is unreachable, the agent stalls at startup. The current implementation treats a stall as preferable to executing a session with expired credentials. If that preference is wrong for your availability requirements, the startup gate needs a timeout or bypass path.
 
 **The workspace chown problem is not a mitigation.** Also correct. Cleaning the workspace after builds is the right fix, but it requires the task execution process to enforce a cleanup step that doesn't currently exist. Until the clean step is wired into the task completion lifecycle, workspace accumulation will recur and the init container will keep taking fourteen minutes.
+
+## See also
+
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — the identity governance framework that network hardening sits inside. Egress controls enforce least privilege at the network layer; NHI governance enforces it at the credential layer.
+- [MCP's Security Problem Nobody's Writing About](/analysis/mcp-stateless-security) — the protocol gaps that network controls partially compensate for. Deny-all egress limits what a compromised token can reach; it doesn't fix the stateless audit trail.
+- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface) — the complementary access audit. Network controls restrict reachability; permission audits restrict what reaches.
+- [The Loud Breach](/analysis/loud-breach) — the incident that motivated this hardening sprint. What the containment audit found.
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the architectural framework. Deny-all egress is ZTA applied at the network layer. Never trust the pod's origin; verify every outbound connection.

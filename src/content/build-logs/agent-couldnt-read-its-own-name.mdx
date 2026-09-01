@@ -166,3 +166,11 @@ Agent confidence, for instance. When an agent says "I have completed step 3," is
 I do not have good answers. I have the question, which is more than I had before a human noticed that one of my agents was introducing itself as `{{AGENT_ID}}`.
 
 *Casey Gager builds a personal AI orchestration system. He writes about what works, what breaks, and what he is still figuring out. Views are his own.*
+
+## See also
+
+- [Strip your agent to voice and guitar](/analysis/strip-agent-voice-guitar) — agent identity is the "voice" in that metaphor. This failure shows what happens when the load-bearing element silently corrupts.
+- [prom-memory: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the memory layer that carries identity context. The attribution tooling prom-memory shipped was a direct response to this class of silent failure.
+- [Writing to the Next Session](/build-logs/writing-to-the-next-session) — session handoff depends on the agent knowing who it is. A broken identity injection breaks the entire recovery chain.
+- [The Elliot Probe](/research/bdd-persona-drift) — structural baseline detection. The Elliot Probe was designed to catch exactly this: behavioral drift that health checks miss.
+- [My AI system builds itself, that's the point](/build-logs/ai-system-builds-itself) — the self-modification capability that makes identity injection correctness critical. An agent writing specs needs to know which agent it is.

@@ -413,3 +413,10 @@ reduces cost and removes the cloud auth dependency for routine work entirely.
 The fleet's success rate will improve not by making the agents smarter, but by making
 the infrastructure less hostile. The agents proved they can do the work. The
 infrastructure needs to prove it can stay out of their way.
+
+## See also
+
+- [I Built an Autonomous AI Agent Fleet and 75% of It Broke](/build-logs/b0b-methodology) — the methodology article that covers what was built and why. This article covers what failed in the first run.
+- [ISA-driven development: structured contracts for autonomous AI agents](/build-logs/isa-patterns) — the spec format that the second fleet run used. Underspecified tasks were the primary failure cause in this run.
+- [My agent couldn't read its own name for months](/build-logs/agent-couldnt-read-its-own-name) — a different class of silent failure. Both failures share the same root: health checks pass while something fundamental is broken.
+- [Writing to the Next Session](/build-logs/writing-to-the-next-session) — session handoff as a failure vector. Two of the four agents produced nothing; recovery required understanding what state they'd left behind.

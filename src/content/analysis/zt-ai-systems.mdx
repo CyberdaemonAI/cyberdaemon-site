@@ -414,3 +414,13 @@ Read SP 800-207. Then look at your agent framework. The gaps will be obvious.
 [^3]: Astrix Security. (2025). The State of Non-Human Identity Security. Industry report documenting that organizations average 45 non-human identities per human identity, with less than 5% having lifecycle management in place.
 
 [^4]: Agent-to-Agent (A2A) protocol and Agentic JWT (A-JWT) are emerging standards for agent identity and delegation. As of mid-2026, these are in early development and not yet widely adopted. The identity model for agent delegation remains the largest open gap in agentic AI security.
+
+## See also
+
+**Security architecture chain** — these articles form a connected sequence on authorization for agentic AI:
+
+- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the framework that operationalizes ZTA's per-request authorization for agents. DIRA is what "never trust, always verify" looks like when the actor is an LLM.
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — the identity layer underneath authorization. Agents are non-human identities; most governance frameworks don't know what to do with them.
+- [Human Above the Loop](/analysis/human-above-the-loop) — where the human fits in a ZTA-compliant agentic system. Policy authoring and exception handling, not click-to-approve.
+- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — a production implementation of the policy enforcement point described in this article.
+- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface) — least privilege in practice: an audit of unused permissions and what they cost you.

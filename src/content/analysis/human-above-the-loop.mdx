@@ -304,3 +304,11 @@ Above the loop. Not in it.
 [^3]: Rose, S., Borchert, O., Mitchell, S., & Connelly, S. (2020). Zero Trust Architecture. NIST Special Publication 800-207. National Institute of Standards and Technology. The foundational ZTA reference defining PDP/PEP architecture.
 
 [^4]: Dual-Intent Runtime Authorization (DIRA) is original research by Casey Gager. The architecture evaluates `authorized_action_set = f(user_intent) ∩ f(agent_role)` at every tool call, addressing the authorization gap in agentic systems where the agent acts on behalf of, but is not the same principal as, the delegating human.
+
+## See also
+
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the ZTA architecture that human-above-the-loop policy authoring sits inside. Policy decision points don't approve individual requests; they author the rules.
+- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the runtime mechanism that enforces the policies humans author. The "above the loop" model only works if the enforcement layer is actually checking intent.
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — agents need governed identities before humans can author meaningful policies about them.
+- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — what the policy enforcement point looks like in production. T1-T2 fast path, T3-T4 human escalation.
+- [NIST AI RMF in practice](/analysis/nist-ai-rmf-practice) — the governance framework that human-above-the-loop sits inside. The Govern function is where policy authoring lives.

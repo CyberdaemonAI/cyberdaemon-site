@@ -335,3 +335,11 @@ exfiltration pattern that no single-call classifier would catch. Sequence-level 
 is the path toward session-level threat detection, and it is next on the list.
 
 ---
+
+## See also
+
+- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the theoretical framework CB4A implements. DIRA defines what "intent verification" means; CB4A is the enforcement point.
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the ZTA architecture CB4A's tier classification extends. T1-T2 are the fast path; T3-T4 are the policy decision boundary.
+- [Human Above the Loop](/analysis/human-above-the-loop) — CB4A's T4 tier is where human-above-the-loop escalation happens in practice.
+- [Agent-written CI: 18 of 19 tests](/build-logs/ci-gate-agent-written) — the CI gate that validates CB4A's authorization logic. An autonomous agent wired the pytest suite.
+- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface) — the access audit that motivated the T3 tier. Unused permissions are attack surface.

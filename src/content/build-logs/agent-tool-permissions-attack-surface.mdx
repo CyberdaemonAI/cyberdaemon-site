@@ -159,3 +159,11 @@ Until that exists, the audit is a calendar entry and a couple of hours. Cheap, g
 [^1]: 2026 research on adaptive agentic worms published on LessWrong. I use one claim from it here, that file write plus outbound network reach is the minimum viable self-replication surface. The rest of the reasoning in that section is my own.
 
 *Casey Gager builds a personal AI orchestration system. He writes about what works, what breaks, and what he is still figuring out. Views are his own.*
+
+## See also
+
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — least privilege is the operational expression of NHI governance. This audit is what NHI lifecycle management looks like in practice.
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — ZTA's least-privilege principle applied to agent tool access. Every permission is a resource; unused permissions violate the minimum necessary access model.
+- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — the enforcement layer that would have flagged the unused remote execution permission before it was granted. T3-tier review for high-risk capabilities.
+- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — the network-layer complement to permission auditing. Both were part of the same hardening sprint.
+- [The Loud Breach](/analysis/loud-breach) — the incident that made this audit non-optional. Scope-intent mismatches start with permissions that exist but shouldn't.

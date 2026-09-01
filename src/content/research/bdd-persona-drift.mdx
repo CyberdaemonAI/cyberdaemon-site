@@ -153,3 +153,11 @@ D53 tells you something changed this session. The Elliot probe tells you whether
 **Semantic similarity would work better with more tokens.** Probably true. The natural floor problem is specific to short output lengths. At 2,000+ tokens per response, bigram sets are large enough for Jaccard to have real dynamic range. The structural approach is an adaptation to constrained inference, not a claim that semantic methods are wrong.
 
 **Nine runs is not a validated baseline.** It is not. The two-sigma bands will shift materially as the history window fills to 20. Zero false positives is encouraging, but it reflects nine runs of one model on one inference platform. Calibrate your own feature selection and window size before treating these numbers as transferable.
+
+## See also
+
+- [In Plain Language](/research/cognitive-security-part7) — the behavioral constraint library that BDD verification runs against. The Elliot Probe is the detection layer; the constraint library defines what it's checking for.
+- [The Checklist](/research/cognitive-security-part6) — the operational posture that structural detection supports. BDD is how the checklist becomes executable.
+- [Whose Memory Is It](/research/cognitive-security-part5) — multi-agent contamination as a detection target. The Elliot Probe's quarantine architecture addresses the high-volume-writer problem described here.
+- [prom-memory: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the memory system the Elliot Probe monitors. The structural baseline is built from prom-memory's fact type taxonomy.
+- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — security hardening at the infrastructure layer. Behavioral detection and network controls are complementary layers.

@@ -382,3 +382,13 @@ into the service's authentication layer.
 ---
 
 [^1]: The episodic memory system described here uses the CogniLayer taxonomy: 14 fact types. Running in production since 2025.
+
+## See also
+
+**Prometheus build chain** — prom-memory is the memory layer the rest of the system is built on:
+
+- [Middle-Out: temporal compression for AI episodic memory systems](/research/middle-out-compression) — the compression algorithm that keeps prom-memory from growing without bound. Named after that show.
+- [The Notebook That Edits Itself](/research/cognitive-security-part1) — what happens when the memory layer starts shaping cognition. The cognitive security series runs on prom-memory findings.
+- [The Elliot Probe](/research/bdd-persona-drift) — structural detection for behavioral drift in AI systems that use shared memory.
+- [My agent couldn't read its own name for months](/build-logs/agent-couldnt-read-its-own-name) — a failure mode that prom-memory's attribution tooling is designed to catch: silent corruption that health checks don't surface.
+- [Writing to the Next Session](/build-logs/writing-to-the-next-session) — session handoff architecture built on top of prom-memory. What recovery actually needs.
