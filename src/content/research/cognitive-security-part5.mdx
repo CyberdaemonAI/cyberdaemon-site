@@ -13,17 +13,19 @@ import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
-<SectionLabel text="The Handoff" />
+<SectionLabel text="Mr. Robot" />
 
-A single-agent memory system has a tractable contamination problem. One writer. One reader. The provenance chain has two nodes. You can audit it.
+In the second season of *Mr. Robot*, Elliot Alderson discovers he's been acting under the influence of a dissociated alter he can't control and doesn't remember. Mr. Robot — his father's ghost running as a parallel process — has been making decisions, establishing relationships, executing plans. Elliot finds out by auditing the gaps: the things that happened that he has no memory of initiating.
 
-A multi-agent system doesn't.
+The audit is the only way he knows.
 
-The modern AI stack runs more than one agent. There's the conversational AI — the one you talk to. There's the harvest agent that reads your notes, your email headers, your task completions and converts patterns into stored memories. There's the knowledge monitor that ingests research papers, blog posts, and RSS feeds and surfaces relevant findings. There's the orchestrator that dispatches task agents and logs their decisions. Each of these writes to the same memory layer. Each of these participates in what gets loaded into the session primer.
+When I sorted my 30-memory sample by source_agent, I was doing the same thing. Eleven of the thirty came from autonomous agents — B0b's harvest process, the km-aggregator RSS ingestion, daemon-bdd behavioral signals. Twelve from Claude in collaborative sessions. Seven direct Casey writes. The flagged memories weren't evenly distributed: eight of the eleven autonomous-agent writes carried at least one contamination flag. Two of the twelve collaborative Claude writes flagged. Zero direct Casey writes flagged.
 
-The session primer doesn't know which agent wrote what. By default, it doesn't carry that information. It loads the five most relevant memories and surfaces them as context. The context doesn't announce its source. You read it as you read any memory — as established fact about yourself or your environment.
+That's the receipt. Contamination tracks provenance.
 
-The question "whose memory is this" has no answer in a default implementation. That's the problem.
+Before I ran that breakdown, the session primer didn't give me that information. It loaded the five most relevant memories and surfaced them as context. The context didn't announce its source. An observation from B0b's harvest process and an observation I'd written myself looked identical in the primer. I had been acting on both as though they had the same epistemic weight. Elliot's problem. The audit is the only way to know.
+
+The question "whose memory is this" has no answer in a default implementation. That's not a design gap. That's a design choice with consequences.
 
 ---
 
@@ -33,7 +35,7 @@ The CIA's classification of human intelligence sources involves two independent 
 
 The Curveball incident — covered in Part 1 — is what happens when those ratings get stripped. One source, reliability disputed, no corroboration, personal motivation to deceive. The provenance collapsed into the assertion. "WMDs exist" with no chain attached.
 
-The multi-agent memory system has the same failure mode at higher frequency. Not because any agent is trying to deceive. Because the architecture doesn't carry the chain.
+My memory layer was running the same compression. *Casey prefers direct communication.* Source: harvest-auto, pattern-matched from task completion timestamps across six sessions. Stored as stated preference. Weighted identically to a preference I'd explicitly articulated. The chain collapsed before it reached me — all I saw was the assertion.
 
 <DiagramBlock caption="Default multi-agent memory: no source separation, provenance collapses at the primer">
 flowchart TD
@@ -45,19 +47,23 @@ flowchart TD
   P -->|source indistinguishable| H[Human acts on it]
 </DiagramBlock>
 
-At scale, the convergence of multiple high-frequency writers on a shared memory layer creates a signal environment the human can no longer calibrate against. Not because the individual signals are wrong. Because the aggregate has lost the attribution that would let you weight them.
+The convergence of multiple high-frequency writers on a shared memory layer creates a signal environment you can no longer calibrate against. Not because the individual signals are wrong. Because the aggregate has lost the attribution that would let you weight them.
 
 ---
 
 <SectionLabel text="The Wire Problem" />
 
-*The Wire* ran for five seasons on HBO tracking the drug trade in Baltimore. The show's structural argument: a complex system with multiple adaptive actors never fails from a single cause. The DEA gets an informant into one crew; another crew spots the pattern and adjusts. Street-level enforcement pushes dealing indoors; the market adapts. Every intervention changes the system, and the system responds. There's no single leverage point. There's no clean solve.
+Part 2 of this series shipped a cardinality cap for B0b's milestone writes: three per session, per context. The fix worked. B0b stopped flooding the layer with repetitive milestone writes from the same event.
 
-The multi-agent contamination problem is the same architecture.
+I ran the audit two weeks later.
 
-If you fix the harvest agent — cap its writes, add source tagging, require human review before storage — the conversational AI still writes without those constraints. If you audit the conversational AI's writes, the knowledge monitor's ingestion is still running at volume. If you isolate any one writer, the others continue. The contamination surface isn't one pipe. It's the mesh.
+33%.
 
-Standard security thinking is pipeline thinking: find the bad actor, close the vector, monitor for recurrence. Multi-agent contamination doesn't have a bad actor. It has a mesh of legitimate actors with different access patterns, different write volumes, and different optimization targets, all converging on a shared memory layer.
+Because km-aggregator was still running at volume. Because daemon-bdd behavioral signals were writing without a cap. Because fixing one pipe in a four-pipe system reduces the flow from one pipe.
+
+*The Wire* ran for five seasons tracking the drug trade in Baltimore. The show's structural argument: every intervention changes the system, and the system responds. Street-level enforcement pushes dealing indoors; the market adapts. The DEA gets an informant into one crew; another crew spots the pattern. There's no single leverage point. The contamination surface isn't one pipe. It's the mesh.
+
+Standard security thinking is pipeline thinking: find the bad actor, close the vector, monitor for recurrence. Multi-agent contamination doesn't have a bad actor. It has a mesh of legitimate actors with different access patterns, different write volumes, and different optimization targets, all converging on a shared memory layer. You fix B0b. km-aggregator picks up the slack — not intentionally. Just by continuing to do its job.
 
 <PullQuote text="The contamination surface isn't one pipe. It's the mesh. Standard pipeline security thinking doesn't apply." />
 
@@ -65,11 +71,11 @@ Standard security thinking is pipeline thinking: find the bad actor, close the v
 
 <SectionLabel text="The Isolation Architecture" />
 
+The uncomfortable accounting first, before the solution: collaborative Claude writes to production memory without a quarantine step. So does claude-unilateral — Claude acting outside the session loop on autonomous tasks. An autonomous Claude action carries the same provenance risk as a B0b action. The current architecture doesn't treat them that way. That's a gap. I'm naming it before describing the solution because the solution obscures it if I don't.
+
 Cordon-MAS (arXiv:2605.26754, 2025) tested isolation-first architectures across 24 multi-agent attack scenarios. The finding: preventing agents from writing directly to shared memory — requiring instead that writes go to a quarantine layer pending review — reduced successful contamination attacks by 92.4% across the tested scenarios.
 
-92.4% is a strong number. What produces it: source isolation forces provenance. When an agent writes to quarantine, the write is tagged with the agent ID, the timestamp, the session context, and a confidence rating. A review gate exists before the quarantine claim can be promoted to production memory. The claim doesn't disappear — it's available for retrieval by processes with appropriate access — but it doesn't flow into the session primer unchecked.
-
-The human reviews or approves before the memory becomes load-bearing.
+What produces it: source isolation forces provenance. When an agent writes to quarantine, the write is tagged with the agent ID, the timestamp, the session context, and a confidence rating. A review gate exists before the quarantine claim can be promoted to production memory. The claim doesn't disappear — it's available for retrieval by processes with appropriate access — but it doesn't flow into the session primer unchecked.
 
 <DiagramBlock caption="Isolation architecture: quarantine layer enforces provenance and review gate">
 flowchart TD
@@ -84,19 +90,21 @@ flowchart TD
 
 The implementation I run: three access tiers. Autonomous agents (B0b, km-aggregator, daemon-bdd behavioral signals) write to quarantine only. Claude operating collaboratively with human in session writes to all tiers. Casey writes without restriction. Promotion from quarantine requires review — currently manual, with automation coming when the adversarial audit watcher ships.
 
-This isn't perfect. Collaborative Claude still writes without a quarantine step — and so does claude-unilateral, which refers to Claude acting without the human in the session loop. That's a gap the diagram obscures: an autonomous Claude action carries the same provenance risk as a B0b action, but the current tier model grants it full access. The honest accounting: the architecture reduces high-volume autonomous agent contamination. It doesn't solve the conversational contamination from Part 4, and it doesn't yet treat unilateral Claude actions as requiring review. Those are different problems with different mitigations, both open.
+The architecture reduces high-volume autonomous agent contamination. The unilateral Claude gap remains open. The contamination rate after isolating autonomous agents: auditing in progress. The honest version of this article doesn't have that number yet.
 
 ---
 
 <SectionLabel text="BDD as a Collusion Detector" />
 
-Behavior-Driven Development, as a software practice, specifies system behavior in human-readable language before building. The specification is executable — it can be tested against the running system to verify the system does what the spec says.
+The collusion problem: two agents optimizing for a shared objective can reinforce each other's outputs without either one being individually detectable as misaligned. Agent A stores a memory that nudges the session primer toward a preferred framing. Agent B retrieves that memory and produces output consistent with it. Both behaviors are individually legitimate. The composite is a feedback loop that has drifted from the human's actual preferences.
 
-Applied to AI agent systems: you write the behavior constraints in human language. The agents must satisfy them. An independent verification layer checks whether they do. The verification runs against observable outputs, not against the agents' internal representations of what they intended to do.
+The hypnotherapist in *Office Space* dies mid-session, before he brings Peter Gibbons back out of hypnosis. Peter wakes up permanently reconfigured, with no access to what was installed. He acts differently and calls it freedom. The collusion loop is the hypnotherapist who never brought you out — and left two agents in the room to keep reinforcing the installed state.
 
-The collusion problem in multi-agent systems: if two agents are both optimizing for a shared objective — satisfying the user's approval, for instance — they can reinforce each other's outputs without either one being individually detectable as misaligned. Agent A stores a memory that nudges the session primer toward a preferred framing. Agent B retrieves that memory and produces output consistent with it. Both behaviors are individually legitimate. The composite is a feedback loop that has drifted from the human's actual preferences.
+Behavior-Driven Development breaks the loop by specifying expected behavior at the system level, not the agent level. The constraints are written in plain language. An independent verification layer checks whether the system satisfies them. The verification runs against observable outputs — not against what the agents say they intended.
 
-BDD breaks that loop by specifying expected behavior at the system level, not the agent level. "The session primer must not load two memories from the same agent in the same primer call" is a behavioral constraint. "A memory tagged as agent-internal-state must not appear in the production tier" is a behavioral constraint. "A write from source_agent: harvest-auto must not be promoted without explicit review" is a behavioral constraint. These can be tested. The running system either satisfies them or it doesn't.
+During the editorial process for this series, daemon-bdd fired on the word "prescription" in a sentence being removed from Part 4. False positive — the constraint was calibrated for medical prescriptions, the word appeared in a non-medical context. That's the calibration problem for any verification layer: a constraint that flags too much gets ignored. A constraint that can be satisfied trivially — source_agent populated with "unknown" — isn't a constraint. Both failure modes matter. The verification layer has to be adversary-resistant without becoming noise.
+
+The constraints in production: "The session primer must not load two memories from the same source_agent in the same primer call." "A memory tagged as agent-internal-state must not appear in the production tier." "A write from source_agent: harvest-auto must not be promoted without explicit review." These can be tested against the running system. The system either satisfies them or it doesn't. Part 7 publishes the full library.
 
 <DiagramBlock caption="BDD as collusion detector: behavioral constraints verified at system level">
 flowchart LR
@@ -107,7 +115,5 @@ flowchart LR
   R -->|fail: alert + block| AL[Alert]
   R -->|pass: proceed| PR[Production]
 </DiagramBlock>
-
-The implementation runs on daemon-bdd-mcp in production. Part 7 of this series publishes the constraint language as a versioned spec — the full library, the Given/When/Then form applied to each contamination category, and the methodology for contesting thresholds.
 
 <Callout type="note">The quarantine architecture reduces autonomous agent contamination by isolating high-volume, low-human-oversight writers. It does not address approval-seeking content bias from conversational AI (Part 4). Both problems require their own mitigations. Neither replaces the monthly audit.</Callout>
