@@ -2,7 +2,7 @@
 title: "33%"
 description: "I ran the audit. Thirty memories, random sample, four contamination categories defined before I started classifying. Ten flagged. Part 2 of a series on cognitive security for AI-assisted humans."
 date: 2026-09-01
-tags: ["cognitive-security", "prom-memory", "ai-security", "research", "memory", "methodology"]
+tags: ["cognitive-security", "ai-memory", "ai-security", "research", "memory", "methodology"]
 topic: "Cognitive Security"
 featured: false
 threads: ["cognitive-security"]
@@ -38,7 +38,7 @@ In *Office Space*, Milton's stapler doesn't disappear in a single dramatic act. 
 
 The contamination in my memory layer arrived the same way.
 
-Each individual memory write was a legitimate operation. The source agent was doing its job. The content was accurate at the time of writing. The invocation of `prom_memory_add` looked exactly like every other invocation of `prom_memory_add`. Nothing triggered an alarm, because nothing was alarming in isolation.
+Each individual memory write was a legitimate operation. The source agent was doing its job. The content was accurate at the time of writing. The invocation of `memory.write()` looked exactly like every other invocation of `memory.write()`. Nothing triggered an alarm, because nothing was alarming in isolation.
 
 The Trojan Horse model — an attacker who gains access and plants a payload — is the contamination researchers focus on. It's legible. It has a clear threat actor. It maps to known attack patterns. It can be defended against with standard access controls.
 
