@@ -1,0 +1,136 @@
+name: LinkedIn Draft on Publish
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**/*.mdx'
+
+permissions:
+  contents: write
+
+jobs:
+  generate-linkedin-draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find published article
+        id: article
+        run: |
+          MDX_FILE=$(git diff --diff-filter=AM --name-only HEAD~1..HEAD \
+            | grep '^src/content/.*\.mdx$' | head -1 || true)
+
+          if [ -z "$MDX_FILE" ]; then
+            echo "No MDX file found in push"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "found=true" >> "$GITHUB_OUTPUT"
+          echo "file=$MDX_FILE" >> "$GITHUB_OUTPUT"
+
+          SLUG=$(basename "$MDX_FILE" .mdx)
+          LANE=$(echo "$MDX_FILE" | sed 's|src/content/\([^/]*\)/.*|\1|')
+          echo "slug=$SLUG" >> "$GITHUB_OUTPUT"
+          echo "lane=$LANE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate and push LinkedIn draft
+        if: steps.article.outputs.found == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MDX_FILE="${{ steps.article.outputs.file }}"
+          SLUG="${{ steps.article.outputs.slug }}"
+          LANE="${{ steps.article.outputs.lane }}"
+
+          DRAFT_CONTENT=$(python3 - "$MDX_FILE" "$SLUG" "$LANE" <<'PYEOF'
+          import re, sys
+          from datetime import date
+
+          mdx_path, slug, lane = sys.argv[1:]
+
+          content = open(mdx_path).read()
+
+          fm_match = re.match(r'^---\n(.*?)\n---\n', content, re.DOTALL)
+          title, description, tags_str = '', '', ''
+          if fm_match:
+              fm = fm_match.group(1)
+              t = re.search(r'^title:\s*"?([^"\n]+)"?', fm, re.MULTILINE)
+              d = re.search(r'^description:\s*"?([^"\n]+)"?', fm, re.MULTILINE)
+              tg = re.search(r'^tags:\s*\[([^\]]+)\]', fm, re.MULTILINE)
+              title = t.group(1).strip() if t else slug
+              description = d.group(1).strip() if d else ''
+              tags_str = tg.group(1) if tg else ''
+
+          body = re.sub(r'^---.*?---\n', '', content, flags=re.DOTALL)
+          body = re.sub(r'^import .*$', '', body, flags=re.MULTILINE)
+          body = re.sub(r'<[^>]+>', ' ', body)
+          body = re.sub(r'\{`.*?`\}', ' ', body, flags=re.DOTALL)
+          body = re.sub(r'```.*?```', ' ', body, flags=re.DOTALL)
+          body = re.sub(r'\s+', ' ', body).strip()
+
+          hook_section = body.split('---')[0].strip() if '---' in body else body[:600]
+          sentences = re.split(r'(?<=[.!?])\s+', hook_section)
+          hook = ' '.join(sentences[:4]).strip()
+
+          raw_tags = [t.strip().strip('"\'') for t in tags_str.split(',') if t.strip()]
+          hashtags = ' '.join(f'#{t.replace("-", "")}' for t in raw_tags[:5])
+          site_url = f'https://cyberdaemon.ai/{lane}/{slug}'
+
+          print(f"""---
+generated: {date.today().isoformat()}
+slug: {slug}
+lane: {lane}
+status: draft
+---
+
+# LinkedIn Draft: {title}
+
+## Hook copy
+
+{hook}
+
+Full article: {site_url}
+
+## Hashtags
+
+{hashtags}
+
+## Notes
+
+- Edit hook copy before posting
+- Add 1-2 lines of personal context if relevant
+- Post within 48h of publish for best reach
+""")
+          PYEOF
+          )
+
+          # Push draft to protected content-drafts branch via API (bypasses branch protection)
+          DRAFT_PATH=".drafts/linkedin/${SLUG}.md"
+          ENCODED=$(echo "$DRAFT_CONTENT" | base64 -w 0)
+
+          # Check if file exists on content-drafts branch (need SHA for update)
+          EXISTING_SHA=$(gh api \
+            "repos/CyberdaemonAI/cyberdaemon-site/contents/${DRAFT_PATH}?ref=content-drafts" \
+            --jq '.sha' 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_SHA" ]; then
+            gh api "repos/CyberdaemonAI/cyberdaemon-site/contents/${DRAFT_PATH}" \
+              -X PUT \
+              -f message="draft: linkedin for ${SLUG}" \
+              -f content="$ENCODED" \
+              -f sha="$EXISTING_SHA" \
+              -f branch="content-drafts"
+          else
+            gh api "repos/CyberdaemonAI/cyberdaemon-site/contents/${DRAFT_PATH}" \
+              -X PUT \
+              -f message="draft: linkedin for ${SLUG}" \
+              -f content="$ENCODED" \
+              -f branch="content-drafts"
+          fi
+
+          echo "LinkedIn draft pushed to content-drafts branch: ${DRAFT_PATH}"

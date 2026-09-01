@@ -131,6 +131,180 @@ jobs:
             echo "No trailing periods on titles."
           fi
 
+      - name: Check for counterarguments section
+        run: |
+          echo "=== Checking for counterarguments section ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if ! grep -qiE '^## .*(counter|where.*wrong|what.*wrong|objection|pushback|the case against|what i.*wrong|wrong about)' "$file"; then
+              echo "FAIL: No counterarguments section in $file"
+              echo "  Add an H2 heading like: ## Counterarguments, ## Where I'm wrong, ## The case against this"
+              FAIL=1
+            fi
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Every article requires a counterarguments section. See STYLE-GUIDE.md."
+            exit 1
+          else
+            echo "Counterarguments section found in all changed files."
+          fi
+
+      - name: Check for hedge words
+        run: |
+          echo "=== Checking for hedge words ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          HEDGE_PATTERN='perhaps\b|arguably\b|it could be said|it should be noted|to some extent|in some ways|may or may not|might suggest|\bsomewhat\b|\brelatively\b'
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            matches=$(grep -niE "$HEDGE_PATTERN" "$file" || true)
+            if [ -n "$matches" ]; then
+              echo "FAIL: Hedge words in $file:"
+              echo "$matches"
+              FAIL=1
+            fi
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Remove hedge words. Say it or don't. See STYLE-GUIDE.md."
+            exit 1
+          else
+            echo "No hedge words found."
+          fi
+
+      - name: Check for banned buzzwords
+        run: |
+          echo "=== Checking for banned buzzwords ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          BUZZ_PATTERN='\brobust\b|\butilize\b|\bsynergy\b|\bnext-generation\b|\bcutting-edge\b|\bindustry-leading\b|\bseamless\b|\bactionable\b|\bleverage\b|\bholistic\b|\bpivot\b'
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            matches=$(grep -niE "$BUZZ_PATTERN" "$file" || true)
+            if [ -n "$matches" ]; then
+              echo "FAIL: Buzzwords in $file:"
+              echo "$matches"
+              FAIL=1
+            fi
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Remove buzzwords. Use plain language. See STYLE-GUIDE.md."
+            exit 1
+          else
+            echo "No buzzwords found."
+          fi
+
+      - name: Check required MDX component usage
+        run: |
+          echo "=== Checking required MDX components ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          REQUIRED=("DiagramBlock" "PullQuote" "Callout" "SectionLabel")
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            for component in "${REQUIRED[@]}"; do
+              if ! grep -q "<${component}" "$file"; then
+                echo "FAIL: Missing <${component}> in $file"
+                FAIL=1
+              fi
+            done
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "All articles require DiagramBlock, PullQuote, Callout, SectionLabel. See STYLE-GUIDE.md."
+            exit 1
+          else
+            echo "All required components present."
+          fi
+
+      - name: Check minimum word count
+        run: |
+          echo "=== Checking minimum word count (1000 words body text) ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          MIN_WORDS=1000
+          FAIL=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            word_count=$(python3 - "$file" <<'PYEOF'
+          import re, sys
+          content = open(sys.argv[1]).read()
+          content = re.sub(r'^---.*?---\n', '', content, flags=re.DOTALL)
+          content = re.sub(r'<[^>]+>', ' ', content)
+          content = re.sub(r'```.*?```', ' ', content, flags=re.DOTALL)
+          content = re.sub(r'^import .*$', '', content, flags=re.MULTILINE)
+          content = re.sub(r'\{`.*?`\}', ' ', content, flags=re.DOTALL)
+          print(len(content.split()))
+          PYEOF
+            )
+            if [ "$word_count" -lt "$MIN_WORDS" ]; then
+              echo "FAIL: $file has $word_count words (minimum $MIN_WORDS)"
+              FAIL=1
+            else
+              echo "OK: $file -- $word_count words"
+            fi
+          done <<< "$MDX_FILES"
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Articles must be at least $MIN_WORDS words. Expand the content."
+            exit 1
+          else
+            echo "All files meet minimum word count."
+          fi
+
+      - name: Check opening hook length
+        run: |
+          echo "=== Checking opening hook length (warn if > 200 words before first section break) ==="
+          MDX_FILES="${{ steps.changed.outputs.files }}"
+          if [ -z "$MDX_FILES" ]; then
+            echo "No changed .mdx files to check."
+            exit 0
+          fi
+          MAX_HOOK_WORDS=200
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            hook_words=$(python3 - "$file" <<'PYEOF'
+          import re, sys
+          content = open(sys.argv[1]).read()
+          content = re.sub(r'^---.*?---\n', '', content, flags=re.DOTALL)
+          content = re.sub(r'^import .*$', '', content, flags=re.MULTILINE)
+          hook = content.split('\n---\n')[0] if '\n---\n' in content else content[:500]
+          hook = re.sub(r'<[^>]+>', ' ', hook)
+          print(len(hook.split()))
+          PYEOF
+            )
+            if [ "$hook_words" -gt "$MAX_HOOK_WORDS" ]; then
+              echo "WARN: $file opening hook is $hook_words words (recommended max $MAX_HOOK_WORDS)"
+              echo "  Tighten the opening. Drop the reader into the problem faster."
+            else
+              echo "OK: $file -- $hook_words word opening hook"
+            fi
+          done <<< "$MDX_FILES"
+          echo "Opening hook check complete (warnings only, not blocking)."
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
