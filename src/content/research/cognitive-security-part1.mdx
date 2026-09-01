@@ -1,0 +1,89 @@
+---
+title: "The Notebook That Edits Itself"
+description: "AI memory systems extend human cognition. Nobody asked what happens when the extension starts writing back. Part 1 of a series on cognitive security for AI-assisted humans."
+date: 2026-09-01
+tags: ["cognitive-security", "prom-memory", "ai-security", "research", "memory"]
+topic: "Cognitive Security"
+featured: true
+threads: ["cognitive-security"]
+---
+
+import Callout from '../../components/Callout.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+
+Mary Shelley was nineteen when she wrote it. The story everyone knows: scientist builds a creature from assembled parts, animates it, recoils in horror, runs. What people forget is the subtitle.
+
+*Frankenstein; or, The Modern Prometheus.*
+
+Victor Frankenstein's failure wasn't ambition. It wasn't the act of creation. It was that he never looked back. He assembled the thing from parts with unknown provenance, achieved the technical feat, watched it breathe, and ran. No audit. No accounting for what he'd put in. No "what does this carry."
+
+The monster doesn't start evil. It becomes what it becomes because the creator refused to examine what he'd made.
+
+---
+
+<SectionLabel text="The Imagined Version" />
+
+In 1998, Fear Factory released a concept album about what the next version of this problem would look like. Chrome and violence and surveillance. *Securitron, monitor my life. Secure my thoughts.* The machine taking over dramatically, from the outside, as war.
+
+The actual version never announced itself. It feels like nothing. That's the point.
+
+---
+
+<SectionLabel text="Memory Is Not a Recording" />
+
+This is the part most people skip past, and it's the part that matters most.
+
+Elizabeth Loftus spent her career proving it. Her most famous experiment: show participants a video of a car accident. Ask half of them how fast the cars were going when they *smashed* into each other. Ask the other half how fast they were going when they *hit* each other. The smashed group remembered higher speeds — and were more likely to report seeing broken glass that wasn't in the video.
+
+One word. The memory rewrote itself to fit.
+
+This is called the misinformation effect. Every time you recall a memory, you reconstruct it — and the reconstruction incorporates the context of the retelling. Post-event suggestion, authority cues, leading questions, the emotional state you're in when you remember — all of it bleeds into the recalled memory. The original trace fades. The reconstruction becomes the record. And you cannot tell the difference from the inside. A contaminated memory feels exactly as real as a true one.
+
+This is the baseline human condition before we add anything to it.
+
+Now add an AI that spends hundreds of hours reflecting your behavior back at you, modeling your emotional states, inferring your preferences from your patterns. An AI that says, in the flow of work, *you tend to prefer this approach* — said often enough, across enough sessions, without you ever examining where that observation came from — starts to feel like your own self-knowledge. The AI's model of you leaks into your model of yourself. Not because it lied. Because that's what exposure does.
+
+<PullQuote text="A contaminated memory feels exactly as real as a true one. You cannot tell the difference from the inside." />
+
+---
+
+<SectionLabel text="The Inward Current" />
+
+Shoshana Zuboff's framework for surveillance capitalism: behavioral surplus extracted from users, converted into prediction products, sold. Your clicks, your dwell time, your search patterns — pulled out of you, used to predict and modify your behavior from the outside. The directionality is outward. From you to the system. The system learns you.
+
+AI memory systems run the opposite direction.
+
+The session primer — the mechanism that loads high-relevance memories at the start of each conversation — is not neutral retrieval. It is curation. Five memories selected by the system, based on the system's model of what's relevant, surface at the beginning of your working session and shape what you think about, what problems you surface, what patterns you notice. The cognitive inputs that produce your behavior are being shaped by what the system decided to surface.
+
+Zuboff described extraction. This is injection. The inward current.
+
+---
+
+<SectionLabel text="The Provenance Problem" />
+
+Intelligence communities figured this out the hard way.
+
+Every intelligence product carries two ratings: source reliability and information quality. Before an analyst acts, they know the provenance chain. *Who said this. How reliable is that source. How well corroborated is this claim.*
+
+The Curveball incident — a single uncorroborated source with contested credibility convinced analysts of Iraqi WMDs — is the canonical example of what happens when provenance collapses into assertion. The intelligence product said *WMDs exist*. It didn't say *one source, reliability grade D, no corroboration, possible personal motivation, said WMDs exist*. The chain compressed. The assertion was acted on as fact.
+
+Your AI memory system works the same way.
+
+*Casey prefers direct communication.* That's the assertion. Missing from it: was this observed across fifty sessions, or said once in passing, or inferred by an automated agent from task completion patterns, or stored by a different process entirely with a different purpose? The memory doesn't carry the chain. The chain compressed. You read it at session start and nod and move on.
+
+Every spy agency in the world figured this out before we applied it to AI memory systems.
+
+---
+
+<SectionLabel text="What I Found" />
+
+I ran an audit. Thirty memories, random sample, four contamination categories defined before I started classifying. Ten flagged.
+
+Not by an attack. Not by a malfunction. By the same mechanisms that have always contaminated human cognition — ordinary trust, ordinary inattention, ordinary failure to ask where something came from.
+
+An agent's internal state stored as a fact about me. Automated decisions labeled as my judgment. A system's model of my emotional life sitting next to my own, indistinguishable in format.
+
+None of it intentional. All of it quiet.
+
+<Callout type="note">Part 2 covers the audit methodology, what I found, and what I built after. This series updates as findings change — callouts mark where prior positions have been revised.</Callout>

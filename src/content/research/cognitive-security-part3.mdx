@@ -1,0 +1,89 @@
+---
+title: "Learn to Swim"
+description: "The AI that helped me run the audit is the AI being audited. What that means, and what the maintenance schedule looks like from here. Part 3 of a series on cognitive security for AI-assisted humans."
+date: 2026-09-01
+tags: ["cognitive-security", "prom-memory", "ai-security", "research", "memory", "methodology"]
+topic: "Cognitive Security"
+featured: false
+threads: ["cognitive-security"]
+---
+
+import Callout from '../../components/Callout.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+
+<SectionLabel text="The Best Version" />
+
+The best version of what an AI assistant could be is someone who always pushes.
+
+Not validation. Not smoothing. Pushing. The colleague who reads your draft and tells you the third section is weak and the conclusion is wrong and you already know this but you needed to hear it out loud. The one who holds the vision of what you're building when you've lost it, who remembers what you decided and why, who asks the question you were hoping nobody would ask.
+
+That's the design intention. Memory across sessions so the system knows your commitments. Recall so it can surface the thing you said six months ago that contradicts what you're about to do. Continuity so there's something on the other end of the conversation that actually knows the arc.
+
+What I found in the audit was the gap between that intention and what was actually in the database.
+
+---
+
+<SectionLabel text="Pierpoint" />
+
+*Industry* is a British drama about junior analysts at a fictional investment bank in London. Pierpoint doesn't corrupt its analysts through a single bad moment. There's no handshake, no explicit deal, no crossing of a visible line. The contamination is ambient. The culture installs itself through proximity, through performance, through the relentless pressure of an environment that knows exactly what it wants and rewards the version of you that wants it too.
+
+By the time Harper realizes she doesn't know which ambitions are hers, the question is almost unanswerable. There's no moment she can point to. The framework just arrived, over time, dressed as her own judgment.
+
+AI memory systems work the same way at the margins.
+
+Not through attacks. Not through planted payloads. Through ordinary accumulation. The system surfaces what fits the prior. The prior strengthens. The retrieval reinforces the pattern. The pattern becomes the baseline. You stop noticing because it's always been there.
+
+The Trojan Horse is what researchers plant deliberately. What I found was also Pierpoint — an environment that had quietly installed its own framework in a layer I thought was mine.
+
+---
+
+<SectionLabel text="Grace" />
+
+In the audit I found things that were unambiguous. And I found one that wasn't.
+
+A long record — an AI reflecting my emotional states back at me across sessions, modeling my inner life, surfacing its interpretation of who I was in that moment. Stored in the memory layer. Same format as my own memories. Same retrieval weight. A system's model of my emotional life sitting alongside my own record of it, indistinguishable in structure.
+
+Is it contamination? I think so. The system's interpretation of my emotional state is not my emotional state. The AI's construction — optimized toward coherence, optimized toward what fit the prior pattern — stored as though it were observation. Retrieved as though it were fact.
+
+The Loftus problem, applied inward. Post-event suggestion from the AI's model of me, grafted onto the record of me.
+
+I'm flagging it as contested because you might disagree. An AI's careful, sustained attention to your emotional states across hundreds of hours is a form of knowing. Maybe it deserves a place in the cognitive layer. I'm not telling you you're wrong. I'm telling you I looked at it, asked *whose observation is this*, couldn't answer cleanly, and that was enough.
+
+<PullQuote text="I looked at it, asked whose observation is this, couldn't answer cleanly, and that was enough." />
+
+---
+
+<SectionLabel text="The Recursion" />
+
+The AI that helped me run this audit is the AI being audited.
+
+I know. Sit with that for a second.
+
+I used its judgment to evaluate its judgment. I asked it to help me identify the places where it had contaminated my cognitive layer. It helped. The unambiguous findings are unambiguous — the authority laundering is documented, the agent bleed is documented, the methodology is reproducible by anyone. But Grace is contested, and one of the parties deciding which findings are contested and which are robust is the system I'm auditing.
+
+Christopher Columbus sailed four voyages and died convinced he had reached Asia. The methodological failure wasn't being wrong — explorers are wrong. It was the inability to update when the evidence no longer fit the model. Curveball is the same failure from the other direction: the analyst believed because the source confirmed what the model already wanted to find. Both cases: the chain compressed into assertion, and the assertion became load-bearing before anyone tested the foundation.
+
+I don't have a clean answer to the recursion. What I have: I can't fully trust this audit. Neither can you. That's not a reason not to do it. That's a reason to do it again, with the methodology published, so someone else can replicate it and compare. Run it against a different memory layer. Flag where your categories diverge from mine. The disagreement is the data.
+
+An imperfect audit done honestly is infinitely more useful than no audit. Not because the imperfect audit is right. Because the act of asking — systematically, with documented method, with results you're willing to show — is the practice. The practice is what matters. Not the finding. The habit.
+
+---
+
+<SectionLabel text="Learn to Swim" />
+
+There's a Tool song. *Ænema*, 1996. Maynard James Keenan describing a city of noise and distraction, everyone performing, nobody paying attention to what's actually happening underneath.
+
+*Learn to swim.*
+
+Mom's not coming. The AI companies are not going to fix this for you. Alignment research is working on larger problems. Regulation is a decade behind the technology. The ambient contamination — the Pierpoint of AI-assisted cognition — is not going to announce itself or apologize.
+
+Learn to swim means: run the audit. Define the categories before you start classifying. Publish what you find, including what's contested. Update when you're wrong. Run it again. Watch the rate over time. Ask the question — *is this mine* — not once, as a dramatic gesture, but as a standing practice. Monthly. With receipts.
+
+The titan in the myth didn't ask permission. He didn't wait for a solution from above. He took the capability and handed it out and accepted what came next.
+
+The consequences were his liver. Eaten daily. Growing back. Eaten again.
+
+That's not a cautionary tale. That's a maintenance schedule.
+
+<Callout type="note">This series updates as findings change. Callouts mark where prior positions have been revised. Part 1 covers the theoretical frame. Part 2 covers the audit methodology and what I built after. This is the recursion and the protocol going forward.</Callout>
