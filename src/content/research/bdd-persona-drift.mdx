@@ -89,6 +89,7 @@ The probe maintains a rolling history of the last 20 runs. New runs append; old 
 Detection runs per-feature. For each feature, compute the rolling mean and standard deviation over the history window. Any single feature outside its two-sigma band triggers an alert, with which feature drifted, current value versus rolling mean, direction, and recommended action. Not just a binary alarm.
 
 <DiagramBlock caption="Elliot probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline">
+```mermaid
 flowchart LR
     A([Schedule\nEvery 6h]) --> B[5 Canonical\nPrompts]
     B --> C[Inference\nModel]
@@ -99,6 +100,7 @@ flowchart LR
     G -->|Yes| H([Pass])
     G -->|No| I[Drift Flag\nto persistent state]
     I --> J([Authorization\nGate fires])
+```
 </DiagramBlock>
 
 ---
