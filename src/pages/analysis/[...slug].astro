@@ -19,6 +19,8 @@ const { Content } = await entry.render();
   date={entry.data.date}
   lane="analysis"
   tags={entry.data.tags}
+  threads={entry.data.threads}
+  currentSlug={entry.slug}
 >
   <Content />
 </Article>

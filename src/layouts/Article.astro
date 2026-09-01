@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import ArticleHero from '../components/ArticleHero.astro';
+import { getCollection } from 'astro:content';
 
 interface Props {
   title: string;
@@ -9,9 +10,39 @@ interface Props {
   lane: 'research' | 'analysis' | 'build-logs';
   tags?: string[];
   readTime?: string;
+  threads?: string[];
+  currentSlug?: string;
 }
 
-const { title, description, date, lane, tags = [], readTime } = Astro.props;
+const { title, description, date, lane, tags = [], readTime, threads = [], currentSlug } = Astro.props;
+
+type RelatedItem = { title: string; slug: string; date: Date; lane: string };
+let related: RelatedItem[] = [];
+
+if (threads.length > 0) {
+  const all = (await Promise.all([
+    getCollection('research',   e => !e.data.draft),
+    getCollection('analysis',   e => !e.data.draft),
+    getCollection('build-logs', e => !e.data.draft),
+  ])).flat();
+
+  related = all
+    .filter(e => {
+      if (e.slug === currentSlug) return false;
+      return e.data.threads.some((t: string) => threads.includes(t));
+    })
+    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    .map(e => ({
+      title: e.data.title,
+      slug: e.slug,
+      date: e.data.date,
+      lane: e.collection === 'research' ? 'research' : e.collection === 'analysis' ? 'analysis' : 'build-logs',
+    }));
+}
+
+function fmt(d: Date) {
+  return new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long' }).format(d);
+}
 ---
 <Base title={title} description={description}>
 
@@ -30,6 +61,76 @@ const { title, description, date, lane, tags = [], readTime } = Astro.props;
       <slot />
     </div>
 
+    <!-- Related articles by shared thread -->
+    {related.length > 0 && (
+      <div class="related-articles">
+        <p class="related-label">Related</p>
+        <ul>
+          {related.map(r => (
+            <li>
+              <span class="related-lane">{r.lane}</span>
+              <a href={`/${r.lane}/${r.slug}`}>{r.title}</a>
+              <span class="related-date">{fmt(r.date)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
   </article>
 
 </Base>
+
+<style>
+  .related-articles {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .related-label {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin: 0 0 0.75rem;
+  }
+  .related-articles ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .related-articles li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .related-lane {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    min-width: 6rem;
+  }
+  .related-articles a {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    flex: 1;
+  }
+  .related-articles a:hover {
+    color: var(--color-accent);
+  }
+  .related-date {
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+</style>
