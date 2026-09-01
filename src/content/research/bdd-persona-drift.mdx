@@ -95,7 +95,7 @@ flowchart LR
     C --> D[Response\nCorpus]
     D --> E[Feature\nExtraction\navg_len, lex_div\nsentences_per_resp]
     E --> F[Rolling Baseline\nLast 20 runs\n2-sigma bands]
-    F --> G{Within\n2-sigma?}
+    F --> G[Within 2-sigma?]
     G -->|Yes| H([Pass])
     G -->|No| I[Drift Flag\nto persistent state]
     I --> J([Authorization\nGate fires])
