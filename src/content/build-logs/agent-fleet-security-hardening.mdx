@@ -105,6 +105,29 @@ All four pods confirmed with the watcher process running on the same session the
 
 A precondition check added to the task dispatch endpoint: before accepting a new build task, the agent verifies the specification document for that task is reachable and valid. If the specification is absent or corrupted, the agent refuses the task and returns a structured error instead of attempting to execute against a missing document. This closes the class of failures where an agent starts executing against stale or partial state and produces garbage output that looks like a real result.
 
+
+<DiagramBlock caption="Security hardening sequence: credential expiry detection and alert flow">
+```mermaid
+sequenceDiagram
+    participant Pod as Agent Pod
+    participant Watcher as Expiry Watcher
+    participant Ops as Ops Channel
+    participant Human
+
+    Pod->>Watcher: Start background watcher
+    loop Every 30 minutes
+        Watcher->>Watcher: Check token expiry timestamp
+        alt Token expires within 60 min
+            Watcher->>Ops: Alert: credential refresh needed
+            Ops->>Human: Notification
+            Human->>Pod: Provide refreshed token
+        else Token valid
+            Watcher->>Watcher: Sleep
+        end
+    end
+```
+</DiagramBlock>
+
 ---
 
 <SectionLabel text="The Routing Discovery" />

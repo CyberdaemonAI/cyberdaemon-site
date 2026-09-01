@@ -90,6 +90,28 @@ flowchart LR
 </DiagramBlock>
 </ScrollReveal>
 
+<ScrollReveal>
+<DiagramBlock caption="CI dispatch sequence: from human request to test gate result">
+```mermaid
+sequenceDiagram
+    participant Human
+    participant DD as daemon-dispatch
+    participant B0b
+    participant GHA as GitHub Actions
+    participant pytest
+
+    Human->>DD: Dispatch CI gate task
+    DD->>B0b: Spawn agent with ISA
+    B0b->>GHA: Commit workflow YAML
+    GHA->>pytest: Run test job (19 tests)
+    pytest-->>GHA: 18 passed, 1 failed
+    GHA-->>B0b: CI result: partial failure
+    B0b-->>Human: PR open, 1 test requires human review
+```
+</DiagramBlock>
+</ScrollReveal>
+
+
 ---
 
 <SectionLabel text="What Worked" />

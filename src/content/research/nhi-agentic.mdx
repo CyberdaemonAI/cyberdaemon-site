@@ -30,6 +30,28 @@ Now count your service accounts. Your API keys. Your OAuth client credentials. Y
 ]} />
 </ScrollReveal>
 
+<DiagramBlock caption="NHI governance overview: four-phase lifecycle that most organizations skip entirely">
+```mermaid
+flowchart LR
+    A([AI Agent
+Deployed]) --> B[Inventory
+identity registered
+owner assigned]
+    B --> C[Provisioning
+least-privilege scopes
+short-lived credentials]
+    C --> D[Runtime
+drift detection
+scope monitoring]
+    D --> E[Deprovisioning
+credential revoked
+audit trail closed]
+    E -->|Next agent| B
+    D -->|Anomaly| F([Escalate to human])
+```
+</DiagramBlock>
+
+
 The ratio varies by industry, but the pattern is consistent: non-human identities outnumber human identities by an order of magnitude, and most organizations have no lifecycle management for them at all. No inventory. No ownership. No rotation policy. No deprovisioning process. Nothing.
 
 <PullQuote>
