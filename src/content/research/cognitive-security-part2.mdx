@@ -28,7 +28,7 @@ Four categories, defined before I opened anything:
 
 **Near-duplicate noise.** Multiple near-identical memories from the same event, across multiple sessions, reinforcing a pattern that only happened once. The repetition creates false weight. The retrieval system sees frequency and treats it as signal. The signal is an artifact of the architecture, not of the underlying reality.
 
-Thirty memories. Random selection. Not cherry-picked for drama.
+Thirty memories. Random selection.
 
 ---
 
@@ -72,7 +72,7 @@ The audit surfaced four things that didn't exist in the architecture: attributio
 
 **Attribution.** A canonical taxonomy of valid source agents. Before: any string could populate the `source_agent` field. After: a defined set of literals and prefixes, with validation on write. An advisory warning in current mode. Enforcement when the caller audit completes. You cannot run an audit on a field that can contain anything.
 
-**Limits.** A cardinality budget for milestone writes. The memory system had no concept of diminishing returns — the hundredth session milestone write from a single context carried the same weight as the first. A cap of three milestone writes per session, per context. The Chronosphere pattern applied to cognitive memory. Signal over noise.
+**Limits.** A cardinality budget for milestone writes. The memory system had no concept of diminishing returns — the hundredth session milestone write from a single context carried the same weight as the first. A cap of three milestone writes per session, per context. Signal over noise.
 
 **Lineage.** A derived-from field on memory writes. When a new memory is informed by prior memories, the sources can be named. Not required. Not always available. But when it exists, the chain is auditable. The Curveball problem in miniature: not "WMDs exist" but "source A, corroborated by source B, with this confidence, said WMDs exist." The chain doesn't compress into the assertion.
 
@@ -80,6 +80,4 @@ The audit surfaced four things that didn't exist in the architecture: attributio
 
 <Callout type="note">The architecture still produces contamination. These tools make it auditable. This is sanitation infrastructure, not a cure. The contamination rate is now a metric. Watch it over time.</Callout>
 
-The rate is 33%. It was higher before the lineage and attribution tooling shipped. I'll run the audit again in thirty days and report what changed.
-
-<Callout type="note">Part 3 covers the recursion problem — I used the AI to audit the AI — what that means, and what the maintenance schedule looks like from here.</Callout>
+The rate is 33%. I'll run the audit again at the 30-day mark and report what changed.
