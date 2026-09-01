@@ -64,9 +64,11 @@ This is a calibration problem, not a threshold problem. You cannot tune your way
 
 <SectionLabel text="What Actually Works" />
 
-The replacement measures output structure instead of content.
+I threw out the bigrams. The problem wasn't the threshold — I couldn't set a meaningful threshold because the metric had no dynamic range. The underlying issue: at low temperature, the content across runs is nearly identical at the token level, but which specific tokens land in the top-50 bigram set by frequency shifts enough that the sets barely overlap. The model isn't changing what it says. Bigram set membership is just unstable at this corpus size. That's noise. I was measuring noise.
 
-At a given temperature and output length, a model's structural characteristics — how it organizes responses — are more stable across runs than its specific bigram vocabulary. A model that has drifted behaviorally will show changes in structural properties before it shows detectable change in bigram patterns. The imitation breaks at the biology level before the surface behavior shifts.
+The replacement doesn't measure what the model says. It measures how the model says it.
+
+At a given temperature and output length, structural output characteristics — response length, vocabulary richness, sentence density — are more stable within a model than bigram vocabulary. When a model drifts, structural properties shift before bigram patterns do. MacReady's blood test, not a Turing test.
 
 Three features extracted from the concatenated five-response corpus:
 
@@ -76,7 +78,7 @@ Three features extracted from the concatenated five-response corpus:
 | `lex_div` | Unique words / total words | Vocabulary richness, formality level |
 | `sentences_per_resp` | Sentence-ending punctuation / response count | Response structure |
 
-Domain-agnostic. Orthogonal properties. Three features, not more — nine runs and three features gives 27 data points at baseline, which is enough to set two-sigma bands without the numbers being dominated by outliers. I wanted a signal, not a statistics requirement.
+Three, not more. Nine runs and three features gives 27 data points at baseline — enough to set two-sigma bands without outliers dominating. I wanted a signal, not a statistics requirement.
 
 ---
 
