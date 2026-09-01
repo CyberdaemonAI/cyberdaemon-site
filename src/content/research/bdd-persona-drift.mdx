@@ -56,7 +56,7 @@ When you compare two runs, minor token-level variation, punctuation differences,
 
 So: 12 / 75 = 0.16. That's not drift. That's the floor.
 
-<PullQuote text="At low temperature and short output lengths, the model is nearly deterministic at the token level but highly variable at the bigram-set level. The measurement unit doesn't fit the signal structure." />
+<PullQuote>At low temperature and short output lengths, the model is nearly deterministic at the token level but highly variable at the bigram-set level. The measurement unit doesn't fit the signal structure.</PullQuote>
 
 This is a calibration problem, not a threshold problem. You cannot tune your way out of it. Any system using n-gram similarity to monitor LLM behavioral consistency at low temperature and short output lengths will hit this floor. I'm telling you because I spent the two hours so you don't have to.
 
@@ -140,11 +140,11 @@ Two detection mechanisms, different scopes:
 
 D53 tells you something changed this session. The Elliot probe tells you whether the inference model itself changed between sessions. Together they close a loop that in-session monitoring alone cannot close. The persona-consistency claim becomes verifiable rather than assumed.
 
-<Callout type="note">D53 enforcement is active. Five-run minimum window is met. Probe has run clean across all valid intervals since deployment. A model update triggers the gate; it does not bypass it.</Callout>
+<Callout variant="note">D53 enforcement is active. Five-run minimum window is met. Probe has run clean across all valid intervals since deployment. A model update triggers the gate; it does not bypass it.</Callout>
 
 ---
 
-<SectionLabel text="Where I'm Wrong" />
+## Where I'm Wrong
 
 **The rolling baseline absorbs real drift.** Yes, intentionally, but this is a genuine trade-off. If a model degrades gradually across weeks, the rolling window will incorporate that degradation as the new normal and never fire. The 20-run window is calibrated for detecting abrupt swaps, not slow model rot. An absolute baseline that never updates would close this gap. I don't have one yet.
 
