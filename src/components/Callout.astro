@@ -10,11 +10,13 @@
  */
 
 interface Props {
-  variant: 'insight' | 'warning' | 'critical' | 'note';
+  variant?: 'insight' | 'warning' | 'critical' | 'note';
+  type?: 'insight' | 'warning' | 'critical' | 'note';
   label?: string;
 }
 
-const { variant, label } = Astro.props;
+const { variant: variantProp, type, label } = Astro.props;
+const variant = variantProp ?? type ?? 'note';
 
 const defaultLabels: Record<string, string> = {
   insight:  'Insight',
