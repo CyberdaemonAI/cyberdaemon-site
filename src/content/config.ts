@@ -8,6 +8,11 @@ const articleSchema = z.object({
   tags: z.array(z.string()).default([]),
   featured: z.boolean().default(false),
   topic: z.string().optional(),
+  // Manifesto cross-linking. Values: agents-as-people | intent-consent | small-vs-large
+  // Add more as manifesto threads expand. Used by /manifesto to surface related articles.
+  threads: z.array(z.string()).default([]),
+  // If this article deprecates or updates a prior position, link the slug here.
+  updates: z.string().optional(),
 });
 
 export const collections = {

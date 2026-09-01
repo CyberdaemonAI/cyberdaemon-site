@@ -1,4 +1,7 @@
 ---
+// Landing page redirects to manifesto
+return Astro.redirect('/manifesto', 301);
+---
 import Base from '../layouts/Base.astro';
 import { getCollection } from 'astro:content';
 
