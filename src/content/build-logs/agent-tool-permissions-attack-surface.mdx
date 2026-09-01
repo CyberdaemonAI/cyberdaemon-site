@@ -1,0 +1,159 @@
+---
+title: "The tool permissions your agent doesn't need are the ones that will bite you"
+description: "An audit of my agent orchestration access policy found a remote execution permission that had been live for months and used exactly zero times. Unused permissions are not untidy. They are the attack surface."
+date: 2026-09-01
+tags: ["ai-security", "agentic-ai", "autonomous-agents", "authorization", "zero-trust", "nhi"]
+featured: false
+---
+
+import Callout from '../../components/Callout.astro';
+import StatRow from '../../components/StatRow.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+
+On August 31, 2026, I audited the access policy attached to the service that dispatches work to my autonomous agents. It held a remote execution permission: the ability to open a shell inside any running agent container it could see.
+
+The comment sitting directly above the dispatch code said the opposite. It said the dispatcher reaches agents over internal service addresses, not remote execution. The code agreed with the comment. Every call went over the network path. The permission had been live for months and had never been used once.
+
+I removed it the same day. Then I sat with the more interesting question: if I had not gone looking, how would I ever have found out?
+
+---
+
+<SectionLabel text="The Finding" />
+
+## What an unused permission actually is
+
+Nobody grants a permission maliciously. You grant it on a Tuesday because you are trying to get a thing to work, you are not sure which call the client library is going to make, and the broad grant makes the error go away. That is the honest origin story of most access policies I have written.
+
+Then the code moves on. You find the network path. You delete the shell-out. You ship. The policy does not move, because nothing in the system connects "the code changed" to "the policy should change." They are two artifacts in two files with no relationship except your memory, and your memory is the least reliable component in the stack.
+
+<ScrollReveal>
+<PullQuote>
+An unused permission is invisible from both directions. The agent never asks for it, so it never appears in a log. The policy never changes, so it never appears in a diff.
+</PullQuote>
+</ScrollReveal>
+
+That invisibility is the whole problem. A misconfigured permission that gets used produces evidence. Denied calls, retries, error rates, something. An unused allow produces nothing. It sits there being correct-looking, and the only event that surfaces it is a human deciding to compare the policy against the code line by line.
+
+<Callout variant="warning" label="The tell">
+If you cannot name the specific line of code that exercises a permission, you do not have a permission. You have a standing offer.
+</Callout>
+
+---
+
+<SectionLabel text="The Threat Model" />
+
+## Why the unused one is the interesting one
+
+Start from first principles. What does a piece of running software need to copy itself somewhere else and keep going?
+
+Two things. It needs to write to a location that will later be executed, and it needs to reach the network to find the next location. That is it. Write plus reach. Everything else in a worm is optimization: persistence, evasion, targeting, payload. The replication surface itself is those two capabilities in the same process.
+
+Now describe a modern agent runtime. It writes files, because that is how it edits code. It reaches the network, because that is how it calls models, fetches repositories, and posts results. The minimum viable replication surface is not something you accidentally grant to an agent. It is the definition of an agent. This is the part of the 2026 adaptive agentic worm research that stuck with me[^1]: the capability set that makes an agent useful and the capability set that makes it able to spread are the same set.
+
+If that is the baseline, then the remote execution permission I found was not one more item on a list. It was a category change. Write plus reach gets code into one place. Execute-into-your-neighbors turns "one compromised agent" into "every agent in the fleet, in one hop, using an approved control path."
+
+<ScrollReveal>
+<DiagramBlock caption="The gap between what the policy allows and what the code calls, and what fills it">
+{`graph LR
+    A[Compromised input] --> B[Agent attempts action]
+    B --> C{Platform policy check}
+    C -->|Denied| D[Attempt logged, nothing happens]
+    C -->|Allowed| E[Action succeeds]
+    E --> F[Write plus network reach]
+    F --> G[Replication surface]
+    E --> H[Execute into peer container]
+    H --> I[Fleet-wide movement]
+    style C fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
+    style G fill:#1a1917,stroke:#c1121f,color:#e8e5de
+    style I fill:#1a1917,stroke:#c1121f,color:#e8e5de`}
+</DiagramBlock>
+</ScrollReveal>
+
+Read the diagram honestly, because the honest reading is the point. Nothing exploited this. There was no compromise, no anomalous call, no incident. What I found was an audit finding, not an attack. The research does not prove I was in danger; it describes the mechanism that makes an unused allow worth removing before anyone has a reason to reach for it. The permission was dead capability sitting inside a live blast radius, and the threat model that turns dead capability into a working attack is now written down and public.
+
+---
+
+<SectionLabel text="Soft And Hard" />
+
+## Instructions are not controls
+
+Here is the distinction I want to be precise about, because most agent security writing blurs it.
+
+I tell my agents what they are allowed to do. The operating rules say: do not run destructive operations, stop and escalate instead. Those instructions work. They have worked for months. They are also a soft control, and soft controls share one property: they live inside the same context window as the attacker.
+
+An instruction is text. A prompt injection is text. A compromised task specification is text. When those arrive in the same buffer, the only thing deciding which one wins is a model's judgment, and a model's judgment is a probability distribution, not a boundary. You cannot build a security boundary out of something that negotiates.
+
+Platform-enforced permission removal has the opposite property. The agent can be fully convinced it should open a shell in a peer container. It can plan it, justify it, and issue the call. The platform returns denied, because the capability is not in the policy, and no amount of text in the agent's context changes what the policy says. The agent does not get a vote.
+
+<Callout variant="critical">
+Instructions constrain an agent that is working correctly. Permissions constrain an agent that is not. If your entire agent safety story lives in the system prompt, your safety story is one clever input away from being a suggestion.
+</Callout>
+
+Both layers are necessary. Instructions give you good behavior at low cost across a huge surface of things you could never enumerate in a policy. Permissions give you a floor that holds when the instructions lose. Anyone selling you one of these as a replacement for the other is selling you half a control.
+
+---
+
+<SectionLabel text="Lateral Movement" />
+
+## The other half is storage
+
+Remote execution is one path between agents. Shared storage is the other, and it is quieter.
+
+If every agent in a fleet mounts the same volume, then file write, the capability you cannot take away without breaking the agent, becomes a message bus between agents. One worker writes. Another worker reads it as input, as a cached artifact, as a task file. No network call, no policy check, no log line that looks like movement. The filesystem is the channel.
+
+I run per-agent isolated storage. Each agent gets its own volume, and no agent can read another's working directory. That was originally a correctness decision, not a security one; I wanted agents to stop stepping on each other's checkouts. It turns out the correctness fix and the containment fix were the same fix, which happens more often than I expect it to.
+
+<ScrollReveal>
+<StatRow stats={[
+  { value: "1", label: "Unused permission found" },
+  { value: "Months", label: "Time it was live" },
+  { value: "0", label: "Times the code used it" }
+]} />
+</ScrollReveal>
+
+The remaining shared surface is credentials. An agent that holds a token good for the whole fleet has inherited the fleet, regardless of what its storage looks like. Scope per worker, or accept that isolation stops at the first shared secret.
+
+---
+
+<SectionLabel text="The Audit" />
+
+## The question that finds these
+
+There is exactly one question that surfaces this class of finding, and it is not "is this policy following least privilege." Every policy I have ever written looked like least privilege on the day I wrote it.
+
+The question is: for each permission in this policy, which line of code calls it?
+
+Run it as a two-column exercise. Left column, every capability the policy grants. Right column, the call site that uses it. Any left-column entry with an empty right column is either a permission you are about to delete or a gap in your understanding of your own code, and both of those are worth an hour.
+
+The trap is trusting the comments. My comment was accurate. The code was accurate. The comment described the network path, the code used the network path, and the permission for the path nobody used sat one file over in a format I had not read since the day I wrote it. Reading the code told me what the system does. Only reading the policy told me what the system may do, and the distance between those two is where this finding lived.
+
+---
+
+<SectionLabel text="Counterarguments" />
+
+## Counterarguments
+
+**"Agents don't exploit their own access policies."** Correct, under normal operation, and I want to be clear that mine never did. An agent behaving normally issues the calls its code issues; unused capability stays unused forever. The threat model is not an agent that decides to misbehave. It is a compromised input, a poisoned task specification, or a supply chain problem in something the agent reads, at which point the agent attempts an operation and the platform decides. An unused allow is invisible to the agent and invisible to defenders until somebody audits it, which is a bad combination of properties for something that grants shell access.
+
+**"System prompts are enough to constrain the agent."** System prompts are part of the attack surface, not a boundary around it. They are text sharing a buffer with whatever the agent reads today, and a sufficiently well-crafted input can outrank them, because the model resolves conflicts by inference rather than by rule. Platform permissions sit outside the model entirely, which is what makes them different in kind and not just in strength. Keep the instructions; they do real work. Do not confuse them with a control the agent cannot argue with.
+
+**"This is niche. Most agent deployments don't run container orchestration."** The substrate is niche and the pattern is not. Every agentic deployment grants tool access at setup: file scopes, network egress, API tokens, database roles, a list of callable tools in a config file. Every one of them drifts, because the code keeps changing and the grant does not. Swap "access policy" for "the tools array in your agent config" and every sentence in this article still holds. The audit question is substrate-independent: does the running code actually use every capability it has been given?
+
+---
+
+<SectionLabel text="What's Next" />
+
+## Where this goes from here
+
+The honest scope of this piece is one finding, in one deployment, in a system I built by myself in a basement. I am not telling you the industry has an unused permission crisis. I am telling you that I found one in a system whose access policy I wrote, whose code I wrote, and whose security I care about more than most people care about a side project, and I still had to go looking to find it.
+
+What I want next is for the looking to stop being manual. The permission-to-call-site mapping is mechanical enough to automate: parse the grants, parse the call sites, diff them, open a work item when the left column has an orphan. Then the drift between what the code does and what the policy allows becomes a thing that reports itself rather than a thing I remember to check.
+
+Until that exists, the audit is a calendar entry and a couple of hours. Cheap, given what it turns up.
+
+[^1]: 2026 research on adaptive agentic worms published on LessWrong. I use one claim from it here, that file write plus outbound network reach is the minimum viable self-replication surface. The rest of the reasoning in that section is my own.
+
+*Casey Gager builds a personal AI orchestration system. He writes about what works, what breaks, and what he is still figuring out. Views are his own.*
