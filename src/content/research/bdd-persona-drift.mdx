@@ -104,6 +104,21 @@ drift if not (lo <= current <= hi)
 
 Any single feature outside its two-sigma band triggers an alert. The alert includes which feature drifted, current value versus rolling mean and standard deviation, direction, and a recommended action. Operators get diagnostic information, not just a binary alarm.
 
+<DiagramBlock caption="BDD probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline, routes to pass or drift event">
+```mermaid
+flowchart LR
+    A([Schedule\nEvery 6h]) --> B[5 Canonical\nPrompts]
+    B --> C[Inference\nModel]
+    C --> D[Response\nCorpus]
+    D --> E[Feature\nExtraction\navg_len · lex_div\nsentences_per_resp]
+    E --> F[Rolling Baseline\nLast 20 runs\n2σ bands per feature]
+    F --> G{Within\n2σ?}
+    G -->|Yes| H([Pass])
+    G -->|No| I[Drift Flag\nto persistent state]
+    I --> J([Authorization\nGate fires])
+```
+</DiagramBlock>
+
 ---
 
 <SectionLabel text="Results" />
