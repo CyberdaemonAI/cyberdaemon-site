@@ -14,73 +14,79 @@ import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 
-<SectionLabel text="The Gap Nobody Monitors" />
+<SectionLabel text="The Gap" />
 
-If you run an AI agent with a defined persona and the inference model gets updated silently underneath your system prompt, your users experience drift without explanation. More concretely: any governance controls you've built that depend on behavioral assertions about that agent are now operating on a stale baseline. They're claiming something about the model that may no longer be true.
+Last July, I upgraded the Prometheus cluster and mistral-nemo:12b got pulled to a new version during the process. The persona layer kept running. The system prompt didn't change. Prompts went in, responses came out, latency looked normal. Nothing in my observability stack flagged anything.
 
-You can monitor latency, error rates, token usage, cost. What standard ML observability doesn't give you is whether the model underneath your persona layer is still behaving the same way it was when you set your baseline. Most monitoring infrastructure assumes you own the model. When you don't — when you're running against a hosted inference endpoint or a local model that gets updated during a cluster upgrade — that assumption fails silently.
+I found out two days later, manually, by noticing the responses felt different. "Felt different" is not a monitoring strategy.
 
-The Elliot Probe is the tripwire I built for this in Prometheus. Named for the man who has to audit the gaps in what his parallel process did. It's named that because the problem it solves is the same: you didn't change anything, but something changed, and you're finding out by running the audit.
+The gap is structural: standard ML observability monitors latency, error rates, token usage, cost. None of those tell you whether the model underneath your persona layer is still behaving the same way it was when you set your baseline. If you run an AI agent with a defined persona and the inference model gets updated silently — by a package manager, by a hosting provider, by your own cluster upgrade — your users experience drift without explanation. Any governance controls you've built that depend on behavioral assertions about that agent are now operating on a stale baseline.
+
+Most monitoring infrastructure assumes you own the model. When you don't, the assumption fails silently.
 
 ---
 
-<SectionLabel text="What I Tried First" />
+<SectionLabel text="MacReady's Blood Test" />
 
-The original approach was Jaccard similarity over bigram sets. For each probe run, send five canonical prompts to the inference model, collect the responses, extract the top 50 bigrams by frequency, and store that set as the behavioral fingerprint. On the next run, compare fingerprints. If similarity dropped below a threshold (0.72 was my starting point), alert as a drift event.
+In *The Thing* (1982), John Carpenter's crew in Antarctica can't tell which of them has been replaced. The creature mimics its host perfectly — same face, same mannerisms, same voice. You cannot tell by looking. You cannot tell by talking to it. You need an independent structural test that doesn't ask the thing whether it's changed.
 
-The rationale was reasonable. Bigram overlap captures vocabulary and phrasing patterns characteristic of a model's output distribution. A model with different training data or RLHF tuning should produce different characteristic bigrams. Computationally cheap, no semantic model required.
+MacReady's blood test works because it operates on the underlying biology, not the surface behavior. The imitation is perfect. The biology isn't.
 
-It didn't work. Runs of the same model, same prompts, consecutive intervals, produced Jaccard similarities ranging from 0.09 to 0.14. A 0.72 threshold would never fire. A threshold calibrated to this range would produce constant false positives from run-to-run variation that carried no signal.
+The Elliot probe is a blood test for inference models. Named for the man who has to audit the gaps in what his parallel process did without his knowledge — because the probe doesn't ask the model if it's changed. It measures structural outputs and decides for itself.
+
+---
+
+<SectionLabel text="First Attempt: Bigrams" />
+
+I started with Jaccard similarity over bigram sets. For each probe run, send five canonical prompts to the inference model, collect the responses, extract the top 50 bigrams by frequency, store that set as the behavioral fingerprint. On the next run, compare fingerprints. If similarity dropped below 0.72, alert as a drift event.
+
+The rationale was reasonable. Bigram overlap captures vocabulary and phrasing patterns characteristic of a model's output distribution. Cheap, no semantic model required.
+
+I ran it. Same model, same prompts, consecutive intervals. Got back 0.09. Then 0.11. Then 0.14. Tried adjusting the threshold. Any threshold sensitive enough to catch a model swap would fire constantly on normal run variation. Any threshold stable enough to stop the false positives would never fire on an actual swap. I spent two hours looking for bugs. There were no bugs. The floor was real.
 
 ---
 
 <SectionLabel text="The Natural Floor" />
 
-The failure had a specific cause — non-obvious until you work through the math.
+The failure has a specific cause. Inference parameters: `temperature: 0.1`, `num_predict: 128`.
 
-Inference parameters: `temperature: 0.1`, `num_predict: 128`.
+At temperature 0.1, the model is near-deterministic. That sounds like it should make Jaccard similarity high across runs. The opposite happens. With `num_predict=128`, each response is approximately 128 tokens. Across five prompts, the total corpus is roughly 640 tokens. After extracting the top 50 bigrams, you're working with a small set.
 
-At temperature 0.1, the model is near-deterministic. That sounds like it should make Jaccard similarity high across runs. The opposite happens. With `num_predict=128`, each response is approximately 128 tokens. Across five prompts, the total corpus is roughly 640 tokens. After extracting bigrams and taking the top 50 unique ones, you're working with a small set.
+When you compare two runs, minor token-level variation — punctuation differences, synonym selection, sentence boundary shifts — causes bigram set membership to diverge significantly. The union of two top-50 bigram sets reaches 70-80 unique bigrams. Intersection is typically 10-15.
 
-When you compare two runs, each run's top-50 bigrams reflect the same underlying model. But minor token-level variation — punctuation differences, synonym selection, sentence boundary shifts — causes bigram set membership to diverge significantly. The union of two top-50 bigram sets reaches 70-80 unique bigrams. Intersection is typically 10-15.
+So: 12 / 75 = 0.16. That's not drift. That's the floor.
 
-So: 12 / 75 = 0.16. That's not drift. That's the floor imposed by short output length and bigram-level representation.
+<PullQuote text="At low temperature and short output lengths, the model is nearly deterministic at the token level but highly variable at the bigram-set level. The measurement unit doesn't fit the signal structure." />
 
-<PullQuote text="At low temperature and short output lengths, the model is nearly deterministic at the token level but highly variable at the bigram-set level. Two runs of the same model end up with low Jaccard similarity not because anything changed, but because the measurement unit doesn't fit the signal structure." />
-
-This is a calibration problem, not a threshold problem. You cannot tune your way out of it. The metric has essentially no dynamic range over the operating range that matters. The implication extends beyond Prometheus: any system using n-gram similarity to monitor LLM behavioral consistency at low temperature and short output lengths will hit this floor.
+This is a calibration problem, not a threshold problem. You cannot tune your way out of it. Any system using n-gram similarity to monitor LLM behavioral consistency at low temperature and short output lengths will hit this floor. I'm telling you because I spent the two hours so you don't have to.
 
 ---
 
-<SectionLabel text="What Replaced It" />
+<SectionLabel text="What Actually Works" />
 
-The replacement measures output structure rather than content.
+The replacement measures output structure instead of content.
 
-At a given temperature and output length, a model's structural output characteristics — how it organizes responses — are more stable across runs than its specific bigram vocabulary. A model that has drifted behaviorally will show changes in structural properties before it shows detectable change in bigram patterns.
+At a given temperature and output length, a model's structural characteristics — how it organizes responses — are more stable across runs than its specific bigram vocabulary. A model that has drifted behaviorally will show changes in structural properties before it shows detectable change in bigram patterns. The imitation breaks at the biology level before the surface behavior shifts.
 
 Three features extracted from the concatenated five-response corpus:
 
-| Feature | Definition | Sensitivity |
+| Feature | Definition | What it catches |
 |---|---|---|
-| `avg_len` | Mean character count per response | Response verbosity |
+| `avg_len` | Mean character count per response | Verbosity shifts |
 | `lex_div` | Unique words / total words | Vocabulary richness, formality level |
-| `sentences_per_resp` | Total sentence-ending punctuation / response count | Response structure |
+| `sentences_per_resp` | Sentence-ending punctuation / response count | Response structure |
 
-These are domain-agnostic. They measure how the model responds, not what it says. A model with different RLHF calibration, or a different version of the same base model, will exhibit different structural signatures on familiar prompts even when the bigram vocabulary overlaps heavily.
-
-Three features rather than more is a deliberate choice. Nine runs and three features gives 27 data points at first baseline. Adding more features increases statistical requirements without proportional benefit. The three chosen features capture orthogonal properties: verbosity, vocabulary richness, structural complexity. I wanted a signal, not a PhD thesis.
+Domain-agnostic. Orthogonal properties. Three features, not more — nine runs and three features gives 27 data points at baseline, which is enough to set two-sigma bands without the numbers being dominated by outliers. I wanted a signal, not a statistics requirement.
 
 ---
 
 <SectionLabel text="How It Runs" />
 
-The probe maintains a rolling history of the last 20 runs. New runs append; old runs fall off. This prevents the baseline from locking in on initial conditions and allows gradual, legitimate model evolution to be absorbed over time.
+The probe maintains a rolling history of the last 20 runs. New runs append; old runs fall off. No comparison fires until at least five runs have accumulated — warming-up mode before that. The minimum window gate prevents two-standard-deviation bands from being set by too few data points.
 
-No comparison fires until at least five runs have accumulated — the probe is in warming-up mode before that. The minimum window gate prevents two-standard-deviation bands from being set by too few data points.
+Detection runs per-feature. For each feature, compute the rolling mean and standard deviation over the history window. Any single feature outside its two-sigma band triggers an alert, with which feature drifted, current value versus rolling mean, direction, and recommended action. Operators get diagnostic information. Not just a binary alarm.
 
-Detection runs per-feature. For each feature, compute the rolling mean and standard deviation over the history window. Any single feature outside its two-sigma band triggers an alert. Operators get which feature drifted, current value versus rolling mean and standard deviation, direction, and a recommended action. Not just a binary alarm.
-
-<DiagramBlock caption="Elliot probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline, routes to pass or drift event">
+<DiagramBlock caption="Elliot probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline">
 flowchart LR
     A([Schedule\nEvery 6h]) --> B[5 Canonical\nPrompts]
     B --> C[Inference\nModel]
@@ -97,9 +103,7 @@ flowchart LR
 
 <SectionLabel text="Nine Runs" />
 
-Deployment: 2026-07-15. Model: `mistral-nemo:12b` via Ollama on a Jetson AGX Orin. Schedule: every six hours.
-
-Baseline statistics, 9 runs (2026-07-15 to 2026-07-18):
+Deployment: 2026-07-15. Model: `mistral-nemo:12b` via Ollama on the Jetson AGX Orin. Schedule: every six hours.
 
 | Feature | Mean | Std Dev | 2-Sigma Band |
 |---|---|---|---|
@@ -115,33 +119,33 @@ Baseline statistics, 9 runs (2026-07-15 to 2026-07-18):
 ]} />
 </ScrollReveal>
 
-`avg_len` shows the most absolute variance but the narrowest relative band: 2% coefficient of variation. `lex_div` is the most stable at 1.7% CV. `sentences_per_resp` shows the most relative variability (9.4% CV), consistent with sentence boundary detection being sensitive to minor token variation.
+`avg_len` shows the most absolute variance but the narrowest relative band: 2% coefficient of variation. `lex_div` is the most stable at 1.7% CV. `sentences_per_resp` is the most variable (9.4% CV), consistent with sentence boundary detection being sensitive to minor token variation.
 
-Two of eight scheduled runs failed — Ollama inference timeouts during high-load periods on the node. Infrastructure issue, not measurement methodology. The probe logs the failure cleanly and the next run restarts without incident.
+Two of eight scheduled runs failed — Ollama inference timeouts during high-load periods on the Orin. The Orin was doing something. I don't know what. The probe logged the failure cleanly and the next run restarted without incident.
 
 ---
 
-<SectionLabel text="How It Connects to Enforcement" />
+<SectionLabel text="Enforcement" />
 
 The probe connects to the DIRA governance layer via Gate D53, labeled CONTEXT\_DRIFT. D53 fires when behavioral drift is detected post-snapshot-lock.
 
-The two detection mechanisms address different scopes:
+Two detection mechanisms, different scopes:
 
-- **D53, in-session:** Detects drift within a single session, measured against an intra-session behavioral snapshot
-- **Elliot probe, cross-session:** Detects drift in the inference model itself across sessions, measured against a rolling multi-day structural baseline
+- **D53, in-session:** Detects drift within a single session against an intra-session behavioral snapshot
+- **Elliot probe, cross-session:** Detects drift in the inference model itself across sessions against a rolling multi-day structural baseline
 
-D53 can tell you that something changed this session. The Elliot probe can tell you whether the inference model itself changed between sessions. Together they close a loop that in-session monitoring alone cannot close. The persona-consistency claim becomes verifiable rather than assumed.
+D53 tells you something changed this session. The Elliot probe tells you whether the inference model itself changed between sessions. Together they close a loop that in-session monitoring alone cannot close. The persona-consistency claim becomes verifiable rather than assumed.
 
-<Callout type="note">D53 enforcement is now active. The five-run minimum window is met, baseline statistics are published above, and the probe has run clean across all valid intervals since deployment. A model update triggers the gate — it does not bypass it.</Callout>
+<Callout type="note">D53 enforcement is active. Five-run minimum window is met. Probe has run clean across all valid intervals since deployment. A model update triggers the gate — it does not bypass it.</Callout>
 
 ---
 
 <SectionLabel text="Where I'm Wrong" />
 
-**The rolling baseline absorbs real drift.** Yes, intentionally — but this is a genuine trade-off. If a model degrades gradually across weeks, the rolling window will incorporate that degradation as the new normal and never fire. The 20-run window is calibrated for detecting abrupt swaps, not slow model rot. A secondary detector with a longer horizon, or an absolute baseline that never updates, would close this gap. I don't have one yet.
+**The rolling baseline absorbs real drift.** Yes, intentionally — but this is a genuine trade-off. If a model degrades gradually across weeks, the rolling window will incorporate that degradation as the new normal and never fire. The 20-run window is calibrated for detecting abrupt swaps, not slow model rot. An absolute baseline that never updates would close this gap. I don't have one yet.
 
-**Three features miss too much.** `avg_len`, `lex_div`, and `sentences_per_resp` are orthogonal and cheap, but they don't capture semantic drift, reasoning quality shifts, or instruction-following degradation. A model update that changes what the model says without changing how it structures responses would pass the probe undetected. Structural features are a proxy. For governance claims that extend beyond structural consistency, additional detectors are needed.
+**Three features miss too much.** `avg_len`, `lex_div`, and `sentences_per_resp` don't capture semantic drift, reasoning quality shifts, or instruction-following degradation. A model update that changes what the model says without changing how it structures responses would pass the probe undetected. Structural features are a proxy. For governance claims that extend beyond structural consistency, additional detectors are needed.
 
-**Semantic similarity would work better with more tokens.** Probably true. The natural floor problem is specific to short output lengths (128 tokens, five prompts). At 2,000+ tokens per response, bigram sets are large enough for Jaccard to have real dynamic range. If your inference budget allows longer probe outputs, bigram or embedding-based similarity becomes viable. The structural approach is an adaptation to constrained inference, not a claim that semantic methods are wrong.
+**Semantic similarity would work better with more tokens.** Probably true. The natural floor problem is specific to short output lengths. At 2,000+ tokens per response, bigram sets are large enough for Jaccard to have real dynamic range. The structural approach is an adaptation to constrained inference, not a claim that semantic methods are wrong.
 
-**Nine runs is not a validated baseline.** It is not. The two-sigma bands set on nine runs will shift materially as the history window fills to 20. The zero false-positive result is encouraging, but it reflects nine runs of a single model on a single inference platform. Different models, different hardware, different load characteristics could produce different baseline variance. Calibrate your own feature selection and window size before treating these numbers as transferable.
+**Nine runs is not a validated baseline.** It is not. The two-sigma bands will shift materially as the history window fills to 20. Zero false positives is encouraging, but it reflects nine runs of one model on one inference platform. Calibrate your own feature selection and window size before treating these numbers as transferable.
