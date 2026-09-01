@@ -19,27 +19,37 @@ When Richard Feynman died in 1988, his Caltech blackboard read: "What I cannot c
 
 He meant it as a standard for physics. If you understand a phenomenon deeply enough, you can derive it from first principles. If you can't derive it, you haven't understood it — you've only memorized it. The derivation is the test.
 
-The inverse is equally true and more immediately useful: what you cannot specify in plain language, you cannot verify.
+I'm not a physicist. I'm a security architect who spent three months building a memory system that writes back. Feynman's standard turns out to be more useful in that situation than it sounds: if you understand the contamination well enough to defend against it, you can specify the defense in plain language. If you can't write the constraint down in terms someone else could run, you don't understand what you're defending against yet.
 
-Not "specify in math." Not "specify in code." In plain language. In terms that someone outside the system could read and use to check whether the system is doing what it's supposed to do.
+The inverse is the more immediately useful version: what you cannot specify in plain language, you cannot verify.
 
-The audit protocol from Part 6 is a specification in plain language. It tells you what to look for, how to sample, what counts as contamination, what to do when you find it. Anyone can run it. Anyone can compare their results to yours. The specification is what makes the methodology a methodology rather than a personal practice.
+Not "specify in math." Not "specify in code." In plain language. In terms that someone outside the system could read and use to check whether the system is doing what it's supposed to do. The audit protocol from Part 6 is a specification in plain language. The contamination taxonomy from Part 2 is a specification in plain language. Anyone can run them. Anyone can compare results. That's what makes them methodologies instead of personal practices.
 
-Behavioral constraints work the same way. A constraint that can't be expressed in plain language is a constraint that can't be independently verified. A constraint that can't be independently verified is a constraint that can be gamed — by the system, by drift, by ordinary inattention. The specification is the defense.
+Behavioral constraints work the same way. A constraint that can't be expressed in plain language can't be independently verified. A constraint that can't be independently verified can be gamed — by the system, by drift, by ordinary inattention. The specification is the defense.
 
 ---
 
-<SectionLabel text="What a Constraint Must Be" />
+<SectionLabel text="The Jimmy McGill Test" />
 
-A behavioral constraint for a memory system has four requirements. Skip any one of them and the constraint stops being a constraint.
+Jimmy McGill — Saul Goodman — is the best stress test for a behavioral constraint I know of. He doesn't break rules. He finds the interpretation that satisfies the letter while gutting the intent. "Source_agent must be populated" is a constraint Jimmy satisfies in thirty seconds. He writes "unknown" in the field. Compliant. The field is populated. The constraint is meaningless.
 
-**Observable.** The constraint must be checkable against system outputs — things you can actually read, query, or measure. Not against the agent's internal state. Not against its stated intentions. Against what it produced. An agent that says "I only write clean memories" provides no constraint. An agent whose writes are inspectable, tagged, and comparable against a spec provides a verifiable constraint.
+The version he can't game: "source_agent must match one of the following literals — casey, claude-collaborative, claude-unilateral — or one of the following prefixes: harvest-auto, b0b-*, system-*, persona-*. Any other value is a validation error."
 
-**Human-readable.** The constraint must be expressible in terms a non-expert could apply. This is not about dumbing it down. It's about ensuring that the thing doing the verification is not the thing being verified. If the only way to check whether the constraint is satisfied is to ask the AI, you haven't built a constraint. You've built a question.
+Now "unknown" fails validation. "external" fails. "me" fails. Jimmy reads the spec and finds no room. That's the adversary-resistant requirement: the constraint must specify what valid values are, not just that a value exists.
 
-**Independently verifiable.** A third party — a different process, a different session, a different human — must be able to run the check and get the same answer. If the result depends on the verifier, the constraint isn't doing its job.
+This is not an abstract concern. The first version of prom-memory's source_agent field was a free-text string. Any string. Including "unknown." Including a 200-character internal reasoning trace from an agent that was explaining its own decision process. The field existed. It was populated. It was useless for auditing. I built the canonical taxonomy and validation after running the 30-memory sample and finding I couldn't reliably determine provenance on eleven of them.
 
-**Adversary-resistant.** The constraint must not be satisfiable by optimizing around it rather than satisfying its intent. A constraint that says "source_agent must be populated" is satisfied by writing "unknown" in the field. The constraint must specify what valid values are, not just that a value exists.
+The Jimmy McGill test is: read your constraint and ask what the most creative bad-faith interpretation is. If you can find one, the constraint isn't done.
+
+A behavioral constraint for a memory system has four requirements. Skip any one and the constraint stops being a constraint.
+
+**Observable.** Checkable against system outputs — things you can actually read, query, or measure. Not against stated intentions. An agent that says "I only write clean memories" provides no constraint. An agent whose writes are inspectable, tagged, and comparable against a spec provides a verifiable one.
+
+**Human-readable.** Expressible in terms a non-expert could apply. Not to dumb it down. To ensure the thing doing the verification is not the thing being verified. If the only way to check the constraint is to ask the AI whether it passed, you haven't built a constraint. You've built a question.
+
+**Independently verifiable.** A third party — a different process, a different session, a different human — must run the check and get the same answer. If the result depends on the verifier, the constraint isn't doing its job.
+
+**Adversary-resistant.** Not satisfiable by optimizing around it. The Jimmy McGill test.
 
 <DiagramBlock caption="The four properties a memory constraint must have to be verifiable">
 flowchart LR
@@ -54,37 +64,37 @@ flowchart LR
 
 <SectionLabel text="The Constraint Library" />
 
-The contamination taxonomy from Part 2 identified four categories. Each category implies at least one testable constraint. Here is the library as it stands — version 1.0, written to be run against, argued with, and revised.
+Every constraint in this library came from finding something. I'm going to tell you what, because the provenance of the constraint matters as much as the constraint itself.
 
 **From agent bleed:**
 
 > *No memory in the production tier may have a source_agent value that refers to an agent's internal reasoning, emotional modeling, or inferred mental state about the human.*
 
-Observable: query the production memory tier for source_agent values. Cross-reference against the valid taxonomy (casey, claude-collaborative, claude-unilateral, harvest-auto, b0b-\*, system-\*, persona-\*). Flag any value that doesn't match. Separately: inspect memory content for first-person affect statements ("Casey is frustrated," "Casey feels confident about") that originate from source_agent values other than "casey." Those are agent bleed regardless of valid source_agent format.
+This one came from Grace — the long record of an AI reflecting my emotional states back at me across hundreds of sessions, stored in the memory layer in the same format as my own observations. The contamination was structural, not malicious. The agent was doing its job. The constraint exists because "Casey is engaged with this problem" written by an autonomous agent is not the same fact as "Casey is engaged with this problem" written by Casey. They look identical without the constraint. With it, they're distinguishable.
 
 **From authority laundering:**
 
 > *No memory in the production tier may attribute a decision to the human when the source_agent field identifies an autonomous process.*
 
-Observable: query memories where content contains decision-attribution language ("Casey decided," "Casey chose," "Casey implemented") and source_agent is not "casey" or "claude-collaborative." Every match is a violation.
+This came from the SQLite memory — B0b pattern-matched across six sessions and inferred a schema decision I hadn't made, stored it in first-person past tense, retrieved it at session start. I almost built six months of architecture on it. The constraint is two sentences. I needed three months of production data and one near-miss to know I needed it.
 
 **From telemetry drift:**
 
 > *Memories sourced from behavioral telemetry must be tagged at the content level as observations, not preferences.*
 
-Observable: query memories where source_agent is "harvest-auto" or a system-\* prefix and content contains preference-attribution language ("Casey prefers," "Casey typically," "Casey values"). Flag matches for review. The constraint isn't that these memories can't exist — it's that they can't be stored as though the human stated them.
+This came from "Casey prefers direct communication" — accurate as a behavioral observation, stored as a stated preference, weighted identically to a preference I'd actually articulated. The constraint doesn't say this memory can't exist. It says it can't be stored as though I said it.
 
 **From near-duplicate noise:**
 
 > *The memory layer must not contain more than two memories from the same originating session with substantially similar content (cosine similarity > 0.85).*
 
-Observable: for each session_id represented in the production tier, compute pairwise cosine similarity across that session's memories. Flag pairs above 0.85 threshold for deduplication review. The threshold is tunable — 0.85 is conservative. The constraint exists; the exact number is a parameter.
+This came from B0b flooding the layer with repetitive milestone writes from the same event. The cardinality cap I shipped — three milestone writes per session — was the first mitigation. The similarity threshold is the broader version. The 0.85 number is where I stopped getting false positives on my system. It's a parameter. Argue with it.
 
 **From approval-seeking content bias (experimental):**
 
 > *The session primer must not load more than two memories sourced from sessions where affect signals were uniformly positive.*
 
-Observable: if session affect data is tracked, cross-reference session_id of memories against affect records. If no affect tracking exists, this constraint cannot be enforced — that's information, not an excuse. It means the architecture needs affect tracking before this constraint becomes verifiable.
+This is the one I can't enforce yet. If session affect data isn't tracked, this constraint can't be verified — that's information, not an excuse. It means the architecture needs affect tracking before this constraint becomes real. The constraint exists. The plumbing doesn't. I'm telling you anyway because the gap is the finding.
 
 <DiagramBlock caption="Constraint library: one testable constraint per contamination category">
 flowchart TD
@@ -104,7 +114,7 @@ flowchart TD
 
 <SectionLabel text="The Given/When/Then Form" />
 
-Behavior-Driven Development uses a structured specification language: Given (the precondition), When (the triggering event), Then (the required outcome). The form is precise enough to be executable and plain enough to be read by anyone.
+Behavior-Driven Development uses a structured specification language: Given (the precondition), When (the triggering event), Then (the required outcome). Precise enough to be executable. Plain enough to be read by anyone.
 
 Applied to memory system constraints:
 
@@ -120,7 +130,9 @@ Applied to memory system constraints:
 > **When** the content contains first-person attribution to the human ("Casey decided," "Casey judged")
 > **Then** the write must be rejected with a validation error, not stored in any tier
 
-The form is testable. You can run these against the production system. They either pass or they don't.
+The form is testable. The system either satisfies it or it doesn't.
+
+I know the cardinality constraint works because it fired on me while I was writing this series. Given a session milestone write, when the session budget is already at 3/3, then reject with a validation error. It rejected mine. I was mid-session, documenting the system I'd built, and the system told me I'd already hit the limit. I had to use a different fact_type and keep going. Mildly annoying. Evidence that the engineering worked.
 
 <PullQuote text="The specification is what makes the methodology a methodology rather than a personal practice." />
 
@@ -128,13 +140,11 @@ The form is testable. You can run these against the production system. They eith
 
 <SectionLabel text="Publishing the Library" />
 
-A constraint library that only one person runs is a personal practice. A constraint library published for others to test is a methodology.
+The first run of daemon-bdd in production fired on the word "prescription" in a sentence being edited out of Part 4 of this series. False positive — the constraint was calibrated for medical context, the word appeared in an editorial note about writing style. I had to debug my own verification layer while reviewing my own articles about verification layers. This is fine. This is how it works.
 
-The contamination taxonomy in Part 2 is a methodology because it's specified precisely enough for someone else to run it. The comparison of rates across different systems is where the methodology matures: which categories are system-specific artifacts, which are structural to the architecture, which are universal to any persistent AI memory layer. You can't answer that from one dataset.
+The library improves through use and disagreement. A constraint that generates false positives tells you where the specification is too broad. A constraint that gets satisfied by writing "unknown" in a field tells you it wasn't adversary-resistant. Both failures are information. Both push the spec forward.
 
-The constraint library is the same. Version 1.0 above is a starting point. The thresholds (0.85 cosine similarity, 2 primer entries per source_agent) are parameters, not facts. They emerged from one audit on one system. They should be contested. If your system produces false positives at 0.85, try 0.90. If your primer is dominated by a single source_agent at a different frequency, adjust the cap. Document what you changed and why.
-
-The library improves through use and disagreement. That's not a limitation. That's how methodologies work.
+Version 1.0 is a starting point. The thresholds — 0.85 cosine similarity, 2 primer entries per source_agent — emerged from one audit on one system. They should be contested. If your system produces false positives at 0.85, try 0.90. If your contamination rate is 12% instead of 33%, your architecture may have different structural properties than mine, or your autonomous agent write volume is lower, or your taxonomy is tighter. Document what differs and why.
 
 <DiagramBlock caption="The constraint library as a shared, versioned resource">
 flowchart LR
@@ -145,6 +155,8 @@ flowchart LR
   R -->|new contamination pattern found| NC[New constraint]
   NC --> V2
 </DiagramBlock>
+
+The contamination taxonomy in Part 2 is a methodology because it's specified precisely enough for someone else to run it. The constraint library is the same. A methodology that only one person runs is a personal practice. Publish what you find. The disagreement is the data.
 
 <Callout type="note">The constraint library is versioned. This is version 1.0. Submit contested thresholds and new constraint proposals with the system type, sample size, and false-positive rate that motivated the change. The goal is a constraint set that works across different memory architectures, not one optimized for a single system.</Callout>
 
