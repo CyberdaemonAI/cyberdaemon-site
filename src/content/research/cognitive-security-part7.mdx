@@ -54,10 +54,10 @@ A behavioral constraint for a memory system has four requirements. Skip any one 
 <DiagramBlock caption="The four properties a memory constraint must have to be verifiable">
 ```mermaid
 flowchart LR
-  O[Observable\nagainst outputs] --> V[Verifiable constraint]
-  H[Human-readable\nno expert required] --> V
-  I[Independently\nverifiable] --> V
-  A[Adversary-resistant\nno gaming the form] --> V
+  O["Observable\nagainst outputs"] --> V[Verifiable constraint]
+  H["Human-readable\nno expert required"] --> V
+  I["Independently\nverifiable"] --> V
+  A["Adversary-resistant\nno gaming the form"] --> V
   V -->|fails any one| X[Not a constraint]
 ```
 </DiagramBlock>

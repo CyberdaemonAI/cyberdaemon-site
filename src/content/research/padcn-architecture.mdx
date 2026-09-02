@@ -333,10 +333,10 @@ flowchart TB
     OP([Session Operator]) -->|"update-affect"| DS
 
     subgraph stack["Agent Stack"]
-        DS[(State Service\nPADCN owner)]
-        PB[Persona Broker\nResponse assembly]
-        EM[(Episodic Memory\nCentroid persistence)]
-        ENR[Enrichment Layer\nTone injection]
+        DS[("State Service\nPADCN owner")]
+        PB["Persona Broker\nResponse assembly"]
+        EM[("Episodic Memory\nCentroid persistence")]
+        ENR["Enrichment Layer\nTone injection"]
     end
 
     DS -->|"persona-state"| PB
