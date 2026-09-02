@@ -8,6 +8,7 @@
 import Base from '../../layouts/Base.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
 import { getCollection } from 'astro:content';
+import { createMermaidRenderer } from 'mermaid-isomorphic';
 
 export async function getStaticPaths() {
   const research   = await getCollection('research',   e => !e.data.draft);
@@ -81,6 +82,26 @@ function shortTitle(title: string, idx: number): string {
 const mermaidNodes = articles.map((a, i) => shortTitle(a.title, i)).join('\n  ');
 const mermaidEdges = articles.slice(1).map((_, i) => `P${i + 1} --> P${i + 2}`).join('\n  ');
 const mermaidDiagram = `flowchart LR\n  ${mermaidNodes}\n  ${mermaidEdges}`;
+
+let mermaidSvg: string | null = null;
+if (articles.length > 1) {
+  const renderer = createMermaidRenderer();
+  const [result] = await renderer([mermaidDiagram], {
+    mermaidConfig: {
+      theme: 'base',
+      themeVariables: {
+        background: '#16150f',
+        primaryColor: '#1a1917',
+        primaryTextColor: '#e6e4e0',
+        primaryBorderColor: '#2e2c29',
+        lineColor: '#b0ada6',
+        fontFamily: 'arial,sans-serif',
+        fontSize: '13px',
+      },
+    },
+  });
+  mermaidSvg = result.status === 'fulfilled' ? result.value.svg : null;
+}
 ---
 
 <Base title={`${label} — Series`} description={`All articles in the ${label} series on cyberdaemon.ai`}>
@@ -94,9 +115,9 @@ const mermaidDiagram = `flowchart LR\n  ${mermaidNodes}\n  ${mermaidEdges}`;
       </p>
     </header>
 
-    {articles.length > 1 && (
+    {mermaidSvg && (
       <DiagramBlock caption={`${label} — series arc`}>
-        {mermaidDiagram}
+        <Fragment set:html={mermaidSvg} />
       </DiagramBlock>
     )}
 
