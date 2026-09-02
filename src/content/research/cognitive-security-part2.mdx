@@ -36,15 +36,15 @@ The four categories are not hypothetical threat models. Each appeared in the sam
 <DiagramBlock caption="Four contamination categories: how a single memory write produces contested provenance">
 ```mermaid
 flowchart TD
-    W[Memory write] --> AB["Agent bleed:\nAI inference stored as fact about you"]
-    W --> AL["Authority laundering:\nautomated decision attributed to user"]
-    W --> TD["Telemetry drift:\nbehavioral observation labeled as stated preference"]
-    W --> ND["Near-duplicate noise:\nsingle event repeated until it reads as pattern"]
+    W[Memory write] --> AB[Agent bleed]
+    W --> AL[Authority laundering]
+    W --> TD[Telemetry drift]
+    W --> ND[Near-duplicate noise]
     AB --> P[Provenance gap]
     AL --> P
     TD --> P
     ND --> P
-    P --> R["Retrieval at session start\nwithout source attribution"]
+    P --> R[Retrieval without source attribution]
 ```
 </DiagramBlock>
 
@@ -123,4 +123,4 @@ This is Part 2 of a series on cognitive security for AI-assisted humans.
 - **Part 6: [The Checklist](/research/cognitive-security-part6)** — The operational posture.
 - **Part 7: [In Plain Language](/research/cognitive-security-part7)** — Behavioral constraints that can be tested.
 
-The lineage and attribution tooling described here is built on [prom-memory](/build-logs/prom-memory). The structural detection layer is described in [The Elliot Probe](/research/bdd-persona-drift).
+The lineage and attribution tooling described here is built on [the memory layer](/build-logs/prom-memory). The structural detection layer is described in [The Elliot Probe](/research/bdd-persona-drift).

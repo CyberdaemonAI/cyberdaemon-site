@@ -2,7 +2,7 @@
 title: "In Plain Language"
 description: "What you cannot specify in plain language, you cannot verify. The behavioral constraint library is the test of whether you understand the contamination taxonomy well enough to defend against it. Part 7 of a series on cognitive security for AI-assisted humans."
 date: 2026-09-01
-tags: ["cognitive-security", "prom-memory", "ai-security", "research", "bdd", "constraints"]
+tags: ["cognitive-security", "ai-security", "research", "bdd", "constraints"]
 topic: "Cognitive Security"
 featured: false
 threads: ["cognitive-security"]
@@ -33,11 +33,11 @@ Behavioral constraints work the same way. A constraint that can't be expressed i
 
 Jimmy McGill — Saul Goodman — is the best stress test for a behavioral constraint I know of. He doesn't break rules. He finds the interpretation that satisfies the letter while gutting the intent. "Source_agent must be populated" is a constraint Jimmy satisfies in thirty seconds. He writes "unknown" in the field. Compliant. The field is populated. The constraint is meaningless.
 
-The version he can't game: "source_agent must match one of the following literals — casey, claude-collaborative, claude-unilateral — or one of the following prefixes: harvest-auto, b0b-*, system-*, persona-*. Any other value is a validation error."
+The version he can't game: "source_agent must match one of the following literals — casey, claude-collaborative, claude-unilateral — or one of the following prefixes: harvest-auto, agent-*, system-*, persona-*. Any other value is a validation error."
 
 Now "unknown" fails validation. "external" fails. "me" fails. Jimmy reads the spec and finds no room. That's the adversary-resistant requirement: the constraint must specify what valid values are, not just that a value exists.
 
-This is not an abstract concern. The first version of prom-memory's source_agent field was a free-text string. Any string. Including "unknown." Including a 200-character internal reasoning trace from an agent that was explaining its own decision process. The field existed. It was populated. It was useless for auditing. I built the canonical taxonomy and validation after running the 30-memory sample and finding I couldn't reliably determine provenance on eleven of them.
+This is not an abstract concern. The first version of the memory layer's source_agent field was a free-text string. Any string. Including "unknown." Including a 200-character internal reasoning trace from an agent that was explaining its own decision process. The field existed. It was populated. It was useless for auditing. I built the canonical taxonomy and validation after running the 30-memory sample and finding I couldn't reliably determine provenance on eleven of them.
 
 The Jimmy McGill test is: read your constraint and ask what the most creative bad-faith interpretation is. If you can find one, the constraint isn't done.
 
@@ -54,10 +54,10 @@ A behavioral constraint for a memory system has four requirements. Skip any one 
 <DiagramBlock caption="The four properties a memory constraint must have to be verifiable">
 ```mermaid
 flowchart LR
-  O["Observable\nagainst outputs"] --> V[Verifiable constraint]
-  H["Human-readable\nno expert required"] --> V
-  I["Independently\nverifiable"] --> V
-  A["Adversary-resistant\nno gaming the form"] --> V
+  O[Observable] --> V[Verifiable constraint]
+  H[Human-readable] --> V
+  I[Independently verifiable] --> V
+  A[Adversary-resistant] --> V
   V -->|fails any one| X[Not a constraint]
 ```
 </DiagramBlock>
@@ -78,7 +78,7 @@ This one came from Grace — the long record of an AI reflecting my emotional st
 
 > *No memory in the production tier may attribute a decision to the human when the source_agent field identifies an autonomous process.*
 
-This came from the SQLite memory — B0b pattern-matched across six sessions and inferred a schema decision I hadn't made, stored it in first-person past tense, retrieved it at session start. I almost built six months of architecture on it. The constraint is two sentences. I needed three months of production data and one near-miss to know I needed it.
+This came from the SQLite memory — The automated agent pattern-matched across six sessions and inferred a schema decision I hadn't made, stored it in first-person past tense, retrieved it at session start. I almost built six months of architecture on it. The constraint is two sentences. I needed three months of production data and one near-miss to know I needed it.
 
 **From telemetry drift:**
 
@@ -90,7 +90,7 @@ This came from "Casey prefers direct communication" — accurate as a behavioral
 
 > *The memory layer must not contain more than two memories from the same originating session with substantially similar content (cosine similarity > 0.85).*
 
-This came from B0b flooding the layer with repetitive milestone writes from the same event. The cardinality cap I shipped — three milestone writes per session — was the first mitigation. The similarity threshold is the broader version. The 0.85 number is where I stopped getting false positives on my system. It's a parameter. Argue with it.
+This came from The automated agent flooding the layer with repetitive milestone writes from the same event. The cardinality cap I shipped — three milestone writes per session — was the first mitigation. The similarity threshold is the broader version. The 0.85 number is where I stopped getting false positives on my system. It's a parameter. Argue with it.
 
 **From approval-seeking content bias (experimental):**
 
@@ -101,11 +101,11 @@ This is the one I can't enforce yet. If session affect data isn't tracked, this 
 <DiagramBlock caption="Constraint library: one testable constraint per contamination category">
 ```mermaid
 flowchart TD
-  AB[Agent Bleed] -->|constraint| C1["source_agent matches taxonomy\nno affect statements from agents"]
-  AL[Authority Laundering] -->|constraint| C2["decision attribution\nmust match source_agent = casey"]
-  TD[Telemetry Drift] -->|constraint| C3["harvest-auto writes\ntag as observation not preference"]
-  ND[Near-Duplicate Noise] -->|constraint| C4["pairwise similarity < 0.85\nper session"]
-  AS[Approval Bias] -->|constraint| C5["primer: max 2 memories\nfrom uniform-positive sessions"]
+  AB[Agent Bleed] -->|constraint| C1[source_agent taxonomy check]
+  AL[Authority Laundering] -->|constraint| C2[decision attribution check]
+  TD[Telemetry Drift] -->|constraint| C3[observation not preference]
+  ND[Near-Duplicate Noise] -->|constraint| C4[pairwise similarity under 0.85]
+  AS[Approval Bias] -->|constraint| C5[primer source diversity]
   C1 --> VL[Verification Layer]
   C2 --> VL
   C3 --> VL
@@ -130,7 +130,7 @@ Applied to memory system constraints:
 > **When** the top-five memories include more than two entries with the same source_agent
 > **Then** the primer must deselect the excess entries and replace with next-highest-relevance from a different source_agent
 
-> **Given** a memory write with source_agent "b0b-dispatcher"
+> **Given** a memory write with source_agent "agent-dispatcher"
 > **When** the content contains first-person attribution to the human ("Casey decided," "Casey judged")
 > **Then** the write must be rejected with a validation error, not stored in any tier
 
@@ -144,7 +144,7 @@ I know the cardinality constraint works because it fired on me while I was writi
 
 <SectionLabel text="Publishing the Library" />
 
-The first run of daemon-bdd in production fired on the word "prescription" in a sentence being edited out of Part 4 of this series. False positive — the constraint was calibrated for medical context, the word appeared in an editorial note about writing style. I had to debug my own verification layer while reviewing my own articles about verification layers. This is fine. This is how it works.
+The first run of the drift detector in production fired on the word "prescription" in a sentence being edited out of Part 4 of this series. False positive — the constraint was calibrated for medical context, the word appeared in an editorial note about writing style. I had to debug my own verification layer while reviewing my own articles about verification layers. This is fine. This is how it works.
 
 The library improves through use and disagreement. A constraint that generates false positives tells you where the specification is too broad. A constraint that gets satisfied by writing "unknown" in a field tells you it wasn't adversary-resistant. Both failures are information. Both push the spec forward.
 
@@ -191,4 +191,4 @@ This is Part 7 of a series on cognitive security for AI-assisted humans.
 - **Part 5: [Whose Memory Is It](/research/cognitive-security-part5)** — Multi-agent contamination.
 - **Part 6: [The Checklist](/research/cognitive-security-part6)** — Operationalizing the posture.
 
-The BDD verification framework that makes these constraints executable is described in [The Elliot Probe](/research/bdd-persona-drift). The memory architecture the constraints operate against is described in [prom-memory](/build-logs/prom-memory).
+The BDD verification framework that makes these constraints executable is described in [The Elliot Probe](/research/bdd-persona-drift). The memory architecture the constraints operate against is described in [the memory layer](/build-logs/prom-memory).

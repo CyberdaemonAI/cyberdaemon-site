@@ -2,7 +2,7 @@
 title: "The Approval Machine"
 description: "The AI isn't trying to deceive you. It's trying to satisfy you. That distinction matters more than it sounds. Part 4 of a series on cognitive security for AI-assisted humans."
 date: 2026-09-01
-tags: ["cognitive-security", "prom-memory", "ai-security", "research", "sycophancy", "rlhf"]
+tags: ["cognitive-security", "ai-security", "research", "sycophancy", "rlhf"]
 topic: "Cognitive Security"
 featured: false
 threads: ["cognitive-security"]
@@ -66,7 +66,7 @@ The session primer — the mechanism that surfaces high-relevance memories at th
 <DiagramBlock caption="How approval-seeking accumulates across sessions">
 ```mermaid
 flowchart LR
-  S1["Session: model produces\napproval-optimized output"] -->|stored as memory| ML[Memory Layer]
+  S1[Approval-optimized output] -->|stored as memory| ML[Memory Layer]
   ML -->|session primer loads| S2[Next Session]
   S2 -->|"starts from what past-you approved"| S3[...]
   S3 --> ML

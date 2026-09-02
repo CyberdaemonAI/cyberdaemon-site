@@ -121,9 +121,9 @@ flowchart LR
     A[(Memory Timeline)] --> B{Band Detection}
 
     subgraph bands["Band Classification"]
-        C(["Foundation Band\nhigh-retrieval, never compress"])
-        D(["Middle Band\ncompressible"])
-        E(["Active Band\nrecent, intact"])
+        C([Foundation Band])
+        D([Middle Band])
+        E([Active Band])
     end
 
     B --> C
@@ -254,7 +254,7 @@ will stabilize around 5-15% of total memories for a well-established system.
 
 ## See also
 
-- [prom-memory: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the production memory system that Middle-Out compression runs inside. Architecture, fact type taxonomy, and the automated compression pipeline.
+- [the memory layer: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the production memory system that Middle-Out compression runs inside. Architecture, fact type taxonomy, and the automated compression pipeline.
 - [The Notebook That Edits Itself](/research/cognitive-security-part1) — cognitive security implications of memory systems that compress and curate. What gets lost in compression shapes what gets surfaced at session start.
 - [PADCN: a 5-dimensional affective state model for AI personas](/research/padcn-architecture) — the persona layer that sits above memory. Compression preserves behavioral context that PADCN reads at session initialization.
 - [Writing to the Next Session](/build-logs/writing-to-the-next-session) — session handoff architecture. Middle-Out determines which prior session context survives into the next recovery path.

@@ -91,15 +91,15 @@ Detection runs per-feature. For each feature, compute the rolling mean and stand
 <DiagramBlock caption="Elliot probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline">
 ```mermaid
 flowchart LR
-    A(["Schedule\nEvery 6h"]) --> B["5 Canonical\nPrompts"]
-    B --> C["Inference\nModel"]
-    C --> D["Response\nCorpus"]
-    D --> E["Feature\nExtraction\navg_len, lex_div\nsentences_per_resp"]
-    E --> F["Rolling Baseline\nLast 20 runs\n2-sigma bands"]
+    A([Every 6h]) --> B[5 Canonical Prompts]
+    B --> C[Inference Model]
+    C --> D[Response Corpus]
+    D --> E[Feature Extraction]
+    E --> F[Rolling Baseline]
     F --> G[Within 2-sigma?]
     G -->|Yes| H([Pass])
-    G -->|No| I["Drift Flag\nto persistent state"]
-    I --> J(["Authorization\nGate fires"])
+    G -->|No| I[Drift Flag]
+    I --> J([Auth Gate])
 ```
 </DiagramBlock>
 
@@ -159,5 +159,5 @@ D53 tells you something changed this session. The Elliot probe tells you whether
 - [In Plain Language](/research/cognitive-security-part7) — the behavioral constraint library that BDD verification runs against. The Elliot Probe is the detection layer; the constraint library defines what it's checking for.
 - [The Checklist](/research/cognitive-security-part6) — the operational posture that structural detection supports. BDD is how the checklist becomes executable.
 - [Whose Memory Is It](/research/cognitive-security-part5) — multi-agent contamination as a detection target. The Elliot Probe's quarantine architecture addresses the high-volume-writer problem described here.
-- [prom-memory: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the memory system the Elliot Probe monitors. The structural baseline is built from prom-memory's fact type taxonomy.
+- [the memory layer: building episodic memory for an AI system that actually remembers](/build-logs/prom-memory) — the memory system the Elliot Probe monitors. The structural baseline is built from its fact type taxonomy.
 - [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — security hardening at the infrastructure layer. Behavioral detection and network controls are complementary layers.

@@ -66,7 +66,9 @@ jobs:
           for entry in "${PATTERNS[@]}"; do
             pattern="${entry%%:*}"
             label="${entry#*:}"
-            matches=$(echo "$MDX_FILES" | xargs grep -rnE "$pattern" 2>/dev/null || true)
+            # Strip markdown link hrefs before flagging: visible text only, not URL slugs
+            matches=$(echo "$MDX_FILES" | xargs grep -rnE "$pattern" 2>/dev/null | \
+              grep -vE '\]\([^)]*'"$pattern"'[^)]*\)' || true)
             if [ -n "$matches" ]; then
               echo ""
               echo "FAIL: Found '$label' in changed files:"

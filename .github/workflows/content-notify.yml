@@ -1,6 +1,10 @@
 name: Content Pipeline Notifications
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**'
   pull_request:
     types: [opened, reopened]
     branches: [master]
@@ -10,7 +14,7 @@ on:
 jobs:
   notify-zulip:
     runs-on: ubuntu-latest
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
     steps:
       - uses: actions/checkout@v4
 

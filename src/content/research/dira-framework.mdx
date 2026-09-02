@@ -26,12 +26,12 @@ when agentic systems ran unsupervised for months, and what the controls caught.
 <DiagramBlock caption="DIRA framework overview: three enforcement layers close the gap between permitted and intended">
 ```mermaid
 flowchart LR
-    A([Agent Session]) --> B["OAuth Layer\nscope check"]
+    A([Agent Session]) --> B[OAuth Layer]
     B --> C{Permitted?}
     C -->|No| D([Blocked])
-    C -->|Yes| E["DIRA Layer 1\nbehavioral trust score"]
-    E --> F["DIRA Layer 2\nscope-intent alignment"]
-    F --> G["DIRA Layer 3\nNHI identity chain"]
+    C -->|Yes| E[DIRA Layer 1]
+    E --> F[DIRA Layer 2]
+    F --> G[DIRA Layer 3]
     G --> H{Intent match?}
     H -->|Drift detected| I([Session terminated])
     H -->|Aligned| J([Action authorized])
