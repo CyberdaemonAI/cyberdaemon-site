@@ -342,5 +342,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Chromium (for build-time mermaid SVG rendering)
+        run: npx playwright install --with-deps chromium
+
       - name: Build site
         run: npm run build
