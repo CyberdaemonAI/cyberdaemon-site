@@ -70,11 +70,11 @@ The recursion has a structure worth naming explicitly.
 flowchart TD
     A[You run the audit] --> B[AI assists with classification]
     A --> C[Memory layer under examination]
-    B -.->|AI also wrote\nsome of these entries| C
+    B -.->|"AI also wrote some of these entries"| C
     C --> D[Audit findings]
     B --> D
     D --> E[Findings treated as evidence]
-    E -.->|one party that shaped\nthe findings| B
+    E -.->|"one party that shaped the findings"| B
 ```
 </DiagramBlock>
 

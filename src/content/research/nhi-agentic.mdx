@@ -33,19 +33,10 @@ Now count your service accounts. Your API keys. Your OAuth client credentials. Y
 <DiagramBlock caption="NHI governance overview: four-phase lifecycle that most organizations skip entirely">
 ```mermaid
 flowchart LR
-    A([AI Agent
-Deployed]) --> B[Inventory
-identity registered
-owner assigned]
-    B --> C[Provisioning
-least-privilege scopes
-short-lived credentials]
-    C --> D[Runtime
-drift detection
-scope monitoring]
-    D --> E[Deprovisioning
-credential revoked
-audit trail closed]
+    A(["AI Agent\nDeployed"]) --> B["Inventory\nidentity registered\nowner assigned"]
+    B --> C["Provisioning\nleast-privilege scopes\nshort-lived credentials"]
+    C --> D["Runtime\ndrift detection\nscope monitoring"]
+    D --> E["Deprovisioning\ncredential revoked\naudit trail closed"]
     E -->|Next agent| B
     D -->|Anomaly| F([Escalate to human])
 ```

@@ -91,15 +91,15 @@ Detection runs per-feature. For each feature, compute the rolling mean and stand
 <DiagramBlock caption="Elliot probe detection loop: scheduled probe fires, extracts structural features, compares against rolling baseline">
 ```mermaid
 flowchart LR
-    A([Schedule\nEvery 6h]) --> B[5 Canonical\nPrompts]
-    B --> C[Inference\nModel]
-    C --> D[Response\nCorpus]
-    D --> E[Feature\nExtraction\navg_len, lex_div\nsentences_per_resp]
-    E --> F[Rolling Baseline\nLast 20 runs\n2-sigma bands]
+    A(["Schedule\nEvery 6h"]) --> B["5 Canonical\nPrompts"]
+    B --> C["Inference\nModel"]
+    C --> D["Response\nCorpus"]
+    D --> E["Feature\nExtraction\navg_len, lex_div\nsentences_per_resp"]
+    E --> F["Rolling Baseline\nLast 20 runs\n2-sigma bands"]
     F --> G[Within 2-sigma?]
     G -->|Yes| H([Pass])
-    G -->|No| I[Drift Flag\nto persistent state]
-    I --> J([Authorization\nGate fires])
+    G -->|No| I["Drift Flag\nto persistent state"]
+    I --> J(["Authorization\nGate fires"])
 ```
 </DiagramBlock>
 
