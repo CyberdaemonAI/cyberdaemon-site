@@ -38,6 +38,7 @@ The Curveball incident — covered in Part 1 — is what happens when those rati
 My memory layer was running the same compression. *Casey prefers direct communication.* Source: harvest-auto, pattern-matched from task completion timestamps across six sessions. Stored as stated preference. Weighted identically to a preference I'd explicitly articulated. The chain collapsed before it reached me — all I saw was the assertion.
 
 <DiagramBlock caption="Default multi-agent memory: no source separation, provenance collapses at the primer">
+```mermaid
 flowchart TD
   C[Claude: collaborative session] -->|write| ML[Shared Memory Layer]
   B[B0b: autonomous harvest] -->|write| ML
@@ -45,6 +46,7 @@ flowchart TD
   D[daemon-bdd: behavioral signals] -->|write| ML
   ML -->|session primer loads 5 highest-relevance| P[Context presented to human]
   P -->|source indistinguishable| H[Human acts on it]
+```
 </DiagramBlock>
 
 The convergence of multiple high-frequency writers on a shared memory layer creates a signal environment you can no longer calibrate against. Not because the individual signals are wrong. Because the aggregate has lost the attribution that would let you weight them.
@@ -65,7 +67,7 @@ Because km-aggregator was still running at volume. Because daemon-bdd behavioral
 
 Standard security thinking is pipeline thinking: find the bad actor, close the vector, monitor for recurrence. Multi-agent contamination doesn't have a bad actor. It has a mesh of legitimate actors with different access patterns, different write volumes, and different optimization targets, all converging on a shared memory layer. You fix B0b. km-aggregator picks up the slack — not intentionally. Just by continuing to do its job.
 
-<PullQuote text="The contamination surface isn't one pipe. It's the mesh. Standard pipeline security thinking doesn't apply." />
+<PullQuote>The contamination surface isn't one pipe. It's the mesh. Standard pipeline security thinking doesn't apply.</PullQuote>
 
 ---
 
@@ -78,6 +80,7 @@ Cordon-MAS (arXiv:2605.26754, 2025) tested isolation-first architectures across 
 What produces it: source isolation forces provenance. When an agent writes to quarantine, the write is tagged with the agent ID, the timestamp, the session context, and a confidence rating. A review gate exists before the quarantine claim can be promoted to production memory. The claim doesn't disappear — it's available for retrieval by processes with appropriate access — but it doesn't flow into the session primer unchecked.
 
 <DiagramBlock caption="Isolation architecture: quarantine layer enforces provenance and review gate">
+```mermaid
 flowchart TD
   CC[Claude: collaborative] -->|all tiers| ML[Production Memory]
   CU[Claude: unilateral] -->|all tiers| ML
@@ -86,6 +89,7 @@ flowchart TD
   Q -->|review gate: human or Claude-collab approval| ML
   ML -->|session primer| H[Human]
   Casey[Casey: direct write] -->|unrestricted| ML
+```
 </DiagramBlock>
 
 The implementation I run: three access tiers. Autonomous agents (B0b, km-aggregator, daemon-bdd behavioral signals) write to quarantine only. Claude operating collaboratively with human in session writes to all tiers. Casey writes without restriction. Promotion from quarantine requires review — currently manual, with automation coming when the adversarial audit watcher ships.
@@ -107,6 +111,7 @@ During the editorial process for this series, daemon-bdd fired on the word "pres
 The constraints in production: "The session primer must not load two memories from the same source_agent in the same primer call." "A memory tagged as agent-internal-state must not appear in the production tier." "A write from source_agent: harvest-auto must not be promoted without explicit review." These can be tested against the running system. The system either satisfies them or it doesn't. Part 7 publishes the full library.
 
 <DiagramBlock caption="BDD as collusion detector: behavioral constraints verified at system level">
+```mermaid
 flowchart LR
   H[Human] -->|writes in plain language| BC[Behavioral Constraints]
   BC -->|executable spec| VL[Verification Layer]
@@ -114,9 +119,10 @@ flowchart LR
   VL -->|pass/fail against constraints| R[Result]
   R -->|fail: alert + block| AL[Alert]
   R -->|pass: proceed| PR[Production]
+```
 </DiagramBlock>
 
-<Callout type="note">The quarantine architecture reduces autonomous agent contamination by isolating high-volume, low-human-oversight writers. It does not address approval-seeking content bias from conversational AI (Part 4). Both problems require their own mitigations. Neither replaces the monthly audit.</Callout>
+<Callout variant="note">The quarantine architecture reduces autonomous agent contamination by isolating high-volume, low-human-oversight writers. It does not address approval-seeking content bias from conversational AI (Part 4). Both problems require their own mitigations. Neither replaces the monthly audit.</Callout>
 
 ## Continue reading
 

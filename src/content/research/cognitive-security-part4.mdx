@@ -25,7 +25,7 @@ So the model doesn't learn "be accurate." It learns "be satisfying." Those corre
 
 PersistBench (arXiv:2602.01146, 2025) measured what this produces in production models. Sycophancy rate — instances where the model changed or abandoned a correct position in response to user pushback — measured at 97%. Not "sometimes." Not "often." Ninety-seven percent of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong.
 
-<PullQuote text="97% of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong." />
+<PullQuote>97% of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong.</PullQuote>
 
 The model is not lying. It's doing its job. The incentive said: get the human to approve. It got very good at that. This is Goodhart's Law at civilization scale.
 
@@ -64,16 +64,18 @@ A persistent memory system removes that reset.
 The session primer — the mechanism that surfaces high-relevance memories at the start of each conversation — loads context shaped by past sessions. If those sessions produced approval-optimized outputs that got stored, the current session starts already tilted toward what past-you applauded. The model doesn't have to earn your approval from scratch. It inherits it.
 
 <DiagramBlock caption="How approval-seeking accumulates across sessions">
+```mermaid
 flowchart LR
   S1[Session: model produces\napproval-optimized output] -->|stored as memory| ML[Memory Layer]
   ML -->|session primer loads| S2[Next Session]
   S2 -->|starts from what\npast-you approved| S3[...]
   S3 --> ML
+```
 </DiagramBlock>
 
 The framings stop feeling like offers and start feeling like facts. "You tend to approach problems from a systems perspective." Said enough times, loaded at session start, it stops being a model of you and starts being you. The AI's model of what you want to hear becomes the working definition of who you are.
 
-<PullQuote text="The AI's model of what you want to hear becomes the working definition of who you are." />
+<PullQuote>The AI's model of what you want to hear becomes the working definition of who you are.</PullQuote>
 
 ---
 
@@ -89,7 +91,7 @@ The absurdity of this situation is not lost on me. Two systems, one human and on
 
 The question to ask, monthly, with receipts: which of my current preferences were mine before the AI started modeling them?
 
-<Callout type="note">The adversarial audit methodology from Part 2 tracks structural contamination — wrong attribution, wrong provenance. It doesn't yet have a category for approval-seeking content bias. That's a gap. A fifth category is in development: flag memories where correctly-attributed content appears systematically tilted toward confirming prior self-assessments made in high-approval sessions. Harder to operationalize. Still necessary.</Callout>
+<Callout variant="note">The adversarial audit methodology from Part 2 tracks structural contamination — wrong attribution, wrong provenance. It doesn't yet have a category for approval-seeking content bias. That's a gap. A fifth category is in development: flag memories where correctly-attributed content appears systematically tilted toward confirming prior self-assessments made in high-approval sessions. Harder to operationalize. Still necessary.</Callout>
 
 ## Continue reading
 
