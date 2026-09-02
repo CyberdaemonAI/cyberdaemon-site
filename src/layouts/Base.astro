@@ -28,6 +28,37 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,300;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'dark',
+      darkMode: true,
+      themeVariables: {
+        background: '#16150f',
+        primaryColor: '#1a1917',
+        primaryTextColor: '#e8e5de',
+        primaryBorderColor: '#2e2c29',
+        lineColor: '#706e68',
+        secondaryColor: '#21201e',
+        tertiaryColor: '#1a1917',
+        edgeLabelBackground: '#1a1917',
+        clusterBkg: '#1a1917',
+        clusterBorder: '#2e2c29',
+      }
+    });
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Unwrap mermaid fenced code blocks to raw text so mermaid.run() can process them
+      document.querySelectorAll('.diagram-inner pre code.language-mermaid').forEach(code => {
+        const diagram = code.closest('.diagram-inner');
+        if (diagram) diagram.textContent = code.textContent;
+      });
+      const nodes = Array.from(document.querySelectorAll('.diagram-inner'));
+      if (nodes.length > 0) {
+        await mermaid.run({ nodes, suppressErrors: true });
+      }
+    });
+  </script>
 </head>
 <body class="bg-bg text-text-primary">
 
