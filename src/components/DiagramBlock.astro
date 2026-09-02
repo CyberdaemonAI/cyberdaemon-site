@@ -2,14 +2,13 @@
 /**
  * DiagramBlock — wrapper for Mermaid diagrams or other visual content.
  * Dark card with border and optional caption in muted mono text.
- * Mermaid diagrams are rendered to inline SVG at build time via rehype-mermaid.
+ * The actual mermaid rendering is handled client-side; this provides the
+ * container with a .mermaid class on the inner div.
  *
  * Usage:
  *   <DiagramBlock caption="Attack chain overview">
- *     ```mermaid
  *     graph LR
  *       A[Token Theft] --> B[Lateral Movement]
- *     ```
  *   </DiagramBlock>
  */
 
@@ -21,7 +20,7 @@ const { caption } = Astro.props;
 ---
 
 <figure class="diagram-block">
-  <div class="diagram-inner">
+  <div class="diagram-inner mermaid">
     <slot />
   </div>
   {caption && (
@@ -50,22 +49,10 @@ const { caption } = Astro.props;
     font-size: 0.875rem;
   }
 
+  /* Override mermaid's default white background */
   .diagram-inner :global(svg) {
     max-width: 100%;
     height: auto;
-    display: block;
-  }
-
-  /* Remove pre/code wrapper if mermaid is not rendered (fallback) */
-  .diagram-inner :global(pre) {
-    margin: 0;
-    background: transparent;
-    border: none;
-    padding: 0;
-    font-size: 0.75rem;
-    color: #706e68;
-    white-space: pre-wrap;
-    word-break: break-word;
   }
 
   .diagram-caption {
