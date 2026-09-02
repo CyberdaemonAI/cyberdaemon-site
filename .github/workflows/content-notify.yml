@@ -67,13 +67,8 @@ jobs:
           LANE="${{ steps.meta.outputs.lane }}"
           SUMMARY="${{ steps.meta.outputs.summary }}"
 
-          MESSAGE="**[PR #${PR_NUMBER}] ${TITLE}**
-
-Lane: ${LANE}
-
-${SUMMARY}
-
-Review: ${PR_URL}"
+          MESSAGE=$(printf '**[PR #%s] %s**\n\nLane: %s\n\n%s\n\nReview: %s' \
+            "${PR_NUMBER}" "${TITLE}" "${LANE}" "${SUMMARY}" "${PR_URL}")
 
           curl -s -f \
             --data-urlencode "type=stream" \
