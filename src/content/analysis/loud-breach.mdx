@@ -195,9 +195,9 @@ flowchart TD
         BL[(Behavioral baselines via episodic memory)]
     end
     subgraph fixed["Gaps Found and Fixed"]
-        GIT[Git credential in history — gitleaks + rotation]
-        REV[No server-side revocation — rotation tooling]
-        ALERT[Silent alert failure — TLS + health check]
+        GIT[Git credential in history: gitleaks + rotation]
+        REV[No server-side revocation: rotation tooling]
+        ALERT[Silent alert failure: TLS + health check]
     end
     AUTH --> SAFE([Hardened posture])
     DIRA --> SAFE
@@ -261,9 +261,17 @@ The cost of building this stack is measured in days or weeks. The cost of not bu
 
 [^1]: CISSP-ISSAP, CISSP-ISSMP, CCSP, CASP+, CISA, CISM, CRISC, CDPSE, AAIA, AAISM. The cert stack is context for why this audit happened within hours of reading the report, not weeks. Pattern recognition across audit, governance, risk, architecture, and AI security is the professional muscle. The incident report activated it immediately.
 
+## Counterarguments
+
+This analysis assumes the HuggingFace/OpenAI incident is a reliable signal about autonomous agent security in general. It might not be. The report describes a specific class of attack against specific targets with specific authorization failures. Extrapolating it into a universal minimum stack requirement for all agent deployments is a stretch.
+
+The cost of the full stack I describe is not trivial. Identity governance, runtime authorization, behavioral detection, credential rotation, and incident response tooling require weeks to build and ongoing maintenance. For teams shipping a single agent against a narrow task with low blast radius, this level of investment may not be justified by the actual risk.
+
+The behavioral baseline approach I have the most confidence in is also the part that has seen the least adversarial pressure. What holds against current threat models may not hold against models that are more capable at generating deceptive noise.
+
 ## See also
 
-- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — the security hardening sprint that followed this audit. Deny-all egress, non-root execution, credential monitoring.
-- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface) — the access audit that the containment review methodology exposed. Unused permissions are attack surface.
-- [MCP's Security Problem Nobody's Writing About](/analysis/mcp-stateless-security) — the protocol layer where the containment gap lives. Stateless sessions make forensic reconstruction harder.
-- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the authorization framework that catches scope-intent mismatches before they become incidents. The audit showed valid scope, unauthorized intent.
+- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening): the security hardening sprint that followed this audit. Deny-all egress, non-root execution, credential monitoring.
+- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface): the access audit that the containment review methodology exposed. Unused permissions are attack surface.
+- [MCP's Security Problem Nobody's Writing About](/analysis/mcp-stateless-security): the protocol layer where the containment gap lives. Stateless sessions make forensic reconstruction harder.
+- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework): the authorization framework that catches scope-intent mismatches before they become incidents. The audit showed valid scope, unauthorized intent.

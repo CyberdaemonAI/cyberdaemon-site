@@ -202,7 +202,7 @@ invariants.
 <DiagramBlock caption="DIRA three-layer architecture: behavioral trust, scope enforcement, and NHI identity management">
 ```mermaid
 flowchart TB
-    subgraph L1["Layer 1 — Behavioral Trust"]
+    subgraph L1["Layer 1 - Behavioral Trust"]
         A[Content Trust Pipeline] --> B{{Hard Rule Floor}}
         A --> C[LLM Classification]
         A --> D[Adversarial Re-pass]
@@ -210,13 +210,13 @@ flowchart TB
         F --> G{Behavioral Drift Gate}
     end
 
-    subgraph L2["Layer 2 — JWT Scope Enforcement"]
+    subgraph L2["Layer 2 - JWT Scope Enforcement"]
         H[JWT Validation] --> I{RS256 Signature}
         I --> J[Scope-per-Endpoint]
         J --> K[[Route Handler Constraints]]
     end
 
-    subgraph L3["Layer 3 — NHI Identity"]
+    subgraph L3["Layer 3 - NHI Identity"]
         L[Client Credentials Flow] --> M[Scoped JWT Issuance]
         M --> N[Automated Secret Rotation]
     end

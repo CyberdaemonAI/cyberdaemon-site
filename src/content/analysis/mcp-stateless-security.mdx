@@ -215,7 +215,7 @@ flowchart TD
         ISS[iss parameter validation]
     end
     subgraph build["You Must Build"]
-        ROT[Token rotation — automated]
+        ROT[Token rotation: automated]
         REV[Server-side revocation list]
         BIND[Client identity binding]
         AUDIT[Per-request audit logging]
@@ -295,10 +295,18 @@ If you are building autonomous agent systems on MCP, the protocol is the floor, 
 
 [^4]: RFC 7009, OAuth 2.0 Token Revocation, datatracker.ietf.org/doc/html/rfc7009.
 
+## Counterarguments
+
+The argument that MCP leaves operators exposed by not naming risks is unfair to a spec that explicitly scopes itself as a protocol definition. Protocol specs don't enumerate implementation security risks. TCP doesn't warn operators about TLS. HTTP doesn't mandate audit logging. Expecting MCP to do what no other protocol spec does is a category error.
+
+Bearer tokens with the vulnerabilities I describe are not an MCP problem. They are a bearer token problem. Every API that uses OAuth 2.1 bearer tokens has the same portability risk. MCP does not make this worse; it inherits the existing problem space. The argument that MCP is uniquely dangerous conflates protocol design with deployment practice.
+
+The three additions I call for (revocation endpoint, client binding, audit event schema) each add implementation complexity and operational overhead. For operators running low-risk MCP deployments, this overhead may not be warranted. The risk scales with what the MCP server exposes, and a server that only exposes read-only documentation tools does not have the same blast radius as one that exposes infrastructure management.
+
 ## See also
 
-- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the authorization framework designed to close MCP's intent verification gap. Stateless sessions mean each request must carry its own authorization context; DIRA defines what that context should contain.
-- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the ZTA architecture MCP sits inside. Per-request verification is the design principle; MCP's stateless model is both the correct implementation of that principle and the source of its audit gaps.
-- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — MCP servers are NHI assets. The token portability problem is an NHI lifecycle management failure.
-- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — a production enforcement layer that sits above MCP and classifies tool calls before they execute.
-- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — network-layer controls that complement MCP's application-layer gaps. Egress restriction limits what a token-portable credential can reach.
+- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework): the authorization framework designed to close MCP's intent verification gap. Stateless sessions mean each request must carry its own authorization context; DIRA defines what that context should contain.
+- [Zero Trust Applied to AI Systems](/research/zt-ai-systems): the ZTA architecture MCP sits inside. Per-request verification is the design principle; MCP's stateless model is both the correct implementation of that principle and the source of its audit gaps.
+- [Non-Human Identity for Agentic Systems](/research/nhi-agentic): MCP servers are NHI assets. The token portability problem is an NHI lifecycle management failure.
+- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation): a production enforcement layer that sits above MCP and classifies tool calls before they execute.
+- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening): network-layer controls that complement MCP's application-layer gaps. Egress restriction limits what a token-portable credential can reach.
