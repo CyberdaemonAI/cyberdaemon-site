@@ -3,7 +3,7 @@ interface Props {
   photo?: string;
   compact?: boolean;
 }
-const { photo, compact = false } = Astro.props;
+const { photo = "/images/casey/casey.jpg", compact = false } = Astro.props;
 
 const name        = "Casey Gager";
 const tagline     = "Cybersecurity practitioner. AI systems builder.";
@@ -77,12 +77,14 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
   }
 
   .author-photo {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
     object-fit: cover;
+    object-position: center top;
     border: 1px solid #2e2c29;
     flex-shrink: 0;
+    background: #fff;
   }
 
   .author-name {
