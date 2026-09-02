@@ -14,7 +14,7 @@ on:
 jobs:
   notify-zulip:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened')
+    if: ${{ github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened') }}
     steps:
       - uses: actions/checkout@v4
 
