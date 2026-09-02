@@ -1,10 +1,6 @@
 name: Content Pipeline Notifications
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'src/content/**'
   pull_request:
     types: [opened, reopened]
     branches: [master]

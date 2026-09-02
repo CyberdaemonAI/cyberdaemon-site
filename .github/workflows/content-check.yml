@@ -49,7 +49,6 @@ jobs:
             'vault-[a-zA-Z0-9]:vault- bead ID'
             'kubectl:kubectl reference'
             '[kK]3[sS]:K3s reference'
-            '[tT][aA][iI][lL][sS][cC][aA][lL][eE]:Tailscale reference'
             '[zZ][uU][lL][iI][pP]:Zulip reference'
             '[aA][rR][gG][oO][cC][dD]:ArgoCD reference'
             '[lL][oO][nN][gG][hH][oO][rR][nN]:Longhorn reference'
