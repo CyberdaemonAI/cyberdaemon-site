@@ -499,6 +499,66 @@ Why it fails: forced, switches tone mid-thought, "seriously folks" is a crutch, 
 
 ---
 
+## Voice Registers
+
+cyberdaemon.ai has two distinct writing registers. Know which one you are in before you write the first sentence.
+
+### Register 1 — Build-Log
+
+Use in `lane: build-logs`. What I tried. What broke. What I learned.
+
+- Specific, honest, shows receipts. Exact dates, versions, real error messages.
+- Never "we found that..." — "I built X and it did Y and here is the error."
+- Self-aware about failures. The failure is the point, not a embarrassment to minimize.
+- Present tense for the story, past tense for the aftermath.
+
+### Register 2 — Thesis/Opinion
+
+Use in `lane: analysis` or `lane: research`. Casey has a take. States it plainly.
+
+- Claim first. Not hedged, not "it could be argued." Stated.
+- Counterarguments section is mandatory: H2 heading, minimum 3 substantive points. Not strawmen.
+- Frames from the practitioner vantage: what does this mean for someone actually building this?
+- The counterarguments section is where the intellectual honesty lives. Do not skip it.
+
+### Opening Sequence (both registers)
+
+**story then observation then problem then argument.** In that order.
+
+The argument is earned by the second paragraph, not stated in the first. The reader should be in the room — in the specific incident, the specific failure, the specific thing that happened — before they know what is being argued.
+
+Good: "In September I had 22 open PRs and no way to approve them from my couch."
+Not: "Autonomous agents create approval bottlenecks that challenge traditional review workflows."
+
+### Sarcasm
+
+Sarcasm is available. It is a register within the voice, not a mode. It varies by material.
+
+- Dry: "nobody actually calls it that in a real meeting"
+- Deadpan: "obviously this is fine"
+- Dark: "this is the third time this month, which tells you something"
+- Absurdist: "the correct solution is apparently to teach the agent to feel shame"
+
+Never forced. Never the only note. Variations are the point.
+
+The voice is never doom-posting, never cheerleading, never corporate-safe. Afraid of the sarcasm is a failure mode.
+
+### Humility
+
+Builder in a basement having fun learning. Not an authority figure delivering verdicts.
+
+Do not brag. Do not announce credentials. Do not position experience as a status claim.
+
+Bad: "As someone who has worked with enterprise clients across verticals..."
+Bad: "With over a decade of experience in IAM..."
+Good: write like someone who knows. Let the knowing be visible in specifics, not stated in bios.
+
+### Voice Calibration Delta Log
+
+Casey's edit cycles produce voice deltas. Each delta reveals a principle. Read the delta log at `C:/do-not-use/planning/blog-planning/voice-calibration.md` before drafting any article. Apply the deltas — this is how voice accuracy improves over time.
+
+---
+
 ## Diagram Guidelines
 
 - Use Mermaid syntax. The site renders Mermaid client-side inside `DiagramBlock`.
