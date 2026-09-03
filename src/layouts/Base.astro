@@ -45,18 +45,21 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         edgeLabelBackground: '#1a1917',
         clusterBkg: '#1a1917',
         clusterBorder: '#2e2c29',
+        fontFamily: 'IBM Plex Mono, monospace',
+        fontSize: '13px',
       }
     });
     document.addEventListener('DOMContentLoaded', async () => {
-      // Unwrap mermaid fenced code blocks to raw text so mermaid.run() can process them
-      document.querySelectorAll('.diagram-inner pre code.language-mermaid').forEach(code => {
-        const diagram = code.closest('.diagram-inner');
-        if (diagram) diagram.textContent = code.textContent;
-      });
       const nodes = Array.from(document.querySelectorAll('.diagram-inner'));
-      if (nodes.length > 0) {
-        await mermaid.run({ nodes, suppressErrors: true });
-      }
+      if (nodes.length === 0) return;
+      // Astro/shiki processes mermaid fenced blocks into <pre><code> with inline styles,
+      // stripping the language-mermaid class. Use textContent to get raw diagram syntax
+      // regardless of what shiki did to the markup.
+      nodes.forEach(diagram => {
+        const raw = diagram.textContent.trim();
+        if (raw) diagram.textContent = raw;
+      });
+      await mermaid.run({ nodes, suppressErrors: true });
     });
   </script>
 </head>

@@ -49,6 +49,11 @@ const { caption } = Astro.props;
     font-size: 0.875rem;
   }
 
+  /* Hide shiki-processed pre/code block before mermaid JS runs */
+  .diagram-inner :global(pre) {
+    display: none;
+  }
+
   /* Override mermaid's default white background */
   .diagram-inner :global(svg) {
     max-width: 100%;
