@@ -299,8 +299,8 @@ flowchart TD
     B -->|Yes| D[Runtime Clears Credentials]
     D --> E[Next Session: No Credentials]
     E --> F{Interactive Login Available?}
-    F -->|Yes - Human| G[Manual Login]
-    F -->|No - Autonomous Container| H[[Clean Exit]]
+    F -->|Yes: Human| G[Manual Login: New Token]
+    F -->|No: Autonomous Container| H[[Clean Exit: Restart Loop]]
     H --> E
     G --> A
 
@@ -413,18 +413,3 @@ reduces cost and removes the cloud auth dependency for routine work entirely.
 The fleet's success rate will improve not by making the agents smarter, but by making
 the infrastructure less hostile. The agents proved they can do the work. The
 infrastructure needs to prove it can stay out of their way.
-
-## Counterarguments
-
-A 25% success rate on a first fleet run is not necessarily a failure. It depends on what you are measuring. If the claim is "we can run autonomous agents at all," one of four producing a clean, mergeable PR is meaningful evidence. The framing of 75% failure may be too harsh on a genuinely early-stage system where learning is the product.
-
-The conclusion that "auth is the hardest part" is drawn from a single run against a single credential setup. The auth lifecycle gap is real, but it is a known failure mode with a known fix. Calling it the hardest part implies the remaining problems are easier. They may not be. Spec quality issues and startup environment assumptions may be harder to solve at scale than authentication, and this run did not stress-test either of those at the scale needed to know.
-
-The event-driven vs. always-on distinction may be overstated. The idle loop caused problems in this specific deployment, but the root cause was session cycling under continuous load, not the always-on model itself. A well-tuned always-on container with proper restart policies can be reliable. The design is fine; the implementation was wrong. The conclusion that "always-on is bad" overcorrects the diagnosis.
-
-## See also
-
-- [I Built an Autonomous AI Agent Fleet and 75% of It Broke](/build-logs/b0b-methodology): the methodology article that covers what was built and why. This article covers what failed in the first run.
-- [ISA-driven development: structured contracts for autonomous AI agents](/build-logs/isa-patterns): the spec format that the second fleet run used. Underspecified tasks were the primary failure cause in this run.
-- [My agent couldn't read its own name for months](/build-logs/agent-couldnt-read-its-own-name): a different class of silent failure. Both failures share the same root: health checks pass while something fundamental is broken.
-- [Writing to the Next Session](/build-logs/writing-to-the-next-session): session handoff as a failure vector. Two of the four agents produced nothing; recovery required understanding what state they'd left behind.
