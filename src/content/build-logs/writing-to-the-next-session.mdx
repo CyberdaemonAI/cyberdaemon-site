@@ -147,7 +147,8 @@ sequenceDiagram
     A->>TF: Mark step complete
     Hook-->>TF: Read on every response completion
     Hook->>Snap: Write snapshot
-    Note over Snap: next_action, dirty state, open questions<br/>recovery.confidence = null
+    Note over Snap: next_action, dirty state, open questions
+    Note over Snap: recovery.confidence null until next session writes it
     Next->>Snap: Load on session start
     Next->>Next: Read next_action
     Note over Next: Executes without reconstruction
@@ -182,9 +183,9 @@ Over time that corpus answers questions I cannot see from individual sessions:
 
 <ScrollReveal>
 <StatRow stats={[
-  { value: "Every task", label: "Generates a handoff record" },
-  { value: "Nightly", label: "Diagnostic agent reads corpus for patterns" },
-  { value: "Monthly", label: "Spec improvement scan runs against gap data" }
+  { value: "5 fields", label: "Minimum for clean crash recovery" },
+  { value: "15 min", label: "State reconstruction with a bad handoff" },
+  { value: "0", label: "Reconstruction steps with a good handoff" }
 ]} />
 </ScrollReveal>
 
