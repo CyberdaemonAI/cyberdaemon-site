@@ -55,6 +55,15 @@ jobs:
           echo "summary=${SUMMARY:0:400}" >> "$GITHUB_OUTPUT"
           echo "file=$MDX_FILE" >> "$GITHUB_OUTPUT"
 
+
+      - name: Join Tailscale
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci
+          version: latest
+
       - name: Post to Zulip content-pipeline stream
         env:
           ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}

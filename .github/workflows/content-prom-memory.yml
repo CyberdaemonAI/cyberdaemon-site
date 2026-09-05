@@ -63,14 +63,14 @@ jobs:
 
           # Verify prom-memory reachable
           if ! curl -sf --max-time 10 \
-            "http://100.113.106.111:30860/health?token=${PROM_MEMORY_TOKEN}" > /dev/null; then
+            "http://100.113.93.110:30860/health?token=${PROM_MEMORY_TOKEN}" > /dev/null; then
             echo "ERROR: prom-memory not reachable via Tailscale"
             exit 1
           fi
 
           # Save milestone
           RESPONSE=$(curl -sf --max-time 15 \
-            -X POST "http://100.113.106.111:30860/add?token=${PROM_MEMORY_TOKEN}" \
+            -X POST "http://100.113.93.110:30860/add?token=${PROM_MEMORY_TOKEN}" \
             -H "Content-Type: application/json" \
             -d "{
               \"fact_type\": \"milestone\",
