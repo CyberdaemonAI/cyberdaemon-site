@@ -23,22 +23,6 @@ when agentic systems ran unsupervised for months, and what the controls caught.
 
 ---
 
-<DiagramBlock caption="DIRA framework overview: three enforcement layers close the gap between permitted and intended">
-```mermaid
-flowchart LR
-    A([Agent Session]) --> B[OAuth Layer]
-    B --> C{Permitted?}
-    C -->|No| D([Blocked])
-    C -->|Yes| E[DIRA Layer 1]
-    E --> F[DIRA Layer 2]
-    F --> G[DIRA Layer 3]
-    G --> H{Intent match?}
-    H -->|Drift detected| I([Session terminated])
-    H -->|Aligned| J([Action authorized])
-```
-</DiagramBlock>
-
-
 <SectionLabel text="The Gap" />
 
 ## The authorization problem OAuth doesn't solve
@@ -202,7 +186,7 @@ invariants.
 <DiagramBlock caption="DIRA three-layer architecture: behavioral trust, scope enforcement, and NHI identity management">
 ```mermaid
 flowchart TB
-    subgraph L1["Layer 1 - Behavioral Trust"]
+    subgraph L1["Layer 1: Behavioral Trust"]
         A[Content Trust Pipeline] --> B{{Hard Rule Floor}}
         A --> C[LLM Classification]
         A --> D[Adversarial Re-pass]
@@ -210,13 +194,13 @@ flowchart TB
         F --> G{Behavioral Drift Gate}
     end
 
-    subgraph L2["Layer 2 - JWT Scope Enforcement"]
+    subgraph L2["Layer 2: JWT Scope Enforcement"]
         H[JWT Validation] --> I{RS256 Signature}
         I --> J[Scope-per-Endpoint]
         J --> K[[Route Handler Constraints]]
     end
 
-    subgraph L3["Layer 3 - NHI Identity"]
+    subgraph L3["Layer 3: NHI Identity"]
         L[Client Credentials Flow] --> M[Scoped JWT Issuance]
         M --> N[Automated Secret Rotation]
     end
@@ -720,13 +704,3 @@ Views expressed are his own.*
 [^5]: Microsoft open-sourced RAMPART, AGT, Clarity, and PyRIT in May 2026. Release coverage: The Hacker News, May 2026. The release notes explicitly identified auth-layer vulnerabilities as out of scope for RAMPART/AGT.
 
 [^6]: prempti, CNCF Falco project, github.com/falcosecurity/prempti. Tool-call policy enforcement for AI agents. The sequence-based evasion finding is documented in the project's threat model.
-
-## See also
-
-**Security architecture chain** — DIRA sits at the center of a connected set of articles on agentic authorization:
-
-- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — the NIST SP 800-207 foundation that DIRA builds on. ZTA establishes the per-request verification principle; DIRA applies it to intent.
-- [Non-Human Identity for Agentic Systems](/research/nhi-agentic) — agents need identity before they can have authorization. NHI is the prerequisite layer.
-- [Human Above the Loop](/analysis/human-above-the-loop) — where humans fit in a DIRA-compliant system. Policy authoring and exception handling, not runtime approval.
-- [CB4A: content-based 4-tier authorization for AI tool calls](/build-logs/cb4a-implementation) — a production implementation of DIRA's enforcement layer, classifying tool calls by risk tier.
-- [MCP's Security Problem Nobody's Writing About](/analysis/mcp-stateless-security) — the protocol layer where DIRA enforcement runs. Stateless sessions and token portability create gaps DIRA is designed to close.

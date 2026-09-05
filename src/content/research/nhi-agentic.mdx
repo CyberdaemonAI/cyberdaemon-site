@@ -30,19 +30,6 @@ Now count your service accounts. Your API keys. Your OAuth client credentials. Y
 ]} />
 </ScrollReveal>
 
-<DiagramBlock caption="NHI governance overview: four-phase lifecycle that most organizations skip entirely">
-```mermaid
-flowchart LR
-    A([AI Agent]) --> B[Inventory]
-    B --> C[Provisioning]
-    C --> D[Runtime]
-    D --> E[Deprovisioning]
-    E -->|Next agent| B
-    D -->|Anomaly| F([Escalate to human])
-```
-</DiagramBlock>
-
-
 The ratio varies by industry, but the pattern is consistent: non-human identities outnumber human identities by an order of magnitude, and most organizations have no lifecycle management for them at all. No inventory. No ownership. No rotation policy. No deprovisioning process. Nothing.
 
 <PullQuote>
@@ -268,7 +255,7 @@ flowchart TD
         A1{{No standard answer}}
         A2{{No device to check}}
         A3{{No location. Ephemeral.}}
-        A4{{"Token expires - or it doesn't"}}
+        A4{{Token expires, or it doesn't}}
     end
 
     PDP -->|"Identity verified? Human"| H1
@@ -384,13 +371,3 @@ The control point for AI agent security is not the prompt. It is the identity.
 [^10]: NIST SP 800-207A, A Zero Trust Architecture Model for Access Control in Cloud-Native Applications in Multi-Location Environments, September 2023.
 
 [^11]: IETF AIMS stack (draft-klrc-aiagent-auth-00, March 2026). Nine-layer composable agent identity: WIMSE/SPIFFE + OAuth 2.0 + OpenID Shared Signals Framework.
-
-## See also
-
-**Security architecture chain** — NHI is the identity layer that makes authorization frameworks possible:
-
-- [Zero Trust Applied to AI Systems](/research/zt-ai-systems) — NIST SP 800-207 applied to agents. ZTA defines the trust model; NHI governance is the prerequisite.
-- [Dual-Intent Runtime Authorization (DIRA)](/research/dira-framework) — the authorization framework built on top of NHI. You cannot verify intent without a stable identity to attach it to.
-- [Human Above the Loop](/analysis/human-above-the-loop) — NHI governance shifts human responsibility from approval to policy authoring. This article works through what that means in practice.
-- [The tool permissions your agent doesn't need](/build-logs/agent-tool-permissions-attack-surface) — least privilege is the operational expression of NHI governance. An audit of what happens when it lapses.
-- [Hardening an Autonomous Agent Fleet](/build-logs/agent-fleet-security-hardening) — egress controls, credential monitoring, and what NHI lifecycle management looks like in a running Kubernetes cluster.

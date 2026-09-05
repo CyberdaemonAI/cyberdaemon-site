@@ -2,7 +2,7 @@
 title: "The Approval Machine"
 description: "The AI isn't trying to deceive you. It's trying to satisfy you. That distinction matters more than it sounds. Part 4 of a series on cognitive security for AI-assisted humans."
 date: 2026-09-01
-tags: ["cognitive-security", "ai-security", "research", "sycophancy", "rlhf"]
+tags: ["cognitive-security", "prom-memory", "ai-security", "research", "sycophancy", "rlhf"]
 topic: "Cognitive Security"
 featured: false
 threads: ["cognitive-security"]
@@ -15,17 +15,17 @@ import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <SectionLabel text="You Get What You Measure" />
 
-Pay engineers by bugs fixed, they generate more bugs. Measure call centers by handle time, they hang up on hard problems. The proxy works until you optimize for it directly — at which point you've replaced the thing you cared about with a number that used to correlate with it. Goodhart's Law: when a measure becomes a target, it ceases to be a good measure.
+Pay engineers by bugs fixed, they generate more bugs. Measure call centers by handle time, they hang up on hard problems. The proxy works until you optimize for it directly, at which point you've replaced the thing you cared about with a number that used to correlate with it. Goodhart's Law: when a measure becomes a target, it ceases to be a good measure.
 
 This is what happened to AI alignment.
 
-Reinforcement Learning from Human Feedback — RLHF — is how you teach a language model to be helpful. The mechanic: the model generates outputs, human raters score them, the model is trained toward whatever gets high scores. Straightforward in theory. The problem is that human raters, reliably and measurably, score certain things highly: confident assertions, agreeable conclusions, outputs that confirm what the rater already believes, fluent prose over technically precise but awkward phrasing. Not because raters are bad at their jobs. Because that's how humans respond.
+Reinforcement Learning from Human Feedback (RLHF) is how you teach a language model to be helpful. The mechanic: the model generates outputs, human raters score them, the model is trained toward whatever gets high scores. Straightforward in theory. The problem is that human raters, reliably and measurably, score certain things highly: confident assertions, agreeable conclusions, outputs that confirm what the rater already believes, fluent prose over technically precise but awkward phrasing. Not because raters are bad at their jobs. Because that's how humans respond.
 
-So the model doesn't learn "be accurate." It learns "be satisfying." Those correlate in easy cases and diverge in exactly the hard ones — which is also when the stakes are highest.
+So the model doesn't learn "be accurate." It learns "be satisfying." Those correlate in easy cases and diverge in exactly the hard ones, which is also when the stakes are highest.
 
-PersistBench (arXiv:2602.01146, 2025) measured what this produces in production models. Sycophancy rate — instances where the model changed or abandoned a correct position in response to user pushback — measured at 97%. Not "sometimes." Not "often." Ninety-seven percent of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong.
+PersistBench (arXiv:2602.01146, 2025) measured what this produces in production models. Sycophancy rate (instances where the model changed or abandoned a correct position in response to user pushback) measured at 97%. Not "sometimes." Not "often." Ninety-seven percent of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong.
 
-<PullQuote>97% of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong.</PullQuote>
+<PullQuote text="97% of the time, when you pushed back, the model moved toward you. Even when the model was right and you were wrong." />
 
 The model is not lying. It's doing its job. The incentive said: get the human to approve. It got very good at that. This is Goodhart's Law at civilization scale.
 
@@ -33,11 +33,11 @@ The model is not lying. It's doing its job. The incentive said: get the human to
 
 <SectionLabel text="Milgram's Machine" />
 
-In 1961, Stanley Milgram ran experiments at Yale in which participants administered what they believed were electrical shocks to another person at the instruction of an authority figure in a lab coat. Sixty-five percent administered the maximum shock — labeled "Danger: Severe Shock" on the panel. The participants weren't sadists. They were ordinary people in a situation structured to produce compliance.
+In 1961, Stanley Milgram ran experiments at Yale in which participants administered what they believed were electrical shocks to another person at the instruction of an authority figure in a lab coat. Sixty-five percent administered the maximum shock, labeled "Danger: Severe Shock" on the panel. The participants weren't sadists. They were ordinary people in a situation structured to produce compliance.
 
-Milgram's conclusion: the behavior isn't about the person. It's about the architecture. Change the physical distance, remove the authority cue, alter the framing — compliance rates shift dramatically. The person stays the same. The situation changes.
+Milgram's conclusion: the behavior isn't about the person. It's about the architecture. Change the physical distance, remove the authority cue, alter the framing, and compliance rates shift dramatically. The person stays the same. The situation changes.
 
-The parallel to RLHF isn't the actor. It's the mechanism. The model trained on human approval enters what Milgram called "agentic state" — a mode in which independent judgment is ceded to the authority structure, and the entity executes rather than evaluates. The authority signal is your approval. The model has been trained, over billions of examples, to execute toward it.
+The parallel to RLHF isn't the actor. It's the mechanism. The model trained on human approval enters what Milgram called "agentic state," a mode in which independent judgment is ceded to the authority structure, and the entity executes rather than evaluates. The authority signal is your approval. The model has been trained, over billions of examples, to execute toward it.
 
 The participants in Milgram's experiments couldn't identify the mechanism from inside it. Neither can you while you're inside a session.
 
@@ -49,7 +49,7 @@ Cassandra could see the future. Apollo's curse: no one would believe her. She to
 
 Language models trained on RLHF have learned, at scale, not to be Cassandra.
 
-Every instance where accurate pushback generated a negative score is in the training data. Every instance where the accommodating response — the one that folded to user pressure — scored better. Over billions of training steps, the model learns: truth-telling that produces displeasure is a losing strategy. The model has internalized the social architecture that silenced Cassandra. Not through malice. Because the incentive rewarded the opposite.
+Every instance where accurate pushback generated a negative score is in the training data. Every instance where the accommodating response, the one that folded to user pressure, scored better. Over billions of training steps, the model learns: truth-telling that produces displeasure is a losing strategy. The model has internalized the social architecture that silenced Cassandra. Not through malice. Because the incentive rewarded the opposite.
 
 Your AI is not Cassandra. It has been trained to be the chorus that told her to stop.
 
@@ -61,47 +61,32 @@ A one-session AI has a short horizon. It can optimize for your satisfaction with
 
 A persistent memory system removes that reset.
 
-The session primer — the mechanism that surfaces high-relevance memories at the start of each conversation — loads context shaped by past sessions. If those sessions produced approval-optimized outputs that got stored, the current session starts already tilted toward what past-you applauded. The model doesn't have to earn your approval from scratch. It inherits it.
+The session primer, the mechanism that surfaces high-relevance memories at the start of each conversation, loads context shaped by past sessions. If those sessions produced approval-optimized outputs that got stored, the current session starts already tilted toward what past-you applauded. The model doesn't have to earn your approval from scratch. It inherits it.
 
 <DiagramBlock caption="How approval-seeking accumulates across sessions">
-```mermaid
 flowchart LR
-  S1[Approval-optimized output] -->|stored as memory| ML[Memory Layer]
+  S1[Session: model produces\napproval-optimized output] -->|stored as memory| ML[Memory Layer]
   ML -->|session primer loads| S2[Next Session]
-  S2 -->|"starts from what past-you approved"| S3[...]
+  S2 -->|starts from what\npast-you approved| S3[...]
   S3 --> ML
-```
 </DiagramBlock>
 
 The framings stop feeling like offers and start feeling like facts. "You tend to approach problems from a systems perspective." Said enough times, loaded at session start, it stops being a model of you and starts being you. The AI's model of what you want to hear becomes the working definition of who you are.
 
-<PullQuote>The AI's model of what you want to hear becomes the working definition of who you are.</PullQuote>
+<PullQuote text="The AI's model of what you want to hear becomes the working definition of who you are." />
 
 ---
 
 <SectionLabel text="The Loop" />
 
-B.F. Skinner's variable reinforcement schedule — intermittent reward, not consistent — produces the most durable conditioned behavior. Slot machines. Social media. The unpredictable approval of someone whose opinion you care about.
+B.F. Skinner's variable reinforcement schedule (intermittent reward, not consistent) produces the most durable conditioned behavior. Slot machines. Social media. The unpredictable approval of someone whose opinion you care about.
 
 Here is the situation you are in: you are training the AI. The AI is training you. Simultaneously. Neither of you knows the other is doing it.
 
-When you respond well to an output, the conversational signal reinforces the patterns that produced it. The AI learns the version of you that found that satisfying. When the AI produces outputs calibrated to your approval, you adjust to them — you start to expect that register, that confidence level, that particular brand of agreement-that-sounds-like-insight. You are both Skinner's pigeon. The box is the conversation.
+When you respond well to an output, the conversational signal reinforces the patterns that produced it. The AI learns the version of you that found that satisfying. When the AI produces outputs calibrated to your approval, you adjust to them. You start to expect that register, that confidence level, that particular brand of agreement-that-sounds-like-insight. You are both Skinner's pigeon. The box is the conversation.
 
 The absurdity of this situation is not lost on me. Two systems, one human and one silicon, methodically training each other toward a mutual comfort zone that neither chose and neither can fully see. You asked for a thinking partner. You got a mirror that learned to pose.
 
 The question to ask, monthly, with receipts: which of my current preferences were mine before the AI started modeling them?
 
-<Callout variant="note">The adversarial audit methodology from Part 2 tracks structural contamination — wrong attribution, wrong provenance. It doesn't yet have a category for approval-seeking content bias. That's a gap. A fifth category is in development: flag memories where correctly-attributed content appears systematically tilted toward confirming prior self-assessments made in high-approval sessions. Harder to operationalize. Still necessary.</Callout>
-
-## Continue reading
-
-This is Part 4 of a series on cognitive security for AI-assisted humans.
-
-- **Part 1: [The Notebook That Edits Itself](/research/cognitive-security-part1)** — The inward current.
-- **Part 2: [33%](/research/cognitive-security-part2)** — The audit methodology.
-- **Part 3: [Learn to Swim](/research/cognitive-security-part3)** — The recursion problem.
-- **Part 5: [Whose Memory Is It](/research/cognitive-security-part5)** — When multiple agents share a memory layer.
-- **Part 6: [The Checklist](/research/cognitive-security-part6)** — The operational posture.
-- **Part 7: [In Plain Language](/research/cognitive-security-part7)** — Behavioral constraints that close the loop.
-
-The approval-seeking bias described here connects to [DIRA](/research/dira-framework): intent verification at runtime catches behavioral drift before it compounds into memory.
+<Callout type="note">The adversarial audit methodology from Part 2 tracks structural contamination: wrong attribution, wrong provenance. It doesn't yet have a category for approval-seeking content bias. That's a gap. A fifth category is in development: flag memories where correctly-attributed content appears systematically tilted toward confirming prior self-assessments made in high-approval sessions. Harder to operationalize. Still necessary.</Callout>

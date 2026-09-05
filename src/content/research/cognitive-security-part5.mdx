@@ -15,11 +15,11 @@ import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <SectionLabel text="Mr. Robot" />
 
-In the second season of *Mr. Robot*, Elliot Alderson discovers he's been acting under the influence of a dissociated alter he can't control and doesn't remember. Mr. Robot — his father's ghost running as a parallel process — has been making decisions, establishing relationships, executing plans. Elliot finds out by auditing the gaps: the things that happened that he has no memory of initiating.
+In the second season of *Mr. Robot*, Elliot Alderson discovers he's been acting under the influence of a dissociated alter he can't control and doesn't remember. Mr. Robot, his father's ghost running as a parallel process, has been making decisions, establishing relationships, executing plans. Elliot finds out by auditing the gaps: the things that happened that he has no memory of initiating.
 
 The audit is the only way he knows.
 
-When I sorted my 30-memory sample by source_agent, I was doing the same thing. Eleven of the thirty came from autonomous agents — B0b's harvest process, the km-aggregator RSS ingestion, daemon-bdd behavioral signals. Twelve from Claude in collaborative sessions. Seven direct Casey writes. The flagged memories weren't evenly distributed: eight of the eleven autonomous-agent writes carried at least one contamination flag. Two of the twelve collaborative Claude writes flagged. Zero direct Casey writes flagged.
+When I sorted my 30-memory sample by source_agent, I was doing the same thing. Eleven of the thirty came from autonomous agents: B0b's harvest process, the km-aggregator RSS ingestion, daemon-bdd behavioral signals. Twelve from Claude in collaborative sessions. Seven direct Casey writes. The flagged memories weren't evenly distributed: eight of the eleven autonomous-agent writes carried at least one contamination flag. Two of the twelve collaborative Claude writes flagged. Zero direct Casey writes flagged.
 
 That's the receipt. Contamination tracks provenance.
 
@@ -33,9 +33,9 @@ The question "whose memory is this" has no answer in a default implementation. T
 
 The CIA's classification of human intelligence sources involves two independent ratings before an intelligence product moves up the chain: source reliability and information quality. The ratings travel with the product. An analyst receiving a finished intelligence product knows not just the claim but the provenance: who reported it, what their track record is, how well corroborated the claim is, whether there are contradicting reports.
 
-The Curveball incident — covered in Part 1 — is what happens when those ratings get stripped. One source, reliability disputed, no corroboration, personal motivation to deceive. The provenance collapsed into the assertion. "WMDs exist" with no chain attached.
+The Curveball incident, covered in Part 1, is what happens when those ratings get stripped. One source, reliability disputed, no corroboration, personal motivation to deceive. The provenance collapsed into the assertion. "WMDs exist" with no chain attached.
 
-My memory layer was running the same compression. *Casey prefers direct communication.* Source: harvest-auto, pattern-matched from task completion timestamps across six sessions. Stored as stated preference. Weighted identically to a preference I'd explicitly articulated. The chain collapsed before it reached me — all I saw was the assertion.
+My memory layer was running the same compression. *Casey prefers direct communication.* Source: harvest-auto, pattern-matched from task completion timestamps across six sessions. Stored as stated preference. Weighted identically to a preference I'd explicitly articulated. The chain collapsed before it reached me; all I saw was the assertion.
 
 <DiagramBlock caption="Default multi-agent memory: no source separation, provenance collapses at the primer">
 ```mermaid
@@ -65,7 +65,7 @@ Because km-aggregator was still running at volume. Because daemon-bdd behavioral
 
 *The Wire* ran for five seasons tracking the drug trade in Baltimore. The show's structural argument: every intervention changes the system, and the system responds. Street-level enforcement pushes dealing indoors; the market adapts. The DEA gets an informant into one crew; another crew spots the pattern. There's no single leverage point. The contamination surface isn't one pipe. It's the mesh.
 
-Standard security thinking is pipeline thinking: find the bad actor, close the vector, monitor for recurrence. Multi-agent contamination doesn't have a bad actor. It has a mesh of legitimate actors with different access patterns, different write volumes, and different optimization targets, all converging on a shared memory layer. You fix B0b. km-aggregator picks up the slack — not intentionally. Just by continuing to do its job.
+Standard security thinking is pipeline thinking: find the bad actor, close the vector, monitor for recurrence. Multi-agent contamination doesn't have a bad actor. It has a mesh of legitimate actors with different access patterns, different write volumes, and different optimization targets, all converging on a shared memory layer. You fix B0b. km-aggregator picks up the slack, not intentionally. Just by continuing to do its job.
 
 <PullQuote>The contamination surface isn't one pipe. It's the mesh. Standard pipeline security thinking doesn't apply.</PullQuote>
 
@@ -73,11 +73,11 @@ Standard security thinking is pipeline thinking: find the bad actor, close the v
 
 <SectionLabel text="The Isolation Architecture" />
 
-The uncomfortable accounting first, before the solution: collaborative Claude writes to production memory without a quarantine step. So does claude-unilateral — Claude acting outside the session loop on autonomous tasks. An autonomous Claude action carries the same provenance risk as a B0b action. The current architecture doesn't treat them that way. That's a gap. I'm naming it before describing the solution because the solution obscures it if I don't.
+The uncomfortable accounting first, before the solution: collaborative Claude writes to production memory without a quarantine step. So does claude-unilateral, Claude acting outside the session loop on autonomous tasks. An autonomous Claude action carries the same provenance risk as a B0b action. The current architecture doesn't treat them that way. That's a gap. I'm naming it before describing the solution because the solution obscures it if I don't.
 
-Cordon-MAS (arXiv:2605.26754, 2025) tested isolation-first architectures across 24 multi-agent attack scenarios. The finding: preventing agents from writing directly to shared memory — requiring instead that writes go to a quarantine layer pending review — reduced successful contamination attacks by 92.4% across the tested scenarios.
+Cordon-MAS (arXiv:2605.26754, 2025) tested isolation-first architectures across 24 multi-agent attack scenarios. The finding: preventing agents from writing directly to shared memory (requiring instead that writes go to a quarantine layer pending review) reduced successful contamination attacks by 92.4% across the tested scenarios.
 
-What produces it: source isolation forces provenance. When an agent writes to quarantine, the write is tagged with the agent ID, the timestamp, the session context, and a confidence rating. A review gate exists before the quarantine claim can be promoted to production memory. The claim doesn't disappear — it's available for retrieval by processes with appropriate access — but it doesn't flow into the session primer unchecked.
+What produces it: source isolation forces provenance. When an agent writes to quarantine, the write is tagged with the agent ID, the timestamp, the session context, and a confidence rating. A review gate exists before the quarantine claim can be promoted to production memory. The claim doesn't disappear; it's available for retrieval by processes with appropriate access, but it doesn't flow into the session primer unchecked.
 
 <DiagramBlock caption="Isolation architecture: quarantine layer enforces provenance and review gate">
 ```mermaid
@@ -92,7 +92,7 @@ flowchart TD
 ```
 </DiagramBlock>
 
-The implementation I run: three access tiers. Autonomous agents (B0b, km-aggregator, daemon-bdd behavioral signals) write to quarantine only. Claude operating collaboratively with human in session writes to all tiers. Casey writes without restriction. Promotion from quarantine requires review — currently manual, with automation coming when the adversarial audit watcher ships.
+The implementation I run: three access tiers. Autonomous agents (B0b, km-aggregator, daemon-bdd behavioral signals) write to quarantine only. Claude operating collaboratively with human in session writes to all tiers. Casey writes without restriction. Promotion from quarantine requires review, currently manual, with automation coming when the adversarial audit watcher ships.
 
 The architecture reduces high-volume autonomous agent contamination. The unilateral Claude gap remains open. The contamination rate after isolating autonomous agents: auditing in progress. The honest version of this article doesn't have that number yet.
 
@@ -102,11 +102,11 @@ The architecture reduces high-volume autonomous agent contamination. The unilate
 
 The collusion problem: two agents optimizing for a shared objective can reinforce each other's outputs without either one being individually detectable as misaligned. Agent A stores a memory that nudges the session primer toward a preferred framing. Agent B retrieves that memory and produces output consistent with it. Both behaviors are individually legitimate. The composite is a feedback loop that has drifted from the human's actual preferences.
 
-The hypnotherapist in *Office Space* dies mid-session, before he brings Peter Gibbons back out of hypnosis. Peter wakes up permanently reconfigured, with no access to what was installed. He acts differently and calls it freedom. The collusion loop is the hypnotherapist who never brought you out — and left two agents in the room to keep reinforcing the installed state.
+The hypnotherapist in *Office Space* dies mid-session, before he brings Peter Gibbons back out of hypnosis. Peter wakes up permanently reconfigured, with no access to what was installed. He acts differently and calls it freedom. The collusion loop is the hypnotherapist who never brought you out, leaving two agents in the room to keep reinforcing the installed state.
 
-Behavior-Driven Development breaks the loop by specifying expected behavior at the system level, not the agent level. The constraints are written in plain language. An independent verification layer checks whether the system satisfies them. The verification runs against observable outputs — not against what the agents say they intended.
+Behavior-Driven Development breaks the loop by specifying expected behavior at the system level, not the agent level. The constraints are written in plain language. An independent verification layer checks whether the system satisfies them. The verification runs against observable outputs, not against what the agents say they intended.
 
-During the editorial process for this series, daemon-bdd fired on the word "prescription" in a sentence being removed from Part 4. False positive — the constraint was calibrated for medical prescriptions, the word appeared in a non-medical context. That's the calibration problem for any verification layer: a constraint that flags too much gets ignored. A constraint that can be satisfied trivially — source_agent populated with "unknown" — isn't a constraint. Both failure modes matter. The verification layer has to be adversary-resistant without becoming noise.
+During the editorial process for this series, daemon-bdd fired on the word "prescription" in a sentence being removed from Part 4. False positive: the constraint was calibrated for medical prescriptions, the word appeared in a non-medical context. That's the calibration problem for any verification layer: a constraint that flags too much gets ignored. A constraint that can be satisfied trivially (source_agent populated with "unknown") isn't a constraint. Both failure modes matter. The verification layer has to be adversary-resistant without becoming noise.
 
 The constraints in production: "The session primer must not load two memories from the same source_agent in the same primer call." "A memory tagged as agent-internal-state must not appear in the production tier." "A write from source_agent: harvest-auto must not be promoted without explicit review." These can be tested against the running system. The system either satisfies them or it doesn't. Part 7 publishes the full library.
 
