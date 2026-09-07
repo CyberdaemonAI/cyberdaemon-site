@@ -335,6 +335,41 @@ jobs:
           done <<< "$MDX_FILES"
           echo "Opening hook check complete (warnings only, not blocking)."
 
+
+      - name: Check canonical tags (max 2, canonical set only)
+        run: |
+          echo "=== Checking frontmatter tags: canonical set + max 2 per article ==="
+          CANONICAL="autonomous-agents ai-security ai-systems infrastructure research reflection"
+          FAIL=0
+          for file in $(find src/content -name "*.mdx" | sort); do
+            tag_line=$(awk '/^---$/{if(++c==2)exit} c==1 && /^tags:/' "$file")
+            [ -z "$tag_line" ] && continue
+            tags=$(echo "$tag_line" | grep -oP '"[^"]+"' | tr -d '"')
+            count=$(echo "$tags" | wc -w)
+            if [ "$count" -gt 2 ]; then
+              echo "FAIL: $file has $count tags (max 2): $tags"
+              FAIL=1
+            fi
+            for tag in $tags; do
+              valid=0
+              for c in $CANONICAL; do
+                [ "$tag" = "$c" ] && valid=1 && break
+              done
+              if [ "$valid" -eq 0 ]; then
+                echo "FAIL: $file has non-canonical tag '$tag'"
+                echo "  Allowed: $CANONICAL"
+                FAIL=1
+              fi
+            done
+          done
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "Fix tags before merging. See STYLE-GUIDE.md for canonical tag list."
+            exit 1
+          else
+            echo "All tags canonical and within limit."
+          fi
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
