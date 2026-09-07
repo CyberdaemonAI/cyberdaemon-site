@@ -55,7 +55,7 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #706e68;
+    color: var(--color-text-muted);
     margin-bottom: 0.75rem;
   }
 
@@ -63,7 +63,7 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     list-style: none;
     padding: 0;
     margin: 0;
-    border-left: 1px solid #2e2c29;
+    border-left: 1px solid var(--color-border);
   }
 
   .toc-item {
@@ -78,23 +78,23 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     display: block;
     font-size: 0.75rem;
     line-height: 1.4;
-    color: #706e68;
+    color: var(--color-text-muted);
     padding: 0.25rem 0;
     transition: color 0.15s;
     text-decoration: none;
   }
 
   .toc-link:hover {
-    color: #b0ada6;
+    color: var(--color-text-secondary);
   }
 
   .toc-link:global(.active) {
-    color: #00c8a0;
+    color: var(--color-accent);
   }
 
   /* Active indicator via parent border highlight */
   .toc-item:has(:global(.active)) {
-    border-left: 1px solid #00c8a0;
+    border-left: 1px solid var(--color-accent);
     margin-left: -1px;
   }
 </style>

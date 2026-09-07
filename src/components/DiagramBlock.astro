@@ -33,10 +33,10 @@ const { caption } = Astro.props;
 <style>
   .diagram-block {
     margin: 2.5rem 0;
-    border: 1px solid #2e2c29;
+    border: 1px solid var(--color-border);
     border-radius: 8px;
     overflow: hidden;
-    background: #16150f;
+    background: var(--color-bg-surface);
   }
 
   .diagram-inner {
@@ -45,7 +45,7 @@ const { caption } = Astro.props;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #b0ada6;
+    color: var(--color-text-secondary);
     font-size: 0.875rem;
   }
 
@@ -62,10 +62,10 @@ const { caption } = Astro.props;
 
   .diagram-caption {
     font-size: 0.6875rem;
-    color: #706e68;
+    color: var(--color-text-muted);
     letter-spacing: 0.04em;
     padding: 0.75rem 1.5rem;
-    border-top: 1px solid #2e2c29;
-    background: #1a1917;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
   }
 </style>

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
   title: string;
@@ -15,6 +16,15 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Flash prevention: apply saved theme before first paint -->
+  <script is:inline>
+    (function() {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      } catch (_) {}
+    })();
+  </script>
   <link rel="canonical" href={canonical} />
   <title>{title} — cyberdaemon.ai</title>
   <meta name="description" content={description} />
@@ -77,6 +87,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
         <a href="/build-logs" class="text-small text-text-secondary hover:text-lane-buildlog transition-colors">Build Logs</a>
         <a href="/topics" class="text-small text-text-secondary hover:text-text-primary transition-colors">Topics</a>
         <a href="/about" class="text-small text-text-secondary hover:text-text-primary transition-colors">About</a>
+        <ThemeToggle />
       </div>
     </nav>
   </header>

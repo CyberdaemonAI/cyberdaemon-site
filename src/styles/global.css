@@ -2,10 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Theme CSS custom properties ───────────────────────────────── */
+
+:root {
+  /* Backgrounds */
+  --color-bg:            #0f0f0f;
+  --color-bg-secondary:  #1a1917;
+  --color-bg-surface:    #161512;
+  --color-bg-code-inline: #21201e;
+
+  /* Borders */
+  --color-border:        #2e2c29;
+
+  /* Text */
+  --color-text-primary:  #e8e5de;
+  --color-text-secondary: #b0ada6;
+  --color-text-muted:    #706e68;
+  --color-text-dim:      #4a4842;
+  --color-text-body:     #d4d0c8;
+
+  /* Accent */
+  --color-accent:        #00c896;
+
+  /* Lane colors */
+  --color-lane-research: #00c896;
+  --color-lane-analysis: #c9a84c;
+  --color-lane-buildlog: #9b8ecf;
+
+  /* Lane glows (radial-gradient tints) */
+  --color-lane-research-glow: rgba(0, 200, 150, 0.05);
+  --color-lane-analysis-glow: rgba(201, 168, 76, 0.05);
+  --color-lane-buildlog-glow: rgba(155, 142, 207, 0.05);
+
+  /* Series nav teal-dim */
+  --color-teal-dim:      #6b9e9e;
+  --color-teal-bright:   #8bbcbc;
+
+  /* Callout backgrounds */
+  --callout-insight-bg:  rgba(0, 200, 150, 0.06);
+  --callout-warning-bg:  rgba(201, 168, 76, 0.06);
+  --callout-critical-bg: rgba(193, 18, 31, 0.08);
+  --callout-note-bg:     rgba(112, 110, 104, 0.04);
+
+  /* PullQuote accent tint */
+  --color-accent-subtle: rgba(0, 200, 150, 0.04);
+}
+
+[data-theme="light"] {
+  /* Backgrounds */
+  --color-bg:            #f7f4ef;
+  --color-bg-secondary:  #efe9e0;
+  --color-bg-surface:    #e8e0d5;
+  --color-bg-code-inline: #e5ddd2;
+
+  /* Borders */
+  --color-border:        #d4cfc8;
+
+  /* Text */
+  --color-text-primary:  #1a1815;
+  --color-text-secondary: #4a4540;
+  --color-text-muted:    #6b6560;
+  --color-text-dim:      #8a8480;
+  --color-text-body:     #2a2520;
+
+  /* Accent */
+  --color-accent:        #007d64;
+
+  /* Lane colors */
+  --color-lane-research: #007d64;
+  --color-lane-analysis: #8a6400;
+  --color-lane-buildlog: #5b4ea0;
+
+  /* Lane glows */
+  --color-lane-research-glow: rgba(0, 125, 100, 0.05);
+  --color-lane-analysis-glow: rgba(138, 100, 0, 0.05);
+  --color-lane-buildlog-glow: rgba(91, 78, 160, 0.05);
+
+  /* Series nav teal-dim */
+  --color-teal-dim:      #5a8888;
+  --color-teal-bright:   #6aabab;
+
+  /* Callout backgrounds */
+  --callout-insight-bg:  rgba(0, 125, 100, 0.06);
+  --callout-warning-bg:  rgba(138, 100, 0, 0.06);
+  --callout-critical-bg: rgba(193, 18, 31, 0.08);
+  --callout-note-bg:     rgba(112, 110, 104, 0.04);
+
+  /* PullQuote accent tint */
+  --color-accent-subtle: rgba(0, 125, 100, 0.04);
+}
+
 @layer base {
   html {
-    background-color: #111210;
-    color: #e8e5de;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     font-size: 18px;
@@ -17,7 +107,7 @@
 
   h1, h2, h3, h4 {
     font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-    color: #e8e5de;
+    color: var(--color-text-primary);
   }
 
   a {
@@ -26,22 +116,22 @@
   }
 
   ::selection {
-    background: #00c8a0;
-    color: #111210;
+    background: var(--color-accent);
+    color: var(--color-bg);
   }
 
   code, kbd, samp {
     font-family: 'IBM Plex Mono', 'Fira Code', monospace;
     font-size: 0.875em;
-    background: #21201e;
+    background: var(--color-bg-code-inline);
     padding: 0.15em 0.4em;
     border-radius: 3px;
-    color: #b0ada6;
+    color: var(--color-text-secondary);
   }
 
   pre {
-    background: #16150f !important;
-    border: 1px solid #2e2c29;
+    background: var(--color-bg-surface) !important;
+    border: 1px solid var(--color-border);
     border-radius: 6px;
     padding: 1.5rem;
     overflow-x: auto;
@@ -53,7 +143,7 @@
     padding: 0;
     font-size: 0.875rem;
     line-height: 1.65;
-    color: #b0ada6;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -65,18 +155,18 @@
     font-size: 0.6875rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    color: #706e68;
+    color: var(--color-text-muted);
   }
-  .lane-tag.research  { color: #00c8a0; }
-  .lane-tag.analysis  { color: #c9a84c; }
-  .lane-tag.buildlog  { color: #9b8ecf; }
+  .lane-tag.research  { color: var(--color-lane-research); }
+  .lane-tag.analysis  { color: var(--color-lane-analysis); }
+  .lane-tag.buildlog  { color: var(--color-lane-buildlog); }
 
   /* ─── Article body ──────────────────────────────────────────── */
   .article-body {
     font-family: 'Source Serif 4', Georgia, serif;
     font-size: 1.125rem;
     line-height: 1.85;
-    color: #d4d0c8;
+    color: var(--color-text-body);
   }
 
   .article-body > * + * {
@@ -86,16 +176,16 @@
   .article-body p { margin-bottom: 0; }
 
   .article-body a {
-    color: #00c8a0;
+    color: var(--color-accent);
     text-decoration: underline;
-    text-decoration-color: rgba(0, 200, 160, 0.3);
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
     text-underline-offset: 3px;
     transition: text-decoration-color 0.15s;
   }
-  .article-body a:hover { text-decoration-color: #00c8a0; }
+  .article-body a:hover { text-decoration-color: var(--color-accent); }
 
   .article-body strong {
-    color: #e8e5de;
+    color: var(--color-text-primary);
     font-weight: 600;
   }
 
@@ -103,11 +193,11 @@
   .article-body h2 {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #e8e5de;
+    color: var(--color-text-primary);
     margin-top: 3.5rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #2e2c29;
+    border-bottom: 1px solid var(--color-border);
     letter-spacing: -0.01em;
   }
 
@@ -117,7 +207,7 @@
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #706e68;
+    color: var(--color-text-muted);
     margin-top: 2.5rem;
     margin-bottom: 0.75rem;
   }
@@ -127,11 +217,11 @@
     border-left: none;
     padding: 1.75rem 2rem;
     margin: 2.5rem 0;
-    background: #161512;
-    border-top: 1px solid #2e2c29;
-    border-bottom: 1px solid #2e2c29;
+    background: var(--color-bg-surface);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
     font-style: italic;
-    color: #706e68;
+    color: var(--color-text-muted);
     font-size: 1rem;
     line-height: 1.8;
   }
@@ -140,7 +230,7 @@
   /* ─── HR / section break ────────────────────────────────────── */
   .article-body hr {
     border: none;
-    border-top: 1px solid #2e2c29;
+    border-top: 1px solid var(--color-border);
     margin: 3rem 0;
   }
 
@@ -154,26 +244,26 @@
     margin-bottom: 0.6rem;
     line-height: 1.75;
   }
-  .article-body li strong { color: #e8e5de; }
+  .article-body li strong { color: var(--color-text-primary); }
 
   /* ─── Footnotes ─────────────────────────────────────────────── */
   .footnotes {
     margin-top: 4rem;
     padding-top: 2rem;
-    border-top: 1px solid #2e2c29;
+    border-top: 1px solid var(--color-border);
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
-    color: #706e68;
+    color: var(--color-text-muted);
     line-height: 1.65;
   }
   .footnotes ol { padding-left: 1.5rem; margin: 0; }
   .footnotes li { margin-bottom: 0.75rem; }
-  .footnotes a { color: #00c8a0; text-decoration: none; }
+  .footnotes a { color: var(--color-accent); text-decoration: none; }
 
   .article-body sup a {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.65rem;
-    color: #00c8a0;
+    color: var(--color-accent);
     text-decoration: none;
     vertical-align: super;
     line-height: 0;
@@ -188,8 +278,8 @@
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #706e68;
+    color: var(--color-text-muted);
     margin-bottom: 2rem;
   }
-  .article-meta .sep { color: #2e2c29; }
+  .article-meta .sep { color: var(--color-border); }
 }

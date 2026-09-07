@@ -59,7 +59,7 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
   .author-card {
     margin-top: 3rem;
     padding-top: 2rem;
-    border-top: 1px solid #2e2c29;
+    border-top: 1px solid var(--color-border);
   }
 
   .author-top {
@@ -82,22 +82,22 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
     border-radius: 6px;
     object-fit: cover;
     object-position: center top;
-    border: 1px solid #2e2c29;
+    border: 1px solid var(--color-border);
     flex-shrink: 0;
-    background: #fff;
+    background: var(--color-bg-secondary);
   }
 
   .author-name {
     font-family: 'Source Serif 4', Georgia, serif;
     font-size: 1.125rem;
-    color: #e8e5de;
+    color: var(--color-text-primary);
     margin: 0;
   }
 
   .author-tagline {
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
-    color: #706e68;
+    color: var(--color-text-muted);
     margin: 0.2rem 0 0;
   }
 
@@ -112,12 +112,12 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
   .author-link {
     display: flex;
     align-items: center;
-    color: #706e68;
+    color: var(--color-text-muted);
     transition: color 0.15s ease;
   }
 
   .author-link:hover {
-    color: #e8e5de;
+    color: var(--color-text-primary);
   }
 
   .author-link svg {
@@ -128,7 +128,7 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
   .author-certs {
     font-family: 'IBM Plex Mono', 'Fira Code', monospace;
     font-size: 0.6875rem;
-    color: #4a4845;
+    color: var(--color-text-dim);
     margin: 1rem 0 0.4rem;
     line-height: 1.7;
     letter-spacing: 0.01em;
@@ -137,7 +137,7 @@ const copyright   = "© 2026 Casey Gager. Views are my own.";
   .author-copyright {
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
-    color: #4a4845;
+    color: var(--color-text-dim);
     margin: 0;
   }
 

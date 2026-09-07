@@ -81,8 +81,8 @@ const next  = idx < total - 1 ? allInThread[idx + 1] : null;
 
 <style>
   .series-nav {
-    border-top: 1px solid #2e2c29;
-    border-bottom: 1px solid #2e2c29;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
     padding: 1.25rem 0;
     margin: 2.5rem 0;
     display: flex;
@@ -101,24 +101,24 @@ const next  = idx < total - 1 ? allInThread[idx + 1] : null;
     font-size: 0.6875rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6b9e9e;
+    color: var(--color-teal-dim);
     text-decoration: none;
-    border: 1px solid #2e2c29;
+    border: 1px solid var(--color-border);
     padding: 0.2rem 0.5rem;
     border-radius: 3px;
     transition: border-color 0.15s, color 0.15s;
   }
 
   .series-thread-link:hover {
-    border-color: #6b9e9e;
-    color: #8bbcbc;
+    border-color: var(--color-teal-dim);
+    color: var(--color-teal-bright);
   }
 
   .series-position {
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: 0.6875rem;
     letter-spacing: 0.05em;
-    color: #706e68;
+    color: var(--color-text-muted);
   }
 
   .series-links {
@@ -133,15 +133,15 @@ const next  = idx < total - 1 ? allInThread[idx + 1] : null;
     gap: 0.25rem;
     text-decoration: none;
     padding: 0.75rem;
-    border: 1px solid #2e2c29;
+    border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: #16150f;
+    background: var(--color-bg-surface);
     transition: border-color 0.15s, background 0.15s;
   }
 
   .series-link:hover {
-    border-color: #4a4840;
-    background: #1a1917;
+    border-color: var(--color-text-dim);
+    background: var(--color-bg-secondary);
   }
 
   .series-next {
@@ -153,17 +153,17 @@ const next  = idx < total - 1 ? allInThread[idx + 1] : null;
     font-size: 0.6875rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #706e68;
+    color: var(--color-text-muted);
   }
 
   .series-title {
     font-family: var(--font-sans, ui-sans-serif, sans-serif);
     font-size: 0.875rem;
-    color: #b0ada6;
+    color: var(--color-text-secondary);
     line-height: 1.4;
   }
 
   .series-link:hover .series-title {
-    color: #d4d0c8;
+    color: var(--color-text-body);
   }
 </style>
