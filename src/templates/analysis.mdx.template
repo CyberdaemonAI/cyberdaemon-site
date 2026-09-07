@@ -1,0 +1,63 @@
+---
+title: "Your Title Here"
+description: "One sentence. What is the core claim or finding. No trailing period."
+date: YYYY-MM-DD
+tags: ["ai-security"]
+lane: analysis
+featured: false
+---
+
+import Callout from '@/components/Callout.astro';
+import PullQuote from '@/components/PullQuote.astro';
+import StatRow from '@/components/StatRow.astro';
+
+{/* Required for analysis lane: Callout */}
+{/* Opening hook: state the situation, the incident, or the standard under analysis. */}
+
+Opening hook here. Name the thing being analyzed. Give the reader the essential context in two sentences.
+
+## Background
+
+What is the system, incident, or standard being analyzed? Who are the players? What is at stake?
+
+<StatRow stats={[
+  { value: "X", label: "Key metric" },
+  { value: "Y", label: "Key metric" },
+  { value: "Z", label: "Key metric" },
+]} />
+
+## What Happened (or What the Standard Actually Says)
+
+The facts. The sequence of events. What the framework specifies. Be precise.
+
+<Callout variant="insight">
+  **Key finding**: The one thing worth extracting from this analysis. One sentence.
+</Callout>
+
+## Analysis
+
+The interpretation. What does this mean? What pattern does it reveal? What does it tell us about the system producing it?
+
+<PullQuote>
+  The central claim of the analysis stated as a single sharp sentence.
+</PullQuote>
+
+## Implications
+
+What does this mean for practitioners? For defenders? For the people building systems in this space?
+
+<Callout variant="warning">
+  **Watch out**: A specific risk or failure mode practitioners should guard against.
+</Callout>
+
+## Counterarguments
+
+The strongest case against this analysis. Engage it directly.
+
+**Objection**: The best counter to the central claim.
+
+Response: Why the analysis stands despite the objection.
+
+## Conclusion
+
+What to do with this. What changes. What to watch.
