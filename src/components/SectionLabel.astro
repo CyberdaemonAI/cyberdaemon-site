@@ -13,7 +13,7 @@ interface Props {
   color?: string;
 }
 
-const { text, color = '#00c8a0' } = Astro.props;
+const { text, color = 'var(--color-accent)' } = Astro.props;
 ---
 
 <div class="section-label font-mono" style={`color: ${color};`}>

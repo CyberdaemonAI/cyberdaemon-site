@@ -4,36 +4,37 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Backgrounds — warm dark, not cold black
-        bg:       '#111210',
-        canvas:   '#111210',
-        surface:  '#1a1917',
-        border:   '#2e2c29',
+        // Backgrounds — resolved from CSS vars (theme-aware)
+        bg:       'var(--color-bg)',
+        canvas:   'var(--color-bg)',
+        surface:  'var(--color-bg-secondary)',
+        border:   'var(--color-border)',
         // Text — semantic tokens
-        'text-primary':   '#e8e5de',
-        'text-secondary': '#b0ada6',
-        'text-muted':     '#706e68',
-        'text-dim':       '#4a4842',
+        'text-primary':   'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-muted':     'var(--color-text-muted)',
+        'text-dim':       'var(--color-text-dim)',
         // Text — legacy aliases
-        'ink':         '#e8e5de',
-        'ink-2':       '#b0ada6',
-        'ink-muted':   '#706e68',
-        // Accents — teal + gold + purple (matching cyberdaemon.ai)
-        accent:        '#00c8a0',
-        teal:          '#00c8a0',
-        'teal-dim':    '#007a60',
+        'ink':         'var(--color-text-primary)',
+        'ink-2':       'var(--color-text-secondary)',
+        'ink-muted':   'var(--color-text-muted)',
+        // Accents — theme-aware
+        accent:        'var(--color-accent)',
+        teal:          'var(--color-accent)',
+        'teal-dim':    'var(--color-teal-dim)',
+        // Static accents (not theme-switched)
         gold:          '#c9a84c',
         'gold-dim':    '#8a6400',
         purple:        '#9b8ecf',
         'purple-dim':  '#6b5fa0',
         critical:      '#c1121f',
         'critical-dim':'#8a0d16',
-        // Lane accents
-        'lane-research':  '#00c8a0',
-        'lane-analysis':  '#c9a84c',
-        'lane-buildlog':  '#9b8ecf',
+        // Lane accents — theme-aware
+        'lane-research':  'var(--color-lane-research)',
+        'lane-analysis':  'var(--color-lane-analysis)',
+        'lane-buildlog':  'var(--color-lane-buildlog)',
         // Code
-        'code-bg':    '#21201e',
+        'code-bg':    'var(--color-bg-code-inline)',
       },
       fontFamily: {
         serif: ['"Source Serif 4"', 'Georgia', 'Times New Roman', 'serif'],

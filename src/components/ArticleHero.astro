@@ -5,6 +5,7 @@
  * Adapted from the loud-breach hero pattern, mapped to cyberdaemon palette.
  *
  * Lane colors: research = teal, analysis = gold, build-logs = purple.
+ * Colors resolved from CSS custom properties (theme-aware).
  *
  * Usage:
  *   <ArticleHero
@@ -32,19 +33,12 @@ const laneLabels: Record<string, string> = {
   'build-logs': 'Build Log',
 };
 
-const laneColors: Record<string, string> = {
-  'research':   '#00c8a0',
-  'analysis':   '#c9a84c',
-  'build-logs': '#9b8ecf',
-};
-
 const laneHrefs: Record<string, string> = {
   'research':   '/research',
   'analysis':   '/analysis',
   'build-logs': '/build-logs',
 };
 
-const color = laneColors[lane];
 const formatted = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   month: 'long',
@@ -52,17 +46,16 @@ const formatted = new Intl.DateTimeFormat('en-US', {
 }).format(date);
 ---
 
-<header class="hero">
+<header class="hero" data-lane={lane}>
   <!-- Radial glow behind the hero, tinted to lane color -->
-  <div class="hero-glow" style={`background: radial-gradient(ellipse at center top, ${color}0D 0%, transparent 70%);`}></div>
+  <div class="hero-glow"></div>
 
   <!-- Lane label with pulsing dot -->
   <a
     href={laneHrefs[lane]}
     class="hero-label font-mono"
-    style={`color: ${color};`}
   >
-    <span class="hero-dot" style={`background: ${color};`}></span>
+    <span class="hero-dot"></span>
     {laneLabels[lane]}
   </a>
 
@@ -144,7 +137,7 @@ const formatted = new Intl.DateTimeFormat('en-US', {
     font-weight: 700;
     line-height: 1.12;
     letter-spacing: -0.025em;
-    color: #e8e5de;
+    color: var(--color-text-primary);
     margin-bottom: 1.25rem;
     max-width: 720px;
   }
@@ -155,7 +148,7 @@ const formatted = new Intl.DateTimeFormat('en-US', {
     font-weight: 300;
     font-style: italic;
     line-height: 1.65;
-    color: #706e68;
+    color: var(--color-text-muted);
     margin-bottom: 2rem;
     max-width: 600px;
   }
@@ -167,15 +160,28 @@ const formatted = new Intl.DateTimeFormat('en-US', {
     gap: 0.75rem;
     font-size: 0.6875rem;
     letter-spacing: 0.06em;
-    color: #4a4842;
+    color: var(--color-text-dim);
     padding-top: 1.5rem;
-    border-top: 1px solid #2e2c29;
+    border-top: 1px solid var(--color-border);
     text-transform: uppercase;
   }
 
   .hero-sep {
-    color: #2e2c29;
+    color: var(--color-border);
   }
+
+  /* Lane-specific colors via CSS vars */
+  .hero[data-lane="research"] .hero-label { color: var(--color-lane-research); }
+  .hero[data-lane="research"] .hero-dot   { background: var(--color-lane-research); }
+  .hero[data-lane="research"] .hero-glow  { background: radial-gradient(ellipse at center top, var(--color-lane-research-glow) 0%, transparent 70%); }
+
+  .hero[data-lane="analysis"] .hero-label { color: var(--color-lane-analysis); }
+  .hero[data-lane="analysis"] .hero-dot   { background: var(--color-lane-analysis); }
+  .hero[data-lane="analysis"] .hero-glow  { background: radial-gradient(ellipse at center top, var(--color-lane-analysis-glow) 0%, transparent 70%); }
+
+  .hero[data-lane="build-logs"] .hero-label { color: var(--color-lane-buildlog); }
+  .hero[data-lane="build-logs"] .hero-dot   { background: var(--color-lane-buildlog); }
+  .hero[data-lane="build-logs"] .hero-glow  { background: radial-gradient(ellipse at center top, var(--color-lane-buildlog-glow) 0%, transparent 70%); }
 
   @media (max-width: 640px) {
     .hero {
