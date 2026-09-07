@@ -77,6 +77,7 @@
       root.removeAttribute('data-theme');
     }
     try { localStorage.setItem('theme', t); } catch (_) {}
+    document.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: t } }));
   }
 
   toggle?.addEventListener('click', () => {

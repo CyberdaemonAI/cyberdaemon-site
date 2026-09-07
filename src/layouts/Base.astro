@@ -41,37 +41,80 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <link rel="alternate" type="application/rss+xml" title="cyberdaemon.ai" href="/rss.xml" />
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      darkMode: true,
-      themeVariables: {
-        background: '#16150f',
-        primaryColor: '#1a1917',
-        primaryTextColor: '#e8e5de',
-        primaryBorderColor: '#2e2c29',
-        lineColor: '#706e68',
-        secondaryColor: '#21201e',
-        tertiaryColor: '#1a1917',
-        edgeLabelBackground: '#1a1917',
-        clusterBkg: '#1a1917',
-        clusterBorder: '#2e2c29',
-        fontFamily: 'IBM Plex Mono, monospace',
-        fontSize: '13px',
+
+    const THEME_VARS = {
+      dark: {
+        theme: 'dark',
+        darkMode: true,
+        themeVariables: {
+          background: '#0f0f0f',
+          primaryColor: '#1a1917',
+          primaryTextColor: '#e8e5de',
+          primaryBorderColor: '#2e2c29',
+          lineColor: '#706e68',
+          secondaryColor: '#21201e',
+          tertiaryColor: '#1a1917',
+          edgeLabelBackground: '#1a1917',
+          clusterBkg: '#1a1917',
+          clusterBorder: '#2e2c29',
+          fontFamily: 'IBM Plex Mono, monospace',
+          fontSize: '13px',
+        }
+      },
+      light: {
+        theme: 'default',
+        darkMode: false,
+        themeVariables: {
+          background: '#f7f4ef',
+          primaryColor: '#efe9e0',
+          primaryTextColor: '#1a1815',
+          primaryBorderColor: '#d4cfc8',
+          lineColor: '#6b6560',
+          secondaryColor: '#e8e0d5',
+          tertiaryColor: '#efe9e0',
+          edgeLabelBackground: '#efe9e0',
+          clusterBkg: '#efe9e0',
+          clusterBorder: '#d4cfc8',
+          fontFamily: 'IBM Plex Mono, monospace',
+          fontSize: '13px',
+        }
       }
-    });
-    document.addEventListener('DOMContentLoaded', async () => {
+    };
+
+    function currentThemeKey() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    async function renderDiagrams() {
       const nodes = Array.from(document.querySelectorAll('.diagram-inner'));
       if (nodes.length === 0) return;
-      // Astro/shiki processes mermaid fenced blocks into <pre><code> with inline styles,
-      // stripping the language-mermaid class. Use textContent to get raw diagram syntax
-      // regardless of what shiki did to the markup.
+
+      // Restore raw source (or capture it on first run) and clear rendered SVGs
       nodes.forEach(diagram => {
-        const raw = diagram.textContent.trim();
-        if (raw) diagram.textContent = raw;
+        const saved = diagram.getAttribute('data-diagram-src');
+        if (saved) {
+          // Re-render: restore raw text, remove mermaid's processed marker
+          diagram.textContent = saved;
+          diagram.removeAttribute('data-processed');
+        } else {
+          // First run: Astro/shiki may have wrapped the syntax in <pre><code>
+          const raw = diagram.textContent.trim();
+          if (raw) {
+            diagram.setAttribute('data-diagram-src', raw);
+            diagram.textContent = raw;
+          }
+        }
       });
+
+      mermaid.initialize({ startOnLoad: false, ...THEME_VARS[currentThemeKey()] });
       await mermaid.run({ nodes, suppressErrors: true });
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', renderDiagrams);
+    document.addEventListener('astro:page-load', renderDiagrams);
+
+    // Re-render diagrams when ThemeToggle fires theme-changed
+    document.addEventListener('theme-changed', renderDiagrams);
   </script>
 </head>
 <body class="bg-bg text-text-primary">
