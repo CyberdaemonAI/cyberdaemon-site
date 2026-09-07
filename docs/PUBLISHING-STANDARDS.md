@@ -169,6 +169,25 @@ Three lanes. Every article belongs to exactly one.
 | Analysis | `analysis` | `#c9a84c` (gold) | Incident breakdowns, standards interpretation, industry commentary, threat analysis. |
 | Build Logs | `build-logs` | `#9b8ecf` (purple) | What I built, how it works, what broke, what I learned. Implementation stories at the pattern level. |
 
+### Required MDX Components (CI-enforced, per lane)
+
+Every article must include the components for its lane. The CI gate rejects articles missing required components.
+
+| Lane | Required components | Optional |
+|---|---|---|
+| Research | `<SectionLabel>`, `<DiagramBlock>` | `<PullQuote>`, `<Callout>`, `<StatRow>` |
+| Analysis | `<Callout>` | `<PullQuote>`, `<StatRow>`, `<DiagramBlock>` |
+| Build Logs | `<Callout>` | `<PullQuote>`, `<StatRow>`, `<DiagramBlock>` |
+
+Use the starter templates in `src/templates/` (`research.mdx.template`, `analysis.mdx.template`, `build-log.mdx.template`) when drafting a new article.
+
+### Counterarguments (CI-enforced, all lanes)
+
+Every article requires an H2 heading that acknowledges what could be wrong, what breaks, or what the objections are. Accepted headings by lane:
+
+- **Research/Analysis**: `## Counterarguments`, `## Where I'm wrong`, `## The case against this`, `## Objections`, `## Pushback`
+- **Build Logs**: all of the above, plus: `## Where this breaks`, `## What didn't work`, `## Limitations`, `## Ways this can fail`
+
 ---
 
 ## Authorship

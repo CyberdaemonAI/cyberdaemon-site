@@ -1,0 +1,63 @@
+---
+title: "Your Title Here"
+description: "One sentence. What is the core insight. No trailing period."
+date: YYYY-MM-DD
+tags: ["ai-security"]
+lane: research
+featured: false
+---
+
+import SectionLabel from '@/components/SectionLabel.astro';
+import DiagramBlock from '@/components/DiagramBlock.astro';
+import PullQuote from '@/components/PullQuote.astro';
+import Callout from '@/components/Callout.astro';
+import StatRow from '@/components/StatRow.astro';
+
+{/* Required for research lane: SectionLabel + DiagramBlock */}
+{/* Opening hook: drop the reader into the problem in 2-3 sentences. No wind-up. */}
+
+Opening hook here. State the problem, name the tension, give the reader a reason to care immediately.
+
+<SectionLabel label="The Problem" />
+
+What is wrong with the current state of things? Be specific. Name the failure mode, the gap, the assumption that breaks.
+
+<DiagramBlock lang="mermaid" caption="Caption describing what this diagram shows">
+```mermaid
+flowchart TD
+    A[Input] --> B[Process]
+    B --> C[Output]
+```
+</DiagramBlock>
+
+<SectionLabel label="The Framework" />
+
+Name the framework or pattern. Explain it. Use concrete examples.
+
+<PullQuote>
+  Key insight stated as a single declarative sentence. No hedging.
+</PullQuote>
+
+<SectionLabel label="How It Works" />
+
+Mechanics. The actual reasoning. How does this framework operate in practice?
+
+<SectionLabel label="Where It Applies" />
+
+Specific contexts where this is useful. Specific contexts where it is not.
+
+## Counterarguments
+
+Name the strongest objections. Engage them directly. Don't strawman.
+
+**Objection 1**: State the objection as its proponent would state it.
+
+Response: What makes this objection less decisive than it looks.
+
+**Objection 2**: Another real objection.
+
+Response: Engage it seriously.
+
+<SectionLabel label="Conclusion" />
+
+What should the reader do differently after reading this? What is the one thing to take away?

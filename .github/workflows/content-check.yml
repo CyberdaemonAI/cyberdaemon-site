@@ -157,15 +157,17 @@ if hits:
           FAIL=0
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            if ! grep -qiE '^## .*(counter|where.*wrong|what.*wrong|objection|pushback|the case against|what i.*wrong|wrong about)' "$file"; then
+            # Research/analysis: traditional counterarguments headings
+            # Build-logs: also accept failure/limitation headings (where this breaks, didn't work, limitations, etc.)
+            if ! grep -qiE '^## .*(counter|where.*wrong|what.*wrong|objection|pushback|the case against|what i.*wrong|wrong about|where this breaks|ways this (can |)fail|limitation|what.*miss|didn.t work|doesn.t work)' "$file"; then
               echo "FAIL: No counterarguments section in $file"
-              echo "  Add an H2 heading like: ## Counterarguments, ## Where I'm wrong, ## The case against this"
+              echo "  Add an H2 like: ## Counterarguments, ## Where I'm wrong, ## Where this breaks, ## Limitations"
               FAIL=1
             fi
           done <<< "$MDX_FILES"
           if [ "$FAIL" -eq 1 ]; then
             echo ""
-            echo "Every article requires a counterarguments section. See STYLE-GUIDE.md."
+            echo "Every article requires a counterarguments section. See docs/PUBLISHING-STANDARDS.md."
             exit 1
           else
             echo "Counterarguments section found in all changed files."
@@ -225,31 +227,43 @@ if hits:
             echo "No buzzwords found."
           fi
 
-      - name: Check required MDX component usage
+      - name: Check required MDX components (per-lane)
         run: |
-          echo "=== Checking required MDX components ==="
+          echo "=== Checking required MDX components (per-lane rules) ==="
           MDX_FILES="${{ steps.changed.outputs.files }}"
           if [ -z "$MDX_FILES" ]; then
             echo "No changed .mdx files to check."
             exit 0
           fi
-          REQUIRED=("DiagramBlock" "PullQuote" "Callout" "SectionLabel")
           FAIL=0
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            for component in "${REQUIRED[@]}"; do
-              if ! grep -q "<${component}" "$file"; then
-                echo "FAIL: Missing <${component}> in $file"
-                FAIL=1
-              fi
-            done
+            case "$file" in
+              src/content/research/*)
+                for component in "SectionLabel" "DiagramBlock"; do
+                  if ! grep -q "<${component}" "$file"; then
+                    echo "FAIL: Missing <${component}> in $file (required for research lane)"
+                    FAIL=1
+                  fi
+                done
+                ;;
+              src/content/analysis/*|src/content/build-logs/*)
+                if ! grep -q "<Callout" "$file"; then
+                  echo "FAIL: Missing <Callout> in $file (required for analysis/build-logs lane)"
+                  FAIL=1
+                fi
+                ;;
+              *)
+                echo "INFO: $file -- no lane match, skipping component check"
+                ;;
+            esac
           done <<< "$MDX_FILES"
           if [ "$FAIL" -eq 1 ]; then
             echo ""
-            echo "All articles require DiagramBlock, PullQuote, Callout, SectionLabel. See STYLE-GUIDE.md."
+            echo "Required components missing. See docs/PUBLISHING-STANDARDS.md for per-lane rules."
             exit 1
           else
-            echo "All required components present."
+            echo "All required components present (per-lane check)."
           fi
 
       - name: Check minimum word count

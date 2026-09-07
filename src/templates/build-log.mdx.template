@@ -1,0 +1,57 @@
+---
+title: "Your Title Here"
+description: "One sentence. What got built and why it mattered. No trailing period."
+date: YYYY-MM-DD
+tags: ["ai-security"]
+lane: build-logs
+featured: false
+---
+
+import Callout from '@/components/Callout.astro';
+import PullQuote from '@/components/PullQuote.astro';
+import DiagramBlock from '@/components/DiagramBlock.astro';
+
+{/* Required for build-logs lane: Callout */}
+{/* Opening hook: state what you built, why, and what went wrong (or worked). */}
+
+Opening hook here. Name the thing you built. Give the reader the problem it was solving in one sentence. Then name the most interesting thing that happened.
+
+## The Problem
+
+What gap or failure prompted this build? Be specific. What was the system doing wrong, or what was missing?
+
+## The Approach
+
+At the pattern level, what was the design decision? What alternatives did you consider and why did you reject them?
+
+<Callout variant="insight">
+  **Design decision**: The key architectural choice and the reasoning behind it.
+</Callout>
+
+## How It Works
+
+The mechanics. How does this system operate? Describe it at the conceptual level, not the implementation level.
+
+<PullQuote>
+  The one insight about the design that surprised you or that you'd do differently.
+</PullQuote>
+
+## What Broke
+
+What went wrong during the build? What failed in ways you didn't expect?
+
+<Callout variant="warning">
+  **Watch out**: The specific failure mode or gotcha that will bite others doing similar work.
+</Callout>
+
+## Where This Breaks
+
+What are the failure modes of the system you built? Under what conditions does it degrade or fail? What are the limits?
+
+## What I Learned
+
+The pattern extracted from the experience. The thing you'd tell someone starting this from scratch.
+
+## What's Next
+
+What's the natural evolution? What does this enable that wasn't possible before?
