@@ -1,0 +1,65 @@
+<!-- cyberdaemon.ai Threads / X header — 1500x500px
+     Export to PNG at 1500x500 before uploading.
+     Open in Chrome (loads Google Fonts) then screenshot or use Figma.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 500" width="1500" height="500">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Source+Serif+4:ital,opsz,wght@1,8..60,300&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Canvas -->
+  <rect width="1500" height="500" fill="#111210"/>
+
+  <!-- Subtle teal accent line — left edge -->
+  <rect x="0" y="0" width="4" height="500" fill="#00c8a0"/>
+
+  <!-- Large ∂ mark — left zone, anchored -->
+  <text
+    x="200"
+    y="260"
+    font-family="'Source Serif 4', Georgia, serif"
+    font-style="italic"
+    font-weight="300"
+    font-size="320"
+    fill="#00c8a0"
+    text-anchor="middle"
+    dominant-baseline="central"
+    opacity="0.15">∂</text>
+
+  <!-- ∂ mark — crisp, smaller, centered in left zone -->
+  <text
+    x="200"
+    y="250"
+    font-family="'Source Serif 4', Georgia, serif"
+    font-style="italic"
+    font-weight="300"
+    font-size="160"
+    fill="#00c8a0"
+    text-anchor="middle"
+    dominant-baseline="central">∂</text>
+
+  <!-- Separator -->
+  <rect x="340" y="160" width="1" height="180" fill="#2e2c29"/>
+
+  <!-- Wordmark -->
+  <text
+    x="380"
+    y="220"
+    font-family="'Inter', -apple-system, sans-serif"
+    font-weight="600"
+    font-size="52"
+    fill="#e8e5de"
+    letter-spacing="-1">cyberdaemon.ai</text>
+
+  <!-- Tagline -->
+  <text
+    x="382"
+    y="284"
+    font-family="'Inter', -apple-system, sans-serif"
+    font-weight="400"
+    font-size="24"
+    fill="#706e68"
+    letter-spacing="0">Autonomous agents. AI security. Infrastructure.</text>
+</svg>

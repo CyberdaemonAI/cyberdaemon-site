@@ -10,6 +10,7 @@ on:
 jobs:
   notify-zulip:
     runs-on: ubuntu-latest
+    continue-on-error: true
     if: ${{ github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened') }}
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +80,7 @@ jobs:
           MESSAGE=$(printf '**[PR #%s] %s**\n\nLane: %s\n\n%s\n\nReview: %s' \
             "${PR_NUMBER}" "${TITLE}" "${LANE}" "${SUMMARY}" "${PR_URL}")
 
-          curl -s -f \
+          curl -s -f --max-time 30 \
             --data-urlencode "type=stream" \
             --data-urlencode "to=content-pipeline" \
             --data-urlencode "topic=PR #${PR_NUMBER}" \

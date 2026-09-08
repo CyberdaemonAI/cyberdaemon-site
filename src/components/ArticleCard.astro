@@ -1,0 +1,47 @@
+---
+interface Props {
+  title: string;
+  excerpt: string;
+  lane: string;
+  slug: string;
+  tags: string[];
+  date: Date;
+  featured?: boolean;
+}
+
+const { title, excerpt, lane, slug, tags, date, featured } = Astro.props;
+const href = `/${lane}/${slug}/`;
+
+const laneLabel: Record<string, string> = {
+  'build-logs': 'Build Log',
+  research:     'Research',
+  analysis:     'Analysis',
+};
+const laneClass: Record<string, string> = {
+  'build-logs': 'buildlog',
+  research:     'research',
+  analysis:     'analysis',
+};
+---
+
+<a href={href} class:list={["article-card group", { 'featured-card': featured }]} data-tags={tags.join(',')}>
+  <article class="h-full flex flex-col p-6 bg-surface border border-border rounded-2xl transition-colors">
+    <header class="mb-4">
+      <div class="flex items-center gap-3 mb-3">
+        <span class:list={["lane-tag", laneClass[lane]]}>{laneLabel[lane]}</span>
+        <time class="text-text-dim text-label font-mono" datetime={date.toISOString()}>
+          {date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+        </time>
+      </div>
+      <h2 class="font-serif text-heading text-text-primary group-hover:text-accent transition-colors leading-snug">{title}</h2>
+    </header>
+    <p class="text-text-secondary text-small leading-relaxed flex-grow mb-4">{excerpt}</p>
+    <footer class="flex items-center justify-between mt-auto pt-4 border-t border-border">
+      <div class="flex gap-2">
+        {tags.slice(0, 2).map(tag => (
+          <span class="tag-pill">{tag}</span>
+        ))}
+      </div>
+    </footer>
+  </article>
+</a>
