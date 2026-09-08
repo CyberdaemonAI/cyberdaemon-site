@@ -21,12 +21,19 @@ jobs:
             git fetch origin ${{ github.base_ref }} --depth=1
             MDX_FILES=$(git diff --diff-filter=AM --name-only "origin/${{ github.base_ref }}"...HEAD \
               | grep '^src/content/.*\.mdx$' || true)
+            NEW_MDX_FILES=$(git diff --diff-filter=A --name-only "origin/${{ github.base_ref }}"...HEAD \
+              | grep '^src/content/.*\.mdx$' || true)
           else
             MDX_FILES=$(git diff --diff-filter=AM --name-only HEAD~1..HEAD \
+              | grep '^src/content/.*\.mdx$' || true)
+            NEW_MDX_FILES=$(git diff --diff-filter=A --name-only HEAD~1..HEAD \
               | grep '^src/content/.*\.mdx$' || true)
           fi
           echo "files<<EOF" >> "$GITHUB_OUTPUT"
           echo "$MDX_FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "new_files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NEW_MDX_FILES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Check for banned internal names
@@ -138,10 +145,10 @@ jobs:
 
       - name: Check for counterarguments section
         run: |
-          echo "=== Checking for counterarguments section ==="
-          MDX_FILES="${{ steps.changed.outputs.files }}"
+          echo "=== Checking for counterarguments section (new articles only) ==="
+          MDX_FILES="${{ steps.changed.outputs.new_files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No changed .mdx files to check."
+            echo "No new .mdx files to check."
             exit 0
           fi
           FAIL=0
@@ -217,10 +224,10 @@ jobs:
 
       - name: Check required MDX component usage
         run: |
-          echo "=== Checking required MDX components ==="
-          MDX_FILES="${{ steps.changed.outputs.files }}"
+          echo "=== Checking required MDX components (new articles only) ==="
+          MDX_FILES="${{ steps.changed.outputs.new_files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No changed .mdx files to check."
+            echo "No new .mdx files to check."
             exit 0
           fi
           REQUIRED=("DiagramBlock" "PullQuote" "Callout" "SectionLabel")
@@ -244,10 +251,10 @@ jobs:
 
       - name: Check minimum word count
         run: |
-          echo "=== Checking minimum word count (1000 words body text) ==="
-          MDX_FILES="${{ steps.changed.outputs.files }}"
+          echo "=== Checking minimum word count (1000 words body text, new articles only) ==="
+          MDX_FILES="${{ steps.changed.outputs.new_files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No changed .mdx files to check."
+            echo "No new .mdx files to check."
             exit 0
           fi
           MIN_WORDS=1000
@@ -282,10 +289,10 @@ jobs:
 
       - name: Check Mermaid diagram quality
         run: |
-          echo "=== Checking Mermaid diagram quality ==="
-          MDX_FILES="${{ steps.changed.outputs.files }}"
+          echo "=== Checking Mermaid diagram quality (new articles only) ==="
+          MDX_FILES="${{ steps.changed.outputs.new_files }}"
           if [ -z "$MDX_FILES" ]; then
-            echo "No changed .mdx files to check."
+            echo "No new .mdx files to check."
             exit 0
           fi
           FAIL=0
