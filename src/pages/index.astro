@@ -38,7 +38,7 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
 
   <!-- Featured slot -->
   {featured.length > 0 && (
-    <section class="max-w-site mx-auto px-6 mb-8">
+    <section id="featured-section" class="max-w-site mx-auto px-6 mb-8">
       <div class="grid grid-cols-1 gap-5">
         {featured.map(a => (
           <ArticleCard
@@ -72,19 +72,24 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
   </section>
 
   <script>
-    const btns  = document.querySelectorAll<HTMLButtonElement>('.tag-filter-btn');
-    const cards = document.querySelectorAll<HTMLAnchorElement>('.article-card:not(.featured-card)');
+    const btns           = document.querySelectorAll<HTMLButtonElement>('.tag-filter-btn');
+    const cards          = document.querySelectorAll<HTMLElement>('.article-card');
+    const featuredSection = document.getElementById('featured-section');
 
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         btns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         const tag = btn.dataset.tag ?? 'all';
+        let featuredVisible = 0;
         cards.forEach(card => {
-          const cardTags = (card as HTMLElement).dataset.tags ?? '';
-          (card as HTMLElement).style.display =
-            (tag === 'all' || cardTags.split(',').includes(tag)) ? '' : 'none';
+          const matches = tag === 'all' || (card.dataset.tags ?? '').split(',').includes(tag);
+          card.style.display = matches ? '' : 'none';
+          if (matches && card.classList.contains('featured-card')) featuredVisible++;
         });
+        if (featuredSection) {
+          featuredSection.style.display = featuredVisible > 0 ? '' : 'none';
+        }
       });
     });
   </script>
