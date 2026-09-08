@@ -149,6 +149,13 @@
 
 @layer components {
 
+  /* ─── Prose container ───────────────────────────────────────── */
+  .prose-container {
+    max-width: 68ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   /* ─── Lane tags ─────────────────────────────────────────────── */
   .lane-tag {
     font-family: 'IBM Plex Mono', monospace;
