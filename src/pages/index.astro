@@ -1,3 +1,92 @@
 ---
-return Astro.redirect('/manifesto', 301);
+import Base from '../layouts/Base.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import { getCollection } from 'astro:content';
+
+const buildLogs = await getCollection('build-logs', ({ data }) => !data.draft);
+const research  = await getCollection('research',   ({ data }) => !data.draft);
+const analysis  = await getCollection('analysis',   ({ data }) => !data.draft);
+
+const all = [
+  ...buildLogs.map(a => ({ ...a, lane: 'build-logs' })),
+  ...research.map(a => ({  ...a, lane: 'research'   })),
+  ...analysis.map(a => ({  ...a, lane: 'analysis'   })),
+].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured = all.filter(a => a.data.featured === true);
+const rest     = all.filter(a => a.data.featured !== true);
+
+const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infrastructure', 'research', 'reflection'];
 ---
+
+<Base title="cyberdaemon.ai" description="Casey Gager — AI security practitioner and researcher.">
+
+  <section class="max-w-site mx-auto px-6 pt-16 pb-8">
+    <h1 class="font-serif text-display text-text-primary mb-3">cyberdaemon.ai</h1>
+    <p class="text-text-secondary text-body max-w-xl">AI security, agentic systems, and what breaks when you build them.</p>
+  </section>
+
+  <!-- Tag filter -->
+  <section class="max-w-site mx-auto px-6 mb-10">
+    <div class="flex flex-wrap gap-2" id="tag-filters">
+      <button class="tag-filter-btn active" data-tag="all">All</button>
+      {CANONICAL_TAGS.map(tag => (
+        <button class="tag-filter-btn" data-tag={tag}>{tag}</button>
+      ))}
+    </div>
+  </section>
+
+  <!-- Featured slot -->
+  {featured.length > 0 && (
+    <section class="max-w-site mx-auto px-6 mb-8">
+      <div class="grid grid-cols-1 gap-5">
+        {featured.map(a => (
+          <ArticleCard
+            title={a.data.title}
+            excerpt={a.data.excerpt ?? a.data.description}
+            lane={a.lane}
+            slug={a.slug}
+            tags={a.data.tags}
+            date={a.data.date}
+            featured={true}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- 2-col grid -->
+  <section class="max-w-site mx-auto px-6 pb-24">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="article-grid">
+      {rest.map(a => (
+        <ArticleCard
+          title={a.data.title}
+          excerpt={a.data.excerpt ?? a.data.description}
+          lane={a.lane}
+          slug={a.slug}
+          tags={a.data.tags}
+          date={a.data.date}
+        />
+      ))}
+    </div>
+  </section>
+
+  <script>
+    const btns  = document.querySelectorAll<HTMLButtonElement>('.tag-filter-btn');
+    const cards = document.querySelectorAll<HTMLAnchorElement>('.article-card:not(.featured-card)');
+
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tag = btn.dataset.tag ?? 'all';
+        cards.forEach(card => {
+          const cardTags = (card as HTMLElement).dataset.tags ?? '';
+          (card as HTMLElement).style.display =
+            (tag === 'all' || cardTags.split(',').includes(tag)) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+
+</Base>

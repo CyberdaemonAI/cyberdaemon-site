@@ -3,12 +3,8 @@ name: Content Standards Check
 on:
   push:
     branches: [master]
-    paths:
-      - 'src/content/**'
   pull_request:
     branches: [master]
-    paths:
-      - 'src/content/**'
 
 jobs:
   content-check:

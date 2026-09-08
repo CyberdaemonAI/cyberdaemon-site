@@ -282,4 +282,49 @@
     margin-bottom: 2rem;
   }
   .article-meta .sep { color: var(--color-border); }
+
+  /* ─── Article index — cards ─────────────────────────────────── */
+  .tag-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2em 0.6em;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+  }
+
+  .article-card:hover article {
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  }
+
+  .article-card.featured-card article {
+    background: var(--color-bg-secondary);
+    border-color: color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+  }
+
+  .article-card.featured-card:hover article {
+    border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  }
+
+  /* ─── Tag filter ─────────────────────────────────────────────── */
+  .tag-filter-btn {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.35em 0.85em;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .tag-filter-btn:hover,
+  .tag-filter-btn.active {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
 }
