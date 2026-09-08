@@ -100,13 +100,7 @@ jobs:
           else
             ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
           fi
-          matches=$(printf '%s' "$ADDED" | python3 -c "
-import sys, re
-data = sys.stdin.read()
-hits = [l for l in data.splitlines() if '\u2014' in l]
-if hits:
-    print('\n'.join(hits))
-" || true)
+          matches=$(printf '%s' "$ADDED" | python3 -c "import sys; data=sys.stdin.read(); hits=[l for l in data.splitlines() if chr(8212) in l]; print('\n'.join(hits)) if hits else None" || true)
           if [ -n "$matches" ]; then
             echo "FAIL: Em dashes in new content:"
             echo "$matches"
