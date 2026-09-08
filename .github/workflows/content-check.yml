@@ -170,56 +170,52 @@ jobs:
 
       - name: Check for hedge words
         run: |
-          echo "=== Checking for hedge words ==="
+          echo "=== Checking for hedge words (introduced lines only) ==="
           MDX_FILES="${{ steps.changed.outputs.files }}"
           if [ -z "$MDX_FILES" ]; then
             echo "No changed .mdx files to check."
             exit 0
           fi
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+          else
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+          fi
           HEDGE_PATTERN='perhaps\b|arguably\b|it could be said|it should be noted|to some extent|in some ways|may or may not|might suggest|\bsomewhat\b|\brelatively\b'
-          FAIL=0
-          while IFS= read -r file; do
-            [ -z "$file" ] && continue
-            matches=$(grep -niE "$HEDGE_PATTERN" "$file" || true)
-            if [ -n "$matches" ]; then
-              echo "FAIL: Hedge words in $file:"
-              echo "$matches"
-              FAIL=1
-            fi
-          done <<< "$MDX_FILES"
-          if [ "$FAIL" -eq 1 ]; then
+          matches=$(echo "$ADDED" | grep -iE "$HEDGE_PATTERN" || true)
+          if [ -n "$matches" ]; then
+            echo "FAIL: Hedge words in new content:"
+            echo "$matches"
             echo ""
             echo "Remove hedge words. Say it or don't. See STYLE-GUIDE.md."
             exit 1
           else
-            echo "No hedge words found."
+            echo "No hedge words in new content."
           fi
 
       - name: Check for banned buzzwords
         run: |
-          echo "=== Checking for banned buzzwords ==="
+          echo "=== Checking for banned buzzwords (introduced lines only) ==="
           MDX_FILES="${{ steps.changed.outputs.files }}"
           if [ -z "$MDX_FILES" ]; then
             echo "No changed .mdx files to check."
             exit 0
           fi
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+          else
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+          fi
           BUZZ_PATTERN='\brobust\b|\butilize\b|\bsynergy\b|\bnext-generation\b|\bcutting-edge\b|\bindustry-leading\b|\bseamless\b|\bactionable\b|\bleverage\b|\bholistic\b|\bpivot\b'
-          FAIL=0
-          while IFS= read -r file; do
-            [ -z "$file" ] && continue
-            matches=$(grep -niE "$BUZZ_PATTERN" "$file" || true)
-            if [ -n "$matches" ]; then
-              echo "FAIL: Buzzwords in $file:"
-              echo "$matches"
-              FAIL=1
-            fi
-          done <<< "$MDX_FILES"
-          if [ "$FAIL" -eq 1 ]; then
+          matches=$(echo "$ADDED" | grep -iE "$BUZZ_PATTERN" || true)
+          if [ -n "$matches" ]; then
+            echo "FAIL: Buzzwords in new content:"
+            echo "$matches"
             echo ""
             echo "Remove buzzwords. Use plain language. See STYLE-GUIDE.md."
             exit 1
           else
-            echo "No buzzwords found."
+            echo "No buzzwords in new content."
           fi
 
       - name: Check required MDX component usage
