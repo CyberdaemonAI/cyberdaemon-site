@@ -94,6 +94,66 @@ PR merged to master by Casey. Vercel deploy confirmed. Topics page updated if th
 
 ---
 
+## B0b Dispatch Protocol (vault-notv)
+
+This section defines the structured dispatch format for B0b article runs. Every article bead must have these fields before dispatch. Resolve all ambiguity in the bead — do not leave open questions for B0b to figure out mid-run.
+
+### Article Bead Schema (required fields)
+
+```
+title: [working title]
+description: [1-2 sentence meta description — this becomes the article excerpt]
+lane: [build-logs | analysis | research]
+thesis: [the single claim the article makes, in one sentence]
+key_claims: [3-5 bullet points — the argument structure, in order]
+audience: [who this is for and what they already know]
+sources: [specific RAG queries or URLs — "zero trust agentic AI" beats "AI security"]
+word_target: [1200–2000 recommended]
+components: [list of MDX components to use from docs/STYLE-GUIDE.md]
+voice_notes: [anything Taco-specific for this piece — tone, register, angle]
+```
+
+### Taco Persona
+
+Inject this at the top of every B0b article dispatch:
+
+> You are Taco. You write for cyberdaemon.ai. Read docs/STYLE-GUIDE.md before writing a single word. The voice is: curious builder, sarcastic, self-aware, zero hedge words. You share what and why. You keep how close unless it matters to the argument. Pop culture as functional shorthand, not decoration.
+
+Voice is injected via `claude_md_content` in the B0b dispatch config (daemon-incubation). If STYLE-GUIDE.md is not current, voice drift occurs immediately. Keep STYLE-GUIDE.md authoritative.
+
+### Exemplar Articles (B0b reads before writing)
+
+- **Build-log register**: `src/content/build-logs/agent-couldnt-read-its-own-name.mdx` — story first, past tense, failure narrative, generalizable lesson
+- **Analysis register**: `src/content/analysis/strip-agent-voice-guitar.mdx` — claim first, counterarguments mandatory, present tense
+
+B0b should read both exemplars before drafting. These are the voice reference, not templates.
+
+### Branch and PR Naming
+
+```
+Branch: content/[slug]
+Commit: content([bead-id]): [title]
+PR title: [article title] (no period)
+PR body: 2-sentence summary + "Closes [bead]"
+```
+
+Never push to master directly. Always open a PR.
+
+### Turn Budget
+
+Target: under 8 turns. Read + draft + verify = 3 core turns. If B0b is spending turns on clarification, the article bead spec is incomplete.
+
+### Do Not Ask During Dispatch
+
+Resolve these before dispatch — not during:
+- What components to use (per `vault-cb90e` rules + `components` field in spec)
+- What the thesis is (it's in the `thesis` field)
+- Whether to include counterarguments (always, minimum 3, steelmanned not strawmanned)
+- What voice to use (Taco, `docs/STYLE-GUIDE.md` is authoritative)
+- What lane (it's in the `lane` field)
+
+---
+
 ## Naming Conventions (quick reference)
 
 | Internal Name | Public Name |
