@@ -153,9 +153,7 @@ if hits:
           FAIL=0
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            # Research/analysis: traditional counterarguments headings
-            # Build-logs: also accept failure/limitation headings (where this breaks, didn't work, limitations, etc.)
-            if ! grep -qiE '^## .*(counter|where.*wrong|what.*wrong|objection|pushback|the case against|what i.*wrong|wrong about|where this breaks|ways this (can |)fail|limitation|what.*miss|didn.t work|doesn.t work)' "$file"; then
+            if ! grep -qiE '^## .*(counter|where.*wrong|what.*wrong|objection|pushback|the case against|where this breaks|ways this can fail|ways this fail|limitation|what.*miss|didnt work|doesnt work)' "$file"; then
               echo "FAIL: No counterarguments section in $file"
               echo "  Add an H2 like: ## Counterarguments, ## Where I'm wrong, ## Where this breaks, ## Limitations"
               FAIL=1
@@ -234,25 +232,21 @@ if hits:
           FAIL=0
           while IFS= read -r file; do
             [ -z "$file" ] && continue
-            case "$file" in
-              src/content/research/*)
-                for component in "SectionLabel" "DiagramBlock"; do
-                  if ! grep -q "<${component}" "$file"; then
-                    echo "FAIL: Missing <${component}> in $file (required for research lane)"
-                    FAIL=1
-                  fi
-                done
-                ;;
-              src/content/analysis/*|src/content/build-logs/*)
-                if ! grep -q "<Callout" "$file"; then
-                  echo "FAIL: Missing <Callout> in $file (required for analysis/build-logs lane)"
+            if echo "$file" | grep -q '^src/content/research/'; then
+              for component in "SectionLabel" "DiagramBlock"; do
+                if ! grep -q "<${component}" "$file"; then
+                  echo "FAIL: Missing <${component}> in $file (required for research lane)"
                   FAIL=1
                 fi
-                ;;
-              *)
-                echo "INFO: $file -- no lane match, skipping component check"
-                ;;
-            esac
+              done
+            elif echo "$file" | grep -qE '^src/content/(analysis|build-logs)/'; then
+              if ! grep -q "<Callout" "$file"; then
+                echo "FAIL: Missing <Callout> in $file (required for analysis/build-logs lane)"
+                FAIL=1
+              fi
+            else
+              echo "INFO: $file -- no lane match, skipping component check"
+            fi
           done <<< "$MDX_FILES"
           if [ "$FAIL" -eq 1 ]; then
             echo ""
