@@ -5,6 +5,8 @@ on:
     workflows: ["Content Standards Check"]
     types: [completed]
 
+permissions: {}
+
 jobs:
   rex-review:
     if: >
@@ -67,7 +69,7 @@ _TODO(zulip-rip): When Zulip is decommissioned, Rex will post review here direct
 
       - name: Join Tailscale
         if: steps.meta.outputs.skip != 'true'
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade  # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
