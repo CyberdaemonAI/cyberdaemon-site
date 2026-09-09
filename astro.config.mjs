@@ -10,4 +10,7 @@ export default defineConfig({
     mdx(),
     sitemap(),
   ],
+  legacy: {
+    collectionsBackwardsCompat: true,
+  },
 });
