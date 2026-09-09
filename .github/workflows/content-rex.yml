@@ -12,6 +12,9 @@ jobs:
       startsWith(github.event.workflow_run.head_branch, 'content/')
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Extract PR metadata
@@ -45,6 +48,23 @@ print(prs[0]['number'] if prs else '')
           echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
+      - name: Post Rex dispatch notice to PR
+        if: steps.meta.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.meta.outputs.pr_number }}"
+          PR_TITLE="${{ steps.meta.outputs.pr_title }}"
+
+          gh pr comment "$PR_NUMBER" \
+            --repo CyberdaemonAI/cyberdaemon-site \
+            --body "**Rex editorial pre-review dispatched** for: *${PR_TITLE}*
+
+Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments (steelmanned?). Results posted to Zulip \`#content-pipeline → PR #${PR_NUMBER}\` when complete.
+
+_TODO(zulip-rip): When Zulip is decommissioned, Rex will post review here directly. Requires a PAT mounted in cc-remote-control-qa._" \
+            || echo "PR comment post failed — continuing"
+
       - name: Join Tailscale
         if: steps.meta.outputs.skip != 'true'
         uses: tailscale/github-action@v3
@@ -54,6 +74,10 @@ print(prs[0]['number'] if prs else '')
           tags: tag:ci
           version: latest
 
+      # TODO(zulip-rip): Rex task prompt instructs posting to Zulip. When Zulip is decommissioned:
+      # 1. Mount a GitHub PAT in cc-remote-control-qa (new K8s secret + env var)
+      # 2. Update task prompt: replace Zulip curl with `gh pr comment` using the PAT
+      # 3. Remove Tailscale join step (only needed to reach internal Zulip)
       - name: Dispatch Rex editorial review
         if: steps.meta.outputs.skip != 'true'
         run: |
