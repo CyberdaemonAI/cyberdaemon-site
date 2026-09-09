@@ -94,8 +94,13 @@ Accuracy: <n unverified claims, listed> | Clean
 Counterarguments: Steelmanned | Strawmanned — <specific note if flagged>
 Rec: Approve | Revise
 
-Then extract any security/technical claims (AI security, Zero Trust, NIST, cryptography, authentication protocols, CVEs, threat models) and append to the SAME Zulip message as:
-Watcher handoff: <numbered list of claims for security accuracy review> | None
+Then do a Watcher security review — evaluate any security/technical claims in the article (AI security, Zero Trust, NIST controls, cryptography, authentication protocols, CVEs, threat models) from a CISO accuracy perspective:
+- Are the claims technically accurate vs published standards (NIST, CISA, RFCs)?
+- Is any DIRA framing present and is it correctly applied?
+- Any security implications the article missed or understated?
+
+Append to the SAME Zulip message as:
+Watcher take: <verdict — accurate | N issues found — list each with correction> | No security claims
 
 Use curl to post to Zulip:
 curl -s -f --data-urlencode 'type=stream' --data-urlencode 'to=content-pipeline' --data-urlencode \"topic=PR #${PR_NUMBER}\" --data-urlencode \"content=<your review>\" -u \"\$ZULIP_BOT_EMAIL:\$ZULIP_API_KEY\" \"\$ZULIP_SITE/api/v1/messages\""
