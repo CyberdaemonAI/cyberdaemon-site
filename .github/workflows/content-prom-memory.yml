@@ -6,11 +6,15 @@ on:
     paths:
       - 'src/content/**/*.mdx'
 
+permissions: {}
+
 jobs:
   save-milestone:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           fetch-depth: 2
 
@@ -37,7 +41,7 @@ jobs:
 
       - name: Join Tailscale
         if: steps.article.outputs.found == 'true'
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade  # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}

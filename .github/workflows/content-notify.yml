@@ -7,13 +7,18 @@ on:
     paths:
       - 'src/content/**'
 
+permissions: {}
+
 jobs:
   notify-zulip:
     runs-on: ubuntu-latest
     continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
     if: ${{ github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Extract article metadata
         id: meta
@@ -57,14 +62,35 @@ jobs:
           echo "file=$MDX_FILE" >> "$GITHUB_OUTPUT"
 
 
+      - name: Post PR comment (Zulip-independent fallback)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          TITLE="${{ steps.meta.outputs.title }}"
+          LANE="${{ steps.meta.outputs.lane }}"
+          SUMMARY="${{ steps.meta.outputs.summary }}"
+
+          BODY="**[CONTENT PR] \`${LANE}\` — ${TITLE}**
+
+${SUMMARY}
+
+Content pipeline started. CI hygiene checks running; Rex editorial review queued."
+
+          gh pr comment "$PR_NUMBER" \
+            --repo CyberdaemonAI/cyberdaemon-site \
+            --body "$BODY" || echo "PR comment post failed — continuing"
+
       - name: Join Tailscale
-        uses: tailscale/github-action@v3
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade  # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
           tags: tag:ci
           version: latest
 
+      # TODO(zulip-rip): When Zulip is decommissioned, remove this step and the Tailscale join above.
+      # GitHub PR comment above is the permanent fallback channel.
       - name: Post to Zulip content-pipeline stream
         env:
           ZULIP_API_KEY: ${{ secrets.ZULIP_API_KEY }}
