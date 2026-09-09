@@ -85,7 +85,7 @@ The dispatching context must provide:
 4. **Draft**: write MDX with components, counterarguments, builder voice
 5. **Self-review**: run `docs/CONTENT-REVIEW-CHECKLIST.md` against the draft
 6. **Submit**: open PR on CyberdaemonAI/cyberdaemon-site via GitHub App
-7. **Post to Zulip**: summary + key claims to #content-pipeline for Casey's review
+7. **Post to Zulip**: summary + key claims to #content-pipeline for Casey's review _(TODO: Zulip is getting ripped — replace with GitHub PR comment when comms replacement is known)_
 8. **Revise if needed**: Casey comments on PR or reacts in Zulip; revise and re-push
 
 ## Completion Gate
