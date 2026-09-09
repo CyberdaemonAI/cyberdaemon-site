@@ -1,0 +1,133 @@
+name: Content Rex Review
+
+on:
+  workflow_run:
+    workflows: ["Content Standards Check"]
+    types: [completed]
+
+jobs:
+  rex-review:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      startsWith(github.event.workflow_run.head_branch, 'content/')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Extract PR metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Pull PR number from workflow_run event (populated for PR-triggered runs)
+          PR_NUMBER=$(echo '${{ toJson(github.event.workflow_run.pull_requests) }}' \
+            | python3 -c "
+import json, sys
+prs = json.load(sys.stdin)
+print(prs[0]['number'] if prs else '')
+" 2>/dev/null || echo '')
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No PR found for workflow run — skipping Rex review"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PR_URL="https://github.com/CyberdaemonAI/cyberdaemon-site/pull/${PR_NUMBER}"
+          PR_TITLE=$(gh pr view "$PR_NUMBER" \
+            --repo CyberdaemonAI/cyberdaemon-site \
+            --json title -q .title 2>/dev/null || echo 'unknown')
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "pr_title=${PR_TITLE}" >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+      - name: Join Tailscale
+        if: steps.meta.outputs.skip != 'true'
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci
+          version: latest
+
+      - name: Dispatch Rex editorial review
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          PR_NUMBER="${{ steps.meta.outputs.pr_number }}"
+          PR_URL="${{ steps.meta.outputs.pr_url }}"
+          PR_TITLE="${{ steps.meta.outputs.pr_title }}"
+          BRANCH="${{ steps.meta.outputs.branch }}"
+
+          TASK="You are Rex. Run an editorial pre-review of this cyberdaemon.ai content PR.
+Do NOT re-run CI hygiene checks — CI already passed before you were dispatched.
+
+PR: ${PR_URL}
+Title: ${PR_TITLE}
+Branch: ${BRANCH}
+
+Steps:
+1. Clone CyberdaemonAI/cyberdaemon-site (read-only deploy key is in ~/.ssh/id_ed25519).
+2. Checkout the PR branch: git fetch origin ${BRANCH} && git checkout ${BRANCH}
+3. Find the article: ls src/content/**/*.mdx — read the file added or modified in this branch vs master.
+4. Read docs/STYLE-GUIDE.md for voice reference.
+5. Read both exemplar articles:
+   - src/content/build-logs/agent-couldnt-read-its-own-name.mdx (build-log register)
+   - src/content/analysis/strip-agent-voice-guitar.mdx (analysis register)
+
+Review criteria — editorial only:
+Voice: Is this Taco? Check Sarcasm section (dry/deadpan/dark/absurdist, never forced) and Humility section (no credential announcements, knowledge visible in specifics). No hedging, no doom-posting, no cheerleading. Note ONE specific line if flagged.
+Accuracy: List specific claims (CVE IDs, dates, numbers, named orgs, benchmarks, named products) that are unverified or unverifiable from public sources. Write 'Clean' if none found.
+Counterarguments: Present? Minimum 3? Steelmanned (each opposing argument presented at its strongest)? Note any that are strawmanned with the specific issue.
+
+Post your review to Zulip using the credentials in your environment variables (ZULIP_SITE, ZULIP_BOT_EMAIL, ZULIP_API_KEY):
+- stream: content-pipeline
+- topic: PR #${PR_NUMBER}
+
+Use this exact format for the Zulip message:
+[CONTENT REVIEW] ${PR_TITLE}
+Voice: Pass | Flag — <one specific line or note if flagged>
+Accuracy: <n unverified claims, listed> | Clean
+Counterarguments: Steelmanned | Strawmanned — <specific note if flagged>
+Rec: Approve | Revise
+
+Then extract any security/technical claims (AI security, Zero Trust, NIST, cryptography, authentication protocols, CVEs, threat models) and append to the SAME Zulip message as:
+Watcher handoff: <numbered list of claims for security accuracy review> | None
+
+Use curl to post to Zulip:
+curl -s -f --data-urlencode 'type=stream' --data-urlencode 'to=content-pipeline' --data-urlencode \"topic=PR #${PR_NUMBER}\" --data-urlencode \"content=<your review>\" -u \"\$ZULIP_BOT_EMAIL:\$ZULIP_API_KEY\" \"\$ZULIP_SITE/api/v1/messages\""
+
+          # Encode task as JSON and POST to cc-remote-control-qa via Tailscale
+          PAYLOAD=$(python3 -c "
+import json, sys
+task = sys.argv[1]
+channel = 'content-review'
+print(json.dumps({'task': task, 'channel_id': channel}))
+" "$TASK")
+
+          # Health check first — skip gracefully if Rex is busy
+          HEALTH=$(curl -sf --max-time 5 http://100.89.151.13:8080/health 2>/dev/null || echo '{}')
+          BUSY=$(echo "$HEALTH" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('busy', True))" 2>/dev/null || echo 'true')
+
+          if [ "$BUSY" = "True" ] || [ "$BUSY" = "true" ]; then
+            echo "Rex is busy — skipping automated review for PR #${PR_NUMBER}. Review manually."
+            exit 0
+          fi
+
+          HTTP_STATUS=$(curl -sf --max-time 10 \
+            -X POST http://100.89.151.13:8080/run-task \
+            -H 'Content-Type: application/json' \
+            -d "$PAYLOAD" \
+            -o /dev/null -w "%{http_code}" 2>/dev/null || echo '000')
+
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ]; then
+            echo "Rex dispatched for PR #${PR_NUMBER}"
+          elif [ "$HTTP_STATUS" = "409" ]; then
+            echo "Rex busy (409) — review manually for PR #${PR_NUMBER}"
+          else
+            echo "Rex dispatch failed (HTTP ${HTTP_STATUS}) — review manually for PR #${PR_NUMBER}"
+            exit 1
+          fi
