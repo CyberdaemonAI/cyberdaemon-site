@@ -30,9 +30,9 @@
   --color-lane-buildlog: #9b8ecf;
 
   /* Lane glows (radial-gradient tints) */
-  --color-lane-research-glow: rgba(74, 180, 204, 0.05);
-  --color-lane-analysis-glow: rgba(201, 168, 76, 0.05);
-  --color-lane-buildlog-glow: rgba(155, 142, 207, 0.05);
+  --color-lane-research-glow: rgba(74, 180, 204, 0.10);
+  --color-lane-analysis-glow: rgba(201, 168, 76, 0.10);
+  --color-lane-buildlog-glow: rgba(155, 142, 207, 0.10);
 
   /* Series nav — tracks research lane */
   --color-teal-dim:      #5a9aaa;
@@ -74,9 +74,9 @@
   --color-lane-buildlog: #5b4ea0;
 
   /* Lane glows */
-  --color-lane-research-glow: rgba(42, 143, 160, 0.05);
-  --color-lane-analysis-glow: rgba(138, 100, 0, 0.05);
-  --color-lane-buildlog-glow: rgba(91, 78, 160, 0.05);
+  --color-lane-research-glow: rgba(42, 143, 160, 0.07);
+  --color-lane-analysis-glow: rgba(138, 100, 0, 0.07);
+  --color-lane-buildlog-glow: rgba(91, 78, 160, 0.07);
 
   /* Series nav — tracks research lane */
   --color-teal-dim:      #4a8fa0;
