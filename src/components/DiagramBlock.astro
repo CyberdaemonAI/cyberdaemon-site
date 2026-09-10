@@ -1,28 +1,50 @@
 ---
 /**
- * DiagramBlock — wrapper for Mermaid diagrams or other visual content.
- * Dark card with border and optional caption in muted mono text.
- * The actual mermaid rendering is handled client-side; this provides the
- * container with a .mermaid class on the inner div.
+ * DiagramBlock — wrapper for Mermaid diagrams, Excalidraw sketches, or AI illustrations.
+ *
+ * type="mermaid" (default): Mermaid diagram rendered client-side. Inner div carries .mermaid class.
+ * type="sketch":            Excalidraw SVG export. src prop required.
+ * type="illustration":      AI-directed narrative image. src prop required.
+ *
+ * All three types share the dark card container and caption treatment.
+ * public/images/ stores files; /images/ is the MDX URL (Astro public/ convention).
  *
  * Usage:
- *   <DiagramBlock caption="Attack chain overview">
+ *   <DiagramBlock caption="Attack chain">
  *     graph LR
  *       A[Token Theft] --> B[Lateral Movement]
  *   </DiagramBlock>
+ *
+ *   <DiagramBlock type="sketch" src="/images/context-flow.svg" caption="Context flow" />
+ *
+ *   <DiagramBlock type="illustration" src="/images/daemon-terminal.webp"
+ *     caption="3am, terminal open" alt="A daemon at a terminal" />
+ *
+ * See docs/DIAGRAM-GUIDE.md for tier decision criteria, Mermaid templates,
+ * Excalidraw export settings, and illustration brief format.
  */
 
 interface Props {
+  type?: 'mermaid' | 'sketch' | 'illustration';
+  src?: string;
   caption?: string;
+  alt?: string;
 }
 
-const { caption } = Astro.props;
+const { type = 'mermaid', src, caption, alt = '' } = Astro.props;
 ---
 
 <figure class="diagram-block">
-  <div class="diagram-inner mermaid">
-    <slot />
-  </div>
+  {type === 'mermaid' && (
+    <div class="diagram-inner mermaid">
+      <slot />
+    </div>
+  )}
+  {(type === 'sketch' || type === 'illustration') && src && (
+    <div class={`diagram-inner diagram-${type}`}>
+      <img src={src} alt={alt} loading="lazy" />
+    </div>
+  )}
   {caption && (
     <figcaption class="diagram-caption font-mono">
       {caption}
@@ -49,15 +71,30 @@ const { caption } = Astro.props;
     font-size: 0.875rem;
   }
 
-  /* Hide shiki-processed pre/code block before mermaid JS runs */
-  .diagram-inner :global(pre) {
+  /* Mermaid: hide shiki pre/code before client JS runs */
+  .diagram-inner.mermaid :global(pre) {
     display: none;
   }
 
-  /* Override mermaid's default white background */
-  .diagram-inner :global(svg) {
+  /* Mermaid: override SVG white background — scoped to .mermaid to avoid bleeding into sketch SVGs */
+  .diagram-inner.mermaid :global(svg) {
     max-width: 100%;
     height: auto;
+  }
+
+  /* Sketch: SVG fills container */
+  .diagram-sketch img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Illustration: image fills container, slight rounding */
+  .diagram-illustration img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
   }
 
   .diagram-caption {
