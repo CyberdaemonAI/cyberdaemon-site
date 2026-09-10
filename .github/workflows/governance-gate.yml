@@ -1,0 +1,128 @@
+# vault-o8g8j: Governance Gate CI Workflow (Tier 1 Hard Block)
+# Deployed to ALL 17 daemonprompt repos via dispatch_governance_workflows.py.
+# Any PR modifying governance files (CLAUDE.md, ISA files, standards, skills, protocols)
+# will FAIL CI. Casey must provide GOVERNANCE-OVERRIDE keyword in Telegram approval.
+#
+# docs/06: permissions deny-by-default, self-hosted runner on daemon-infra1.
+# docs/11: audit trail for governance file modifications.
+# docs/29: enforcement layer 2 (CI gate).
+#
+# GOVERNANCE-OVERRIDE flow:
+#   1. Casey approves PR in Telegram with "GOVERNANCE-OVERRIDE" keyword
+#   2. telegram-approval-bot adds label "governance-override-approved"
+#   3. This workflow re-runs on the label event and passes
+name: Governance Gate
+
+on:
+  pull_request:
+    branches: [main]
+  pull_request_target:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  governance-check:
+    # Skip on label events that are NOT governance-override -- avoids re-running for every label
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'pull_request_target' &&
+       github.event.label.name == 'governance-override-approved')
+    runs-on: [self-hosted, daemon-infra1]
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for governance file modifications
+        id: gov_check
+        run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          # Governance paths (Tier 1 -- hard block)
+          # Modifying any of these requires GOVERNANCE-OVERRIDE from Casey in Telegram.
+          GOVERNANCE_PATTERNS=(
+            "CLAUDE.md"
+            "00 System/Skills/"
+            "00 System/Protocols/"
+            "00 System/Agents/"
+            "prometheus-standards/"
+            "-ISA.md"
+            "enforcement.md"
+            "standards-frontmatter"
+          )
+
+          VIOLATION=""
+          for PATTERN in "${GOVERNANCE_PATTERNS[@]}"; do
+            if echo "$CHANGED" | grep -q "$PATTERN"; then
+              VIOLATION="$VIOLATION $PATTERN"
+            fi
+          done
+
+          if [ -n "$VIOLATION" ]; then
+            echo "GOVERNANCE_VIOLATION=true" >> "$GITHUB_OUTPUT"
+            echo "VIOLATION_PATHS=$VIOLATION" >> "$GITHUB_OUTPUT"
+            echo "::error::Governance file modification detected: $VIOLATION"
+            echo "::error::This PR requires GOVERNANCE-OVERRIDE keyword in Casey Telegram approval."
+          else
+            echo "GOVERNANCE_VIOLATION=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Pass immediately when governance-override-approved label is present
+      - name: Check for override label
+        id: override_check
+        if: steps.gov_check.outputs.GOVERNANCE_VIOLATION == 'true'
+        run: |
+          LABELS=$(gh pr view ${{ github.event.pull_request.number }} \
+            --repo ${{ github.repository }} --json labels --jq '.labels[].name' 2>/dev/null || echo "")
+          if echo "$LABELS" | grep -q "governance-override-approved"; then
+            echo "OVERRIDE_PRESENT=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::governance-override-approved label found -- CI passes."
+          else
+            echo "OVERRIDE_PRESENT=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail on governance violation (no override)
+        if: >
+          steps.gov_check.outputs.GOVERNANCE_VIOLATION == 'true' &&
+          steps.override_check.outputs.OVERRIDE_PRESENT != 'true'
+        run: |
+          echo "BLOCKED: Governance file modification requires GOVERNANCE-OVERRIDE."
+          echo "Casey must approve this PR in Telegram with keyword: GOVERNANCE-OVERRIDE"
+          echo "Violation paths:${{ steps.gov_check.outputs.VIOLATION_PATHS }}"
+          exit 1
+
+      - name: Send Telegram alert on governance violation
+        if: >
+          steps.gov_check.outputs.GOVERNANCE_VIOLATION == 'true' &&
+          steps.override_check.outputs.OVERRIDE_PRESENT != 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          ENCODED_MSG=$(python3 -c "
+          import urllib.parse
+          msg = '⚠️ [GOVERNANCE GATE] PR #${{ github.event.pull_request.number }} in ${{ github.repository }} modifies governance files: ${{ steps.gov_check.outputs.VIOLATION_PATHS }}. Requires GOVERNANCE-OVERRIDE to approve.'
+          print(urllib.parse.quote(msg))
+          ")
+          curl -sf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=⚠️ [GOVERNANCE GATE] PR #${{ github.event.pull_request.number }} in ${{ github.repository }} modifies governance files: ${{ steps.gov_check.outputs.VIOLATION_PATHS }}. Requires GOVERNANCE-OVERRIDE to approve." \
+            --data-urlencode "parse_mode=HTML" || echo "Telegram alert failed (non-fatal)"
+
+      - name: Log override to stdout (audit trail)
+        if: >
+          steps.gov_check.outputs.GOVERNANCE_VIOLATION == 'true' &&
+          steps.override_check.outputs.OVERRIDE_PRESENT == 'true'
+        run: |
+          echo "GOVERNANCE-OVERRIDE confirmed for PR #${{ github.event.pull_request.number }}"
+          echo "Violation paths:${{ steps.gov_check.outputs.VIOLATION_PATHS }}"
+          echo "Override logged at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "NOTE: vault-gpxx9 /bead-events logging pending merge"
