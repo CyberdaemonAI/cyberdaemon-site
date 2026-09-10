@@ -24,8 +24,8 @@ const laneClass: Record<string, string> = {
 };
 ---
 
-<a href={href} class:list={["article-card group", { 'featured-card': featured }]} data-tags={tags.join(',')}>
-  <article class="h-full flex flex-col p-6 bg-surface border border-border rounded-2xl transition-colors">
+<a href={href} class:list={["article-card group", { 'featured-card': featured }]} data-tags={tags.join(',')} data-lane={laneClass[lane]}>
+  <article class="h-full flex flex-col p-6 bg-surface border border-border rounded-2xl relative overflow-hidden">
     <header class="mb-4">
       <div class="flex items-center gap-3 mb-3">
         <span class:list={["lane-tag", laneClass[lane]]}>{laneLabel[lane]}</span>

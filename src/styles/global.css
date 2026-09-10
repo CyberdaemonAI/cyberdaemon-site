@@ -5,91 +5,103 @@
 /* ─── Theme CSS custom properties ───────────────────────────────── */
 
 :root {
-  /* Backgrounds */
-  --color-bg:            #0d0c0a;
-  --color-bg-secondary:  #181512;
-  --color-bg-surface:    #141210;
-  --color-bg-code-inline: #201d1a;
+  /* Backgrounds — void slate, cool blue-black */
+  --color-bg:            #070810;
+  --color-bg-secondary:  #0d0f1e;
+  --color-bg-surface:    #0a0c1a;
+  --color-bg-code-inline: #131628;
 
-  /* Borders */
-  --color-border:        #2c2925;
+  /* Borders — visible cool blue */
+  --color-border:        #1e2240;
 
-  /* Text */
-  --color-text-primary:  #eee8dd;
-  --color-text-secondary: #b0ab9f;
-  --color-text-muted:    #706a62;
-  --color-text-dim:      #4a4540;
-  --color-text-body:     #d4cec5;
+  /* Text — cool white, nothing warm */
+  --color-text-primary:  #f0f2ff;
+  --color-text-secondary: #8890b8;
+  --color-text-muted:    #505888;
+  --color-text-dim:      #363c68;
+  --color-text-body:     #c8cde8;
 
-  /* Accent — amber-orange */
-  --color-accent:        #e07830;
+  /* Accent — electric violet */
+  --color-accent:        #8b5cf6;
 
-  /* Lane colors — research decoupled from accent */
-  --color-lane-research: #4ab4cc;
-  --color-lane-analysis: #c9a84c;
-  --color-lane-buildlog: #9b8ecf;
+  /* Lane colors — vivid, high saturation */
+  --color-lane-research: #22d3f0;
+  --color-lane-analysis: #f59e0b;
+  --color-lane-buildlog: #a78bfa;
 
-  /* Lane glows (radial-gradient tints) */
-  --color-lane-research-glow: rgba(74, 180, 204, 0.10);
-  --color-lane-analysis-glow: rgba(201, 168, 76, 0.10);
-  --color-lane-buildlog-glow: rgba(155, 142, 207, 0.10);
+  /* Lane glows — actually visible at 18% */
+  --color-lane-research-glow: rgba(34, 211, 240, 0.18);
+  --color-lane-analysis-glow: rgba(245, 158, 11, 0.14);
+  --color-lane-buildlog-glow: rgba(167, 139, 250, 0.18);
 
   /* Series nav — tracks research lane */
-  --color-teal-dim:      #5a9aaa;
-  --color-teal-bright:   #70b4c4;
+  --color-teal-dim:      #1ab4cc;
+  --color-teal-bright:   #22d3f0;
 
   /* Callout backgrounds */
-  --callout-insight-bg:  rgba(224, 120, 48, 0.06);
-  --callout-warning-bg:  rgba(201, 168, 76, 0.06);
-  --callout-critical-bg: rgba(193, 18, 31, 0.08);
-  --callout-note-bg:     rgba(112, 110, 104, 0.04);
+  --callout-insight-bg:  rgba(139, 92, 246, 0.10);
+  --callout-warning-bg:  rgba(245, 158, 11, 0.10);
+  --callout-critical-bg: rgba(239, 68, 68, 0.12);
+  --callout-note-bg:     rgba(34, 211, 240, 0.06);
 
   /* PullQuote accent tint */
-  --color-accent-subtle: rgba(224, 120, 48, 0.04);
+  --color-accent-subtle: rgba(139, 92, 246, 0.08);
+
+  /* Card lane glow values — dark mode */
+  --glow-research: rgba(34, 211, 240, 0.22);
+  --glow-analysis: rgba(245, 158, 11, 0.18);
+  --glow-buildlog: rgba(167, 139, 250, 0.24);
+  --shadow-lift:   rgba(0, 0, 0, 0.50);
 }
 
 [data-theme="light"] {
-  /* Backgrounds */
-  --color-bg:            #f7f4ef;
-  --color-bg-secondary:  #efe9e0;
-  --color-bg-surface:    #e8e0d5;
-  --color-bg-code-inline: #e5ddd2;
+  /* Backgrounds — cool-tinted parchment, nothing warm */
+  --color-bg:            #f1f3fa;
+  --color-bg-secondary:  #e6eaf5;
+  --color-bg-surface:    #dce1f0;
+  --color-bg-code-inline: #d4daed;
 
   /* Borders */
-  --color-border:        #d4cfc8;
+  --color-border:        #bec6e0;
 
   /* Text */
-  --color-text-primary:  #1a1815;
-  --color-text-secondary: #4a4540;
-  --color-text-muted:    #6b6560;
-  --color-text-dim:      #8a8480;
-  --color-text-body:     #2a2520;
+  --color-text-primary:  #0b0d1c;
+  --color-text-secondary: #3a4070;
+  --color-text-muted:    #5a6090;
+  --color-text-dim:      #8890b8;
+  --color-text-body:     #1a1e38;
 
-  /* Accent — amber-orange, darkened for light mode */
-  --color-accent:        #c45f15;
+  /* Accent — deeper violet for contrast */
+  --color-accent:        #6d28d9;
 
-  /* Lane colors — research decoupled from accent */
-  --color-lane-research: #2a8fa0;
-  --color-lane-analysis: #8a6400;
-  --color-lane-buildlog: #5b4ea0;
+  /* Lane colors — darker for readability on light */
+  --color-lane-research: #0891b2;
+  --color-lane-analysis: #b45309;
+  --color-lane-buildlog: #6d28d9;
 
   /* Lane glows */
-  --color-lane-research-glow: rgba(42, 143, 160, 0.07);
-  --color-lane-analysis-glow: rgba(138, 100, 0, 0.07);
-  --color-lane-buildlog-glow: rgba(91, 78, 160, 0.07);
+  --color-lane-research-glow: rgba(8, 145, 178, 0.10);
+  --color-lane-analysis-glow: rgba(180, 83, 9, 0.10);
+  --color-lane-buildlog-glow: rgba(109, 40, 217, 0.10);
 
-  /* Series nav — tracks research lane */
-  --color-teal-dim:      #4a8fa0;
-  --color-teal-bright:   #5aaabb;
+  /* Series nav */
+  --color-teal-dim:      #0891b2;
+  --color-teal-bright:   #06b6d4;
 
   /* Callout backgrounds */
-  --callout-insight-bg:  rgba(196, 95, 21, 0.06);
-  --callout-warning-bg:  rgba(138, 100, 0, 0.06);
-  --callout-critical-bg: rgba(193, 18, 31, 0.08);
-  --callout-note-bg:     rgba(112, 110, 104, 0.04);
+  --callout-insight-bg:  rgba(109, 40, 217, 0.07);
+  --callout-warning-bg:  rgba(180, 83, 9, 0.08);
+  --callout-critical-bg: rgba(220, 38, 38, 0.08);
+  --callout-note-bg:     rgba(8, 145, 178, 0.06);
 
   /* PullQuote accent tint */
-  --color-accent-subtle: rgba(196, 95, 21, 0.04);
+  --color-accent-subtle: rgba(109, 40, 217, 0.05);
+
+  /* Card lane glow values — light mode (toned down) */
+  --glow-research: rgba(8, 145, 178, 0.12);
+  --glow-analysis: rgba(180, 83, 9, 0.12);
+  --glow-buildlog: rgba(109, 40, 217, 0.12);
+  --shadow-lift:   rgba(0, 0, 0, 0.12);
 }
 
 @layer base {
@@ -315,6 +327,25 @@
     border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
   }
 
+  /* ─── Nav link underline slide ───────────────────────────────── */
+  header nav a {
+    position: relative;
+  }
+  header nav a::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.55;
+    transition: width 180ms ease-out;
+  }
+  header nav a:hover::after {
+    width: 100%;
+  }
+
   /* ─── Tag filter ─────────────────────────────────────────────── */
   .tag-filter-btn {
     font-family: 'IBM Plex Mono', monospace;
@@ -327,11 +358,134 @@
     color: var(--color-text-muted);
     background: transparent;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
+    transition: border-color 100ms ease-out, color 100ms ease-out, box-shadow 100ms ease-out;
   }
   .tag-filter-btn:hover,
   .tag-filter-btn.active {
     border-color: var(--color-accent);
     color: var(--color-accent);
+  }
+  .tag-filter-btn.active {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.22);
+  }
+
+  /* ─── Card animations ───────────────────────────────────────────────── */
+
+  /* Base transition (replaces Tailwind transition-colors) */
+  .article-card article {
+    transition:
+      transform       120ms ease-out,
+      border-color    120ms ease-out,
+      box-shadow      120ms ease-out,
+      background-color 120ms ease-out,
+      opacity         150ms ease-out;
+    will-change: transform, box-shadow;
+  }
+
+  /* Laser scan line — traces left to right across card top on hover */
+  .article-card article::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    transition: width 260ms ease-out;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Card lift */
+  .article-card:hover article {
+    transform: translateY(-6px);
+  }
+
+  /* Lane: Research — vivid cyan */
+  .article-card[data-lane="research"] article::before {
+    background: var(--color-lane-research);
+  }
+  .article-card[data-lane="research"]:hover article {
+    border-color: rgba(34, 211, 240, 0.48);
+    box-shadow: 0 0 28px var(--glow-research), 0 12px 40px var(--shadow-lift);
+    background-color: rgba(34, 211, 240, 0.03);
+  }
+  .article-card[data-lane="research"]:hover article::before { width: 100%; }
+  .article-card[data-lane="research"]:hover .lane-tag.research {
+    text-shadow: 0 0 8px var(--color-lane-research), 0 0 22px rgba(34, 211, 240, 0.45);
+    animation: neon-flicker 0.35s ease-out;
+  }
+
+  /* Lane: Analysis — vivid amber */
+  .article-card[data-lane="analysis"] article::before {
+    background: var(--color-lane-analysis);
+  }
+  .article-card[data-lane="analysis"]:hover article {
+    border-color: rgba(245, 158, 11, 0.44);
+    box-shadow: 0 0 28px var(--glow-analysis), 0 12px 40px var(--shadow-lift);
+    background-color: rgba(245, 158, 11, 0.03);
+  }
+  .article-card[data-lane="analysis"]:hover article::before { width: 100%; }
+  .article-card[data-lane="analysis"]:hover .lane-tag.analysis {
+    text-shadow: 0 0 8px var(--color-lane-analysis), 0 0 22px rgba(245, 158, 11, 0.40);
+    animation: neon-flicker 0.35s ease-out;
+  }
+
+  /* Lane: Build Log — vivid lavender */
+  .article-card[data-lane="buildlog"] article::before {
+    background: var(--color-lane-buildlog);
+  }
+  .article-card[data-lane="buildlog"]:hover article {
+    border-color: rgba(167, 139, 250, 0.50);
+    box-shadow: 0 0 28px var(--glow-buildlog), 0 12px 40px var(--shadow-lift);
+    background-color: rgba(167, 139, 250, 0.03);
+  }
+  .article-card[data-lane="buildlog"]:hover article::before { width: 100%; }
+  .article-card[data-lane="buildlog"]:hover .lane-tag.buildlog {
+    text-shadow: 0 0 8px var(--color-lane-buildlog), 0 0 22px rgba(167, 139, 250, 0.45);
+    animation: neon-flicker 0.35s ease-out;
+  }
+
+  /* Featured card: idle glow pulse */
+  @keyframes featured-pulse {
+    0%,  100% { box-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+    50%        { box-shadow: 0 0 22px rgba(139, 92, 246, 0.16), 0 4px 24px rgba(0,0,0,0.3); }
+  }
+  .article-card.featured-card article {
+    animation: featured-pulse 4s ease-in-out infinite;
+  }
+  .article-card.featured-card:hover article {
+    animation: none;
+  }
+
+  /* Sibling dimming — cards recede when a peer is focused */
+  #article-grid:has(.article-card:hover) .article-card:not(:hover) article {
+    opacity: 0.55;
+    transform: scale(0.985);
+  }
+
+  /* Page-load card reveal */
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .article-card {
+    animation: card-in 0.38s ease-out both;
+  }
+  .article-card:nth-child(2)      { animation-delay: 55ms; }
+  .article-card:nth-child(3)      { animation-delay: 110ms; }
+  .article-card:nth-child(4)      { animation-delay: 165ms; }
+  .article-card:nth-child(5)      { animation-delay: 220ms; }
+  .article-card:nth-child(6)      { animation-delay: 275ms; }
+  .article-card:nth-child(7)      { animation-delay: 330ms; }
+  .article-card:nth-child(n+8)    { animation-delay: 380ms; }
+
+  /* Neon flicker keyframe */
+  @keyframes neon-flicker {
+    0%   { opacity: 1;    }
+    12%  { opacity: 0.78; }
+    18%  { opacity: 1;    }
+    28%  { opacity: 0.85; }
+    34%  { opacity: 1;    }
+    100% { opacity: 1;    }
   }
 }
