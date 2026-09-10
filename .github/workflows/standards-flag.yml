@@ -1,0 +1,105 @@
+# vault-o8g8j: ISA Standards Soft-Flag CI Workflow (Tier 2 Non-Blocking)
+# Deployed to ALL 17 daemonprompt repos via dispatch_governance_workflows.py.
+# Detects PRs modifying files that reference prometheus-standards IDs (docs/NN pattern).
+# Adds a PR comment listing references and sends a non-blocking Telegram alert to Casey.
+# Does NOT block merge. Casey can reply BLOCK to halt or STANDARDS-OK to confirm.
+#
+# docs/06: permissions deny-by-default, self-hosted runner on daemon-infra1.
+# docs/29: enforcement layer 2 (CI gate -- soft flag variant).
+#
+# This workflow always exits 0. It is informational only.
+name: Standards Reference Flag
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  standards-check:
+    runs-on: [self-hosted, daemon-infra1]
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for ISA standards references in changed files
+        id: std_check
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          REFS=""
+          for FILE in $CHANGED_FILES; do
+            if [ -f "$FILE" ]; then
+              FOUND=$(grep -oE 'docs/[0-9]+' "$FILE" 2>/dev/null | sort -u | tr '\n' ',' | sed 's/,$//')
+              if [ -n "$FOUND" ]; then
+                REFS="${REFS}${FILE}: ${FOUND}\n"
+              fi
+            fi
+          done
+          if [ -n "$REFS" ]; then
+            echo "STANDARDS_REFS=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "REFS_LIST<<HEREDOC_EOF"
+              printf "%b" "$REFS"
+              echo "HEREDOC_EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "STANDARDS_REFS=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post PR comment on standards reference
+        if: steps.std_check.outputs.STANDARDS_REFS == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REFS_LIST: ${{ steps.std_check.outputs.REFS_LIST }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - << 'PYEOF'
+          import os, subprocess
+
+          refs = os.environ.get("REFS_LIST", "")
+          pr = os.environ.get("PR_NUMBER", "")
+          repo = os.environ.get("REPO", "")
+
+          lines = [
+            "**Standards Reference Detected** (Tier 2 soft flag -- non-blocking)",
+            "",
+            "This PR modifies files that reference prometheus-standards IDs:",
+            "",
+          ]
+          for ref_line in refs.strip().splitlines():
+              lines.append(f"- `{ref_line}`")
+          lines += [
+            "",
+            "Casey has been notified via Telegram. No merge block unless Casey replies BLOCK.",
+            "Normal Telegram approval flow proceeds.",
+            "",
+            "_vault-o8g8j | Standards Reference Flag v1.0_",
+          ]
+
+          body = "\n".join(lines)
+          subprocess.run(
+              ["gh", "pr", "comment", pr, "--repo", repo, "--body", body],
+              check=True
+          )
+          PYEOF
+
+      - name: Send non-blocking Telegram alert
+        if: steps.std_check.outputs.STANDARDS_REFS == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          TEXT="ℹ️ [STANDARDS FLAG] PR #${PR_NUMBER} in ${REPO} modifies files referencing prometheus-standards. Non-blocking. Reply STANDARDS-OK to confirm or BLOCK to halt."
+          curl -sf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "parse_mode=HTML" || echo "Telegram alert failed (non-fatal)"
+          true
