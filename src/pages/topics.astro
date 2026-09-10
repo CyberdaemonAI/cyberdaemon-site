@@ -9,9 +9,9 @@ const buildLogs = (await getCollection('build-logs', e => !e.data.draft));
 type Article = { title: string; href: string; lane: string; topic: string; date: Date };
 
 const allArticles: Article[] = [
-  ...research.map(e  => ({ title: e.data.title, href: `/research/${e.slug}`, lane: 'research', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
-  ...analysis.map(e  => ({ title: e.data.title, href: `/analysis/${e.slug}`, lane: 'analysis', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
-  ...buildLogs.map(e => ({ title: e.data.title, href: `/build-logs/${e.slug}`, lane: 'build-logs', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
+  ...research.map(e  => ({ title: e.data.title, href: `/research/${e.id}`, lane: 'research', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
+  ...analysis.map(e  => ({ title: e.data.title, href: `/analysis/${e.id}`, lane: 'analysis', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
+  ...buildLogs.map(e => ({ title: e.data.title, href: `/build-logs/${e.id}`, lane: 'build-logs', topic: e.data.topic || 'Uncategorized', date: e.data.date })),
 ];
 
 // Group by topic, preserve topic ordering by earliest article date

@@ -5,7 +5,7 @@ import Article from '../../layouts/Article.astro';
 export async function getStaticPaths() {
   const entries = await getCollection('analysis', e => !e.data.draft);
   return entries.map(entry => ({
-    params: { slug: entry.slug },
+    params: { slug: entry.id },
     props: { entry },
   }));
 }
@@ -20,7 +20,7 @@ const { Content } = await entry.render();
   lane="analysis"
   tags={entry.data.tags}
   threads={entry.data.threads}
-  slug={entry.slug}
+  slug={entry.id}
   collection="analysis"
 >
   <Content />

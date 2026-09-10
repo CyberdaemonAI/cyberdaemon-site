@@ -96,7 +96,7 @@ const cogSecArticles = byThread('cognitive-security');
           <ul>
             {agentsArticles.map(e => (
               <li>
-                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <a href={`/${lane(e)}/${e.id}`}>{e.data.title}</a>
                 <span class="thread-date">{fmt(e.data.date)}</span>
               </li>
             ))}
@@ -120,7 +120,7 @@ const cogSecArticles = byThread('cognitive-security');
           <ul>
             {intentArticles.map(e => (
               <li>
-                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <a href={`/${lane(e)}/${e.id}`}>{e.data.title}</a>
                 <span class="thread-date">{fmt(e.data.date)}</span>
               </li>
             ))}
@@ -144,7 +144,7 @@ const cogSecArticles = byThread('cognitive-security');
           <ul>
             {smallLargeArticles.map(e => (
               <li>
-                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <a href={`/${lane(e)}/${e.id}`}>{e.data.title}</a>
                 <span class="thread-date">{fmt(e.data.date)}</span>
               </li>
             ))}
@@ -170,7 +170,7 @@ const cogSecArticles = byThread('cognitive-security');
           <ul>
             {cogSecArticles.map(e => (
               <li>
-                <a href={`/${lane(e)}/${e.slug}`}>{e.data.title}</a>
+                <a href={`/${lane(e)}/${e.id}`}>{e.data.title}</a>
                 <span class="thread-date">{fmt(e.data.date)}</span>
               </li>
             ))}

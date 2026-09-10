@@ -45,7 +45,7 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
             title={a.data.title}
             excerpt={a.data.excerpt ?? a.data.description}
             lane={a.lane}
-            slug={a.slug}
+            slug={a.id}
             tags={a.data.tags}
             date={a.data.date}
             featured={true}
@@ -63,7 +63,7 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
           title={a.data.title}
           excerpt={a.data.excerpt ?? a.data.description}
           lane={a.lane}
-          slug={a.slug}
+          slug={a.id}
           tags={a.data.tags}
           date={a.data.date}
         />

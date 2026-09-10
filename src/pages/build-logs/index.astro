@@ -18,7 +18,7 @@ function fmt(d: Date) {
     {articles.length > 0 ? (
       <div class="flex flex-col gap-10">
         {articles.map(entry => (
-          <a href={`/build-logs/${entry.slug}`} class="group block">
+          <a href={`/build-logs/${entry.id}`} class="group block">
             <h2 class="font-serif text-text-primary group-hover:text-accent transition-colors mb-2 leading-snug"
                 style="font-size: 1.25rem;">
               {entry.data.title}
