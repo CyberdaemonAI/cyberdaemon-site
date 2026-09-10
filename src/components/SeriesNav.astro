@@ -35,10 +35,11 @@ const research   = threads.length ? await getCollection('research',   e => !e.da
 const analysis   = threads.length ? await getCollection('analysis',   e => !e.data.draft && (e.data.threads ?? []).some(t => threads.includes(t))) : [];
 const buildLogs  = threads.length ? await getCollection('build-logs', e => !e.data.draft && (e.data.threads ?? []).some(t => threads.includes(t))) : [];
 
+const sid = (e: { id: string }) => e.id.replace(/\.(mdx|md)$/, '');
 const allInThread: SeriesEntry[] = [
-  ...research.map(e  => ({ title: e.data.title, slug: e.slug, href: `/research/${e.slug}`,    date: e.data.date })),
-  ...analysis.map(e  => ({ title: e.data.title, slug: e.slug, href: `/analysis/${e.slug}`,    date: e.data.date })),
-  ...buildLogs.map(e => ({ title: e.data.title, slug: e.slug, href: `/build-logs/${e.slug}`,  date: e.data.date })),
+  ...research.map(e  => ({ title: e.data.title, slug: sid(e), href: `/research/${sid(e)}`,    date: e.data.date })),
+  ...analysis.map(e  => ({ title: e.data.title, slug: sid(e), href: `/analysis/${sid(e)}`,    date: e.data.date })),
+  ...buildLogs.map(e => ({ title: e.data.title, slug: sid(e), href: `/build-logs/${sid(e)}`,  date: e.data.date })),
 ];
 
 // Sort by date ASC, then slug ASC for same-date (preserves part1 → part2 → ... ordering)
