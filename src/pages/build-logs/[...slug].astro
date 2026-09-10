@@ -5,7 +5,7 @@ import Article from '../../layouts/Article.astro';
 export async function getStaticPaths() {
   const entries = await getCollection('build-logs', e => !e.data.draft);
   return entries.map(entry => ({
-    params: { slug: entry.id },
+    params: { slug: entry.slug ?? entry.id },
     props: { entry },
   }));
 }
