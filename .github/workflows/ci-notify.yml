@@ -1,0 +1,52 @@
+name: CI Failure Notifier
+
+on:
+  workflow_run:
+    workflows:
+      - "Content Standards Check"
+      - "Content Pipeline Notifications"
+      - "prom-memory Milestone on Publish"
+      - "Content Rex Review"
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  notify:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Send Telegram alert
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WF_NAME: ${{ github.event.workflow_run.name }}
+          WF_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WF_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WF_PRS: ${{ toJson(github.event.workflow_run.pull_requests) }}
+          WF_REPO: ${{ github.event.workflow_run.repository.full_name }}
+        run: |
+          python3 <<'PYEOF'
+          import os, json, urllib.request
+          wf   = os.environ['WF_NAME']
+          repo = os.environ['WF_REPO']
+          br   = os.environ['WF_BRANCH']
+          url  = os.environ['WF_RUN_URL']
+          prs  = json.loads(os.environ.get('WF_PRS', '[]'))
+          pr_s = f" | PR #{prs[0]['number']}" if prs else ''
+          wf_l = wf.lower()
+          if 'rex' in wf_l:
+              route = 'rex'
+          elif any(k in wf_l for k in ('content', 'prom-memory')):
+              route = 'jen'
+          else:
+              route = 'claude-code'
+          msg = f"CI FAIL | {repo}{pr_s}\nWorkflow: {wf}\nBranch: {br}\nRun: {url}\n[ROUTE:{route}]"
+          data = json.dumps({'chat_id': os.environ['CHAT_ID'], 'text': msg}).encode()
+          req = urllib.request.Request(
+              f"https://api.telegram.org/bot{os.environ['BOT_TOKEN']}/sendMessage",
+              data=data, headers={'Content-Type': 'application/json'}
+          )
+          urllib.request.urlopen(req)
+          PYEOF
