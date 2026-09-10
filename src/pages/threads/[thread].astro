@@ -14,10 +14,11 @@ export async function getStaticPaths() {
   const analysis   = await getCollection('analysis',   e => !e.data.draft);
   const buildLogs  = await getCollection('build-logs', e => !e.data.draft);
 
+  const slug = (e: { id: string }) => e.id.replace(/\.(mdx|md)$/, '');
   const allArticles = [
-    ...research.map(e  => ({ ...e, lane: 'research'   as const, href: `/research/${e.slug}`   })),
-    ...analysis.map(e  => ({ ...e, lane: 'analysis'   as const, href: `/analysis/${e.slug}`   })),
-    ...buildLogs.map(e => ({ ...e, lane: 'build-logs' as const, href: `/build-logs/${e.slug}` })),
+    ...research.map(e  => ({ ...e, slug: slug(e), lane: 'research'   as const, href: `/research/${slug(e)}`   })),
+    ...analysis.map(e  => ({ ...e, slug: slug(e), lane: 'analysis'   as const, href: `/analysis/${slug(e)}`   })),
+    ...buildLogs.map(e => ({ ...e, slug: slug(e), lane: 'build-logs' as const, href: `/build-logs/${slug(e)}` })),
   ];
 
   // Collect all unique thread slugs across all articles
@@ -34,7 +35,7 @@ export async function getStaticPaths() {
         .filter(a => (a.data.threads ?? []).includes(thread))
         .sort((a, b) => {
           const d = a.data.date.valueOf() - b.data.date.valueOf();
-          return d !== 0 ? d : a.slug.localeCompare(b.slug);
+          return d !== 0 ? d : (a.slug ?? '').localeCompare(b.slug ?? '');
         })
         .map(a => ({
           title: a.data.title,
