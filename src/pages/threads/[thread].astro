@@ -14,10 +14,11 @@ export async function getStaticPaths() {
   const analysis   = await getCollection('analysis',   e => !e.data.draft);
   const buildLogs  = await getCollection('build-logs', e => !e.data.draft);
 
+  const slug = (e: { id: string }) => e.id.replace(/\.(mdx|md)$/, '');
   const allArticles = [
-    ...research.map(e  => ({ ...e, slug: e.slug ?? e.id, lane: 'research'   as const, href: `/research/${e.slug ?? e.id}`   })),
-    ...analysis.map(e  => ({ ...e, slug: e.slug ?? e.id, lane: 'analysis'   as const, href: `/analysis/${e.slug ?? e.id}`   })),
-    ...buildLogs.map(e => ({ ...e, slug: e.slug ?? e.id, lane: 'build-logs' as const, href: `/build-logs/${e.slug ?? e.id}` })),
+    ...research.map(e  => ({ ...e, slug: slug(e), lane: 'research'   as const, href: `/research/${slug(e)}`   })),
+    ...analysis.map(e  => ({ ...e, slug: slug(e), lane: 'analysis'   as const, href: `/analysis/${slug(e)}`   })),
+    ...buildLogs.map(e => ({ ...e, slug: slug(e), lane: 'build-logs' as const, href: `/build-logs/${slug(e)}` })),
   ];
 
   // Collect all unique thread slugs across all articles
