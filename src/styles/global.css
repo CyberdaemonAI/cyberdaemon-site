@@ -346,6 +346,24 @@
     width: 100%;
   }
 
+  /* ─── Social icon links in header nav ──────────────────────── */
+  /* Suppress underline-slide pseudo-element and apply icon sizing */
+  .nav-social-icon {
+    display: inline-flex;
+    align-items: center;
+    color: var(--color-text-muted);
+    transition: color 0.15s ease;
+    line-height: 1;
+  }
+  .nav-social-icon:hover {
+    color: var(--color-accent);
+  }
+  /* Suppress underline-slide inherited from header nav a::after */
+  .nav-social-icon::after {
+    display: none !important;
+  }
+
+
   /* ─── Tag filter ─────────────────────────────────────────────── */
   .tag-filter-btn {
     font-family: 'IBM Plex Mono', monospace;
