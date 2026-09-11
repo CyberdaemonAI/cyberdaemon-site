@@ -16,8 +16,14 @@ interface Props {
 }
 
 const { title, description, date, lane, tags = [], readTime, threads = [], slug = '', collection = lane } = Astro.props;
+
+// Build OG image URL for this article.
+// Passing title as a query param avoids a server-side file read in the edge function.
+const ogImage = slug
+  ? `https://cyberdaemon.ai/api/og?slug=${encodeURIComponent(slug)}&lane=${encodeURIComponent(lane)}&title=${encodeURIComponent(title)}`
+  : undefined;
 ---
-<Base title={title} description={description}>
+<Base title={title} description={description} ogImage={ogImage}>
 
   <article class="max-w-article mx-auto px-6 pb-24">
 

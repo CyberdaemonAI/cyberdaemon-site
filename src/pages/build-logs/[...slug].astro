@@ -12,6 +12,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const slug = entry.id.replace(/\.(mdx|md)$/, '');
 ---
 <Article
   title={entry.data.title}
@@ -19,6 +20,8 @@ const { Content } = await render(entry);
   date={entry.data.date}
   lane="build-logs"
   tags={entry.data.tags}
+  slug={slug}
+  collection="build-logs"
 >
   <Content />
 </Article>
