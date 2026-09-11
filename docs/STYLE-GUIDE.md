@@ -499,6 +499,141 @@ Why it fails: forced, switches tone mid-thought, "seriously folks" is a crutch, 
 
 ---
 
+---
+
+## Voice and Reader Zero
+
+Every article on cyberdaemon.ai is written for Reader Zero: the person who landed on this specific section from a search result, has no prior context, and is deciding in 10 seconds whether to keep reading. Never assume the reader absorbed the intro. Never assume they read the previous section. Write every paragraph as if it is the entry point.
+
+This is not about dumbing down. It is about respecting the reader's time. The expert reader skips the parentheticals. The Reader Zero reader needs them to stay in the room.
+
+---
+
+### Reader Zero principle
+
+Reader Zero is the reader who arrived at your paragraph with no prior context. They may have followed a link, searched for a term, or scrolled past the intro. They are intelligent. They are not necessarily familiar with your vocabulary.
+
+**Why it matters:** most security and AI writing is written for an imaginary reader who started from page one and read every word. That reader does not exist. The real reader is non-linear, impatient, and scanning for the payoff.
+
+**How to apply it:** after drafting each section, ask: "If someone read only this section, would they understand the argument?" If no, add one sentence of grounding. Not a full re-introduction. One sentence.
+
+---
+
+### Concept read-in rule
+
+Every acronym, standard name, and named framework gets a plain one-clause explanation on every use. No bare acronyms. No assumption that the reader has your abbreviation table memorized.
+
+**Pattern:**
+
+```
+"TERM (one-clause plain explanation)" on every occurrence.
+```
+
+**Examples:**
+
+- "NIST SP 800-207 (the federal Zero Trust architecture blueprint)" -- every use
+- "PDP (the policy decision point -- the component that decides if a request is allowed)" -- every use
+- "PEP (the policy enforcement point -- where the allow/deny is actually enforced)" -- every use
+- "Zero Trust Architecture (the security model that treats every request as untrusted regardless of network location)" -- every use
+- "NHI (Non-Human Identity -- the class of machine credentials and service accounts that operate without human users)" -- every use
+
+**Frequency guidance:** first use per section gets the full parenthetical. Later uses in the same section can shorten it once the section has established the term. The rule is judgment, not formula: never leave Reader Zero stranded for more than one section without a reminder. When in doubt, include it.
+
+**What not to do:**
+
+- Expand on first use, then strip all parentheticals from the rest of the article. The reader who jumped to section 4 never saw your first-use expansion.
+- Use the abbreviation alone and hope the reader remembers. They do not.
+- Over-parentheticalize: if the term has been explained twice in the same section, a third parenthetical is noise. Use judgment.
+
+---
+
+### Cultural anchor (levity gate)
+
+Every article needs a named cultural anchor in its opening section. A story, metaphor, film, TV reference, book, or historical moment that earns the reader's attention before the technical argument starts.
+
+**Test:** would someone who has never heard of cyberdaemon.ai recognize this reference immediately? If no, it is too niche. Find something broader.
+
+**Universal corpus (safe starting points):**
+
+| Domain | Examples |
+|---|---|
+| Film | Jurassic Park, Apollo 13, The Prestige, Die Hard, Aliens |
+| TV | Breaking Bad, Seinfeld, Succession, The Wire |
+| Literature | Frankenstein, Catch-22, 1984 |
+| History | Apollo 11, the 2003 Northeast blackout, Chernobyl |
+| Music | anything in the cultural mainstream for at least 20 years |
+
+**Niche (avoid unless the audience is specifically that subculture):** obscure indie films, academic papers, niche gaming references, regional news events.
+
+**How to use the anchor:** the anchor earns the reader's attention, then bridges to the argument. It should make the point faster than the technical argument alone would. If removing the anchor makes the opening stronger, the anchor was decoration. Find a better one.
+
+**Levity gate (required, not optional):** before shipping any article, confirm that a specific named anchor appears in the opening. "Use a story" is not a levity gate pass. "In Christopher Nolan's *The Prestige*, two rivals invent identical tricks from opposite directions" is a levity gate pass. Name the specific reference in your voice notes or PR description.
+
+---
+
+### Temporal grounding
+
+Ledes decay. Evergreen arguments do not.
+
+- **Lede:** ground it in a specific time marker (a dated incident, a version number, a named event). This tells the reader the piece is real, not theoretical.
+- **Core argument:** make it evergreen. The specific incident is the hook; the principle should hold in three years.
+- **Pattern:** "In [month/year], [specific thing happened]. The underlying problem is [principle that predates and outlasts the incident]."
+
+If the lede ages badly, the principle still stands. If the principle ages badly, that is a different problem.
+
+---
+
+### Failure voice, not authority voice
+
+Write from the vantage of someone who got burned, not someone who has the answers.
+
+**Authority voice (avoid):**
+
+> Most engineers get this wrong. The correct approach is...
+
+**Failure voice (use):**
+
+> I got burned by this in August. Here is what I missed and what I changed.
+
+The authority voice puts the writer above the reader. The failure voice puts the writer in the same room. The failure voice is also more credible: anyone can claim expertise, but specific failures are hard to fake.
+
+This does not mean endless self-deprecation. State the lesson clearly. Just earn it with a specific moment of failure first.
+
+---
+
+### Jargon kill list
+
+Before shipping, grep for these phrases. Each one is a signal that a sentence should be rewritten.
+
+| Kill | Replace with |
+|---|---|
+| "enterprise environments" | name the actual context (production systems, orgs with 500+ employees, regulated industries) |
+| "threat surface" | name what is actually exposed (tool call parameters, agent session state, system prompt) |
+| "robust" | name the specific property (handles malformed inputs, recovers from network splits, validates at every step) |
+| "agentic AI systems" | "autonomous agents" or just "agents" -- "agentic" is a jargon tell |
+| "leverage" (as a verb meaning "use") | use "use," "apply," "run," "build on" |
+| "utilize" | use "use" |
+| "seamless" | either describe the integration or remove the adjective |
+| "next-generation" | describe what is actually new |
+| "holistic" | describe the actual scope |
+| "synergy" | delete. There is no recovery. |
+
+**The Gartner test:** read the sentence aloud. Could it appear unedited in a Gartner Magic Quadrant press release? If yes, rewrite it. Gartner prose is not a style goal. It is an anti-pattern.
+
+---
+
+### Worked example: Zero Trust PDP/PEP in plain language
+
+**Before (bare acronym, authority voice, jargon):**
+
+> The ZTA architecture requires robust PDP/PEP separation in enterprise environments to leverage agentic AI system capabilities within the threat surface.
+
+**After (concept read-in, failure voice, no jargon):**
+
+> I built the first version with the decision logic and the enforcement logic in the same function. It worked until it did not: one bad policy check let a tool call through that should have been blocked. Separating the PDP (the policy decision point -- the component that decides if a request is allowed) from the PEP (the policy enforcement point -- where the allow/deny is actually enforced) is how NIST SP 800-207 (the federal Zero Trust architecture blueprint) specifies it. I should have read the spec first.
+
+The second version: states a specific failure, explains the terms on use, names the source, ends with self-aware accountability. Reader Zero stays in the room. The expert reader gets the same information with more context.
+
 ## Voice Registers
 
 cyberdaemon.ai has two distinct writing registers. Know which one you are in before you write the first sentence.
