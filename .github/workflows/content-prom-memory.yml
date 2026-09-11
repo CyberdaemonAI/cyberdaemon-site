@@ -41,6 +41,7 @@ jobs:
 
       - name: Join Tailscale
         if: steps.article.outputs.found == 'true'
+        continue-on-error: true
         uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade  # v3
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
@@ -50,6 +51,7 @@ jobs:
 
       - name: Save prom-memory milestone
         if: steps.article.outputs.found == 'true'
+        continue-on-error: true
         env:
           PROM_MEMORY_TOKEN: ${{ secrets.PROM_MEMORY_TOKEN }}
         run: |
