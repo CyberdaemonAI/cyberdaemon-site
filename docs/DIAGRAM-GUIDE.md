@@ -111,6 +111,34 @@ Target export width: 900px at 2x. The component scales to fit. Do not hard-code 
 
     <DiagramBlock type="sketch" src="/images/{slug}-{name}.svg" caption="Caption text" />
 
+### CLI Workflow (Excalidraw to MDX)
+
+Use `scripts/excalidraw-to-mdx.js` to go from a `.excalidraw` file to a DiagramBlock-ready
+MDX snippet without touching excalidraw.com export settings manually.
+
+**Prerequisites**
+
+    npm install -D excalirender   # one-time, already in devDependencies
+
+**Run it**
+
+    node scripts/excalidraw-to-mdx.js path/to/diagram.excalidraw \
+      --slug context-finite-resource \
+      --descriptor flow \
+      --caption "How context shrinks under load"
+
+**What it produces**
+
+- `public/images/<slug>-<descriptor>.svg` — rendered SVG, ready to commit with the article
+- `<slug>-<descriptor>.mdx.snippet` — MDX snippet next to the source file, paste into your article
+
+**After pasting the snippet**
+
+1. Commit `public/images/<slug>-<descriptor>.svg` alongside the article
+2. Delete the `.excalidraw` and `.mdx.snippet` files -- do not commit them
+3. The snippet uses `type="sketch"` automatically
+
+
 ---
 
 ## Tier 3 — Narrative Illustration (AI-directed, Casey owns)
