@@ -1,0 +1,50 @@
+---
+interface Props {
+  type: 'amends' | 'amended-by';
+  articles: Array<{ slug: string; lane: string; title: string }>;
+}
+const { type, articles } = Astro.props;
+---
+
+{articles.length > 0 && (
+  <aside class={`amendment-banner amendment-banner--${type}`} role="note">
+    {type === 'amends' && (
+      <p>
+        <strong>Amending:</strong>{' '}
+        {articles.map((a, i) => (
+          <>
+            <a href={`/${a.lane}/${a.slug}`}>{a.title}</a>
+            {i < articles.length - 1 && ', '}
+          </>
+        ))}
+      </p>
+    )}
+    {type === 'amended-by' && (
+      <p>
+        <strong>Updated by:</strong>{' '}
+        {articles.map((a, i) => (
+          <>
+            <a href={`/${a.lane}/${a.slug}`}>{a.title}</a>
+            {i < articles.length - 1 && ', '}
+          </>
+        ))}
+      </p>
+    )}
+  </aside>
+)}
+
+<style>
+  .amendment-banner {
+    border-left: 3px solid var(--color-accent, #0d9488);
+    padding: 0.5rem 1rem;
+    margin: 0 0 1.5rem;
+    background: var(--color-surface-subtle, #f8f9fa);
+    font-size: 0.9rem;
+  }
+  .amendment-banner p {
+    margin: 0;
+  }
+  .amendment-banner a {
+    text-decoration: underline;
+  }
+</style>

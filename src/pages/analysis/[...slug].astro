@@ -1,6 +1,8 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Article from '../../layouts/Article.astro';
+import AmendmentBanner from '../../components/AmendmentBanner.astro';
+import { getAmendments, getOriginalArticle } from '../../lib/amendments';
 
 export async function getStaticPaths() {
   const entries = await getCollection('analysis', e => !e.data.draft);
@@ -12,6 +14,8 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const amendments = await getAmendments(entry.id);
+const original = entry.data.updates ? await getOriginalArticle(entry.data.updates) : null;
 ---
 <Article
   title={entry.data.title}
@@ -23,5 +27,7 @@ const { Content } = await render(entry);
   slug={entry.id.replace(/\.(mdx|md)$/, '')}
   collection="analysis"
 >
+  {original && <AmendmentBanner type="amends" articles={[original]} />}
+  {amendments.length > 0 && <AmendmentBanner type="amended-by" articles={amendments} />}
   <Content />
 </Article>
