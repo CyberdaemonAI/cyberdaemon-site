@@ -341,3 +341,16 @@
     color: var(--color-accent);
   }
 }
+
+/* ─── Nav social icons ───────────────────────────────────────────── */
+
+.nav-social-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  transition: color 0.15s;
+}
+
+.nav-social-icon:hover {
+  color: var(--color-accent);
+}
