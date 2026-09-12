@@ -35,7 +35,7 @@ jobs:
       - name: Checkout daemonvault (draft source)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
-          repository: daemonprompt/daemonvault
+          repository: daemonprompt/obsidian-vault
           token: ${{ secrets.VAULT_DEPLOY_KEY_TOKEN }}
           path: vault
           sparse-checkout: |
