@@ -35,7 +35,7 @@ You are heads-down on something else. The agents are doing their thing. You get 
 <ScrollReveal>
 The first version of the Telegram approval bot was simple, which is another way of saying it had no opinions.
 
-B0b (my build agent) opens a pull request. The bot sends me a Telegram message. I reply `/approve`. The PR merges. That was the whole loop.
+My build agent opens a pull request. The bot sends me a Telegram message. I reply `/approve`. The PR merges. That was the whole loop.
 
 It worked, until it did not. The problem was not the bot. The problem was me.
 
@@ -131,7 +131,7 @@ Focus makes me more careful, not less.
 ## Where This Landed
 
 <ScrollReveal>
-Buttons are confirmed working. The first properly gated merge went through the full path: B0b opened the PR, bot sent the notification with CI status, I read the context, I tapped approve, the PR merged.
+Buttons are confirmed working. The first properly gated merge went through the full path: the build agent opened the PR, bot sent the notification with CI status, I read the context, I tapped approve, the PR merged.
 
 That is a small thing. It is also the only thing that makes the rest of the agent fleet defensible.
 
