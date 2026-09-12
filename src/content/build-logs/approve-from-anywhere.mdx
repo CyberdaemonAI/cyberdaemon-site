@@ -12,6 +12,7 @@ import Callout from '../../components/Callout.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 
 <Callout variant="note" label="Build log">
 I built a Telegram bot to approve GitHub PRs from my phone. Then I built a gate to stop
@@ -87,6 +88,34 @@ I was testing the new button interface on my phone. Before I got to the buttons,
 <PullQuote>
 It was almost funny. The first real test of the hardened bot was not a rogue agent or a malformed PR. It was iOS autocorrect. The gate caught it anyway.
 </PullQuote>
+
+<DiagramBlock caption="Telegram approval flow: PR opens, bot notifies, human reads context and taps approve, PR merges">
+```mermaid
+flowchart TD
+    subgraph agent["Build Agent"]
+        PR(["PR opened"])
+    end
+
+    subgraph bot["Telegram Approval Bot"]
+        DET["Detect PR"]
+        NOTIFY["Send notification\nrepo + title + CI status + link"]
+        RECV["Receive tap approval"]
+        MERGE["Merge PR"]
+    end
+
+    subgraph human["Human (Telegram)"]
+        MSG(["Notification received"])
+        TAP(["Tap Approve button"])
+    end
+
+    PR --> DET
+    DET --> NOTIFY
+    NOTIFY --> MSG
+    MSG --> TAP
+    TAP --> RECV
+    RECV --> MERGE
+```
+</DiagramBlock>
 
 ---
 
