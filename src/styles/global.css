@@ -170,6 +170,8 @@
   /* ─── Prose container ───────────────────────────────────────── */
   .prose-container {
     max-width: 68ch;
+    width: 100%;               /* Do not overflow parent on mobile */
+    overflow-x: hidden;        /* Prevent horizontal scroll */
     margin-left: auto;
     margin-right: auto;
   }
@@ -298,6 +300,7 @@
   .article-meta {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.625rem;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.6875rem;
@@ -307,6 +310,15 @@
     margin-bottom: 2rem;
   }
   .article-meta .sep { color: var(--color-border); }
+
+  @media (max-width: 640px) {
+    .article-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+    .article-meta .sep { display: none; }
+  }
 
   /* ─── Article index — cards ─────────────────────────────────── */
   .tag-pill {
@@ -367,6 +379,23 @@
   /* Suppress underline-slide inherited from header nav a::after */
   .nav-social-icon::after {
     display: none !important;
+  }
+
+  /* ─── Mobile nav ────────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    header nav {
+      height: auto;
+      min-height: 3.5rem;
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    header nav > div:last-child {
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
   }
 
 
