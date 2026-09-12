@@ -2,6 +2,8 @@
 import Base from './Base.astro';
 import ArticleHero from '../components/ArticleHero.astro';
 import SeriesNav from '../components/SeriesNav.astro';
+import RelatedArticles from '../components/RelatedArticles.astro';
+import { getRelatedArticles } from '../lib/related-articles';
 
 interface Props {
   title: string;
@@ -22,6 +24,11 @@ const { title, description, date, lane, tags = [], readTime, threads = [], slug 
 const ogImage = slug
   ? `https://cyberdaemon.ai/api/og?slug=${encodeURIComponent(slug)}&lane=${encodeURIComponent(lane)}&title=${encodeURIComponent(title)}`
   : undefined;
+
+// Compute related articles at build time. Empty when slug is absent (preview/draft context).
+const related = slug
+  ? await getRelatedArticles(slug, lane, tags, threads)
+  : [];
 ---
 <Base title={title} description={description} ogImage={ogImage}>
 
@@ -47,6 +54,8 @@ const ogImage = slug
     {threads.length > 0 && slug && (
       <SeriesNav threads={threads} currentSlug={slug} collection={collection} />
     )}
+
+    <RelatedArticles articles={related} />
 
   </article>
 
