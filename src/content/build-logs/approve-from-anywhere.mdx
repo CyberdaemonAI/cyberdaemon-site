@@ -1,0 +1,172 @@
+---
+title: "Approve From Anywhere"
+description: "I built a Telegram bot to approve GitHub PRs from my phone. Then I built a gate to stop myself from approving them too fast. This is the story of the gate."
+excerpt: "I did not build the gate to stop attackers. I built it to protect myself from the version of me who wants to move on."
+date: 2026-09-12
+tags: ["autonomous-agents", "infrastructure"]
+topic: "Agentic Systems at Scale"
+featured: false
+---
+
+import Callout from '../../components/Callout.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+
+<Callout variant="note" label="Build log">
+I built a Telegram bot to approve GitHub PRs from my phone. Then I built a gate to stop
+myself from approving them too fast. This is the story of the gate.
+</Callout>
+
+---
+
+There is a scene in *The Naked Gun* where Frank Drebin is doing crowd control outside a building that is on fire. He keeps assuring everyone to remain calm while increasingly catastrophic things happen behind him: a gas main blows, a fireworks cart ignites, a marching band walks into the flames. He is not ignoring the disasters. He genuinely does not know they are happening.
+
+That is what running an agent fleet without a real approval gate feels like.
+
+You are heads-down on something else. The agents are doing their thing. You get a Telegram notification, you type `/approve`, and you move on. Problem is: you do not actually know what you just approved. The notification was vague, the context from three hours ago is gone, and you are Frank Drebin calmly narrating while things merge behind you.
+
+---
+
+<SectionLabel text="The Footgun" />
+
+## The Footgun
+
+<ScrollReveal>
+The first version of the Telegram approval bot was simple, which is another way of saying it had no opinions.
+
+My build agent opens a pull request. The bot sends me a Telegram message. I reply `/approve`. The PR merges. That was the whole loop.
+
+It worked, until it did not. The problem was not the bot. The problem was me.
+
+Context switching is expensive. I run multiple build sessions in parallel across different Prometheus services, and a Telegram notification that says "PR #41 ready for review" tells me almost nothing when I am context-shifted into something completely unrelated two hours later. I would check the notification, think "yeah, sounds right," type `/approve no-args`, and move on.
+
+I came back to the terminal later and found things merged that I had not actually read. Not dangerous things, in those cases, but the pattern was wrong. The gate existed on paper. In practice I had made it a speed bump.
+
+Footguns do not require malicious intent. Impatience is enough.
+</ScrollReveal>
+
+---
+
+<SectionLabel text="I Was Worried I Am Lazy" />
+
+## I Was Worried I Am Lazy
+
+<ScrollReveal>
+Here is the thing I had to be honest with myself about: I built this bot to keep a human in the loop on agentic PR merges. That is a real security requirement. Hallucination drift, permission creep, unreviewed changes in live infrastructure, those are real failure modes. The whole point of human-above-the-loop is that one set of eyes catches what the agent missed.
+
+If I am approving PRs without reading them because the notification does not give me enough to go on, I have not built a human-in-the-loop system. I have built a human-rubber-stamp system. Those are different things.
+
+I spent a few minutes being annoyed about this, and then I had a clearer thought: I was not lazy. I was impatient, and the bot was not making it easy to be careful. My discipline was not matching what I had created. The bot needed to make the right behavior easier than the wrong behavior.
+</ScrollReveal>
+
+<PullQuote>
+I did not build the gate to stop attackers. I built it to protect myself from the version of me who wants to move on.
+</PullQuote>
+
+---
+
+<SectionLabel text="Hardening and the Autocorrect Ambush" />
+
+## Hardening and the Autocorrect Ambush
+
+<ScrollReveal>
+The hardening pass had three pieces.
+
+First: a SQLite queue. Every PR that comes in gets written to a local database before anything else happens. The bot tracks state. If a PR is pending approval and I restart the bot, I get re-notified. If the bot starts cold with a backlog of open PRs, it hydrates from GitHub and re-queues everything. The first restart after the new bot went live, two pending PRs re-notified immediately. Small number, but the point is I did not have to remember they existed.
+
+Second: full PR context in every notification. Not just the PR number. Repo name, PR title, the current CI status, a direct link. If I cannot understand what I am approving from the notification alone, the notification is broken, not me. So I fixed the notification.
+
+Third: inline approval buttons instead of typed commands. Tap to approve or reject, right in the Telegram message. No typing, no ambiguity, no command parsing.
+
+That last change is where the autocorrect incident happened.
+
+I was testing the new button interface on my phone. Before I got to the buttons, I typed a test approval command manually, `/approve`, to confirm the bot still handled text commands as a fallback. My phone autocorrected `telegram-approval-bot` to `telegram-approvalbot`. The hyphen dropped. The bot correctly rejected the command because the command format did not match. The gate worked.
+</ScrollReveal>
+
+<PullQuote>
+It was almost funny. The first real test of the hardened bot was not a rogue agent or a malformed PR. It was iOS autocorrect. The gate caught it anyway.
+</PullQuote>
+
+<DiagramBlock caption="Telegram approval flow: PR opens, bot notifies, human reads context and taps approve, PR merges">
+```mermaid
+flowchart TD
+    subgraph agent["Build Agent"]
+        PR(["PR opened"])
+    end
+
+    subgraph bot["Telegram Approval Bot"]
+        DET["Detect PR"]
+        NOTIFY["Send notification\nrepo + title + CI status + link"]
+        RECV["Receive tap approval"]
+        MERGE["Merge PR"]
+    end
+
+    subgraph human["Human (Telegram)"]
+        MSG(["Notification received"])
+        TAP(["Tap Approve button"])
+    end
+
+    PR --> DET
+    DET --> NOTIFY
+    NOTIFY --> MSG
+    MSG --> TAP
+    TAP --> RECV
+    RECV --> MERGE
+```
+</DiagramBlock>
+
+---
+
+<SectionLabel text="Knowing Who You Are" />
+
+## Knowing Who You Are
+
+<ScrollReveal>
+The button interface felt like a cop-out at first. Tap to approve, like a push notification from your bank. Is that really a security gate or is it just a different kind of rubber stamp?
+
+Here is the distinction I landed on: the goal is not friction for its own sake. The goal is the right kind of attention at the right moment.
+
+For transactional confirmations, the friction was in the wrong place. I was burning cognitive load on typing the command correctly, not on reading the PR. The button removes the typing friction and puts my attention where it belongs: the PR title, the CI status, the repo context. Those are right there in the message. The button is just the commit.
+
+For decisions that actually need thought, the hardened notification format surfaces what I need. If CI is failing and the PR title does not make sense to me, I do not approve it. That is the gate doing its job.
+
+The aspirational version of me reads every diff carefully. The actual version gets a Telegram message at 10 PM with three other things still open. Build for the actual version. Reduce friction on the things that should feel like a chore. Widen attention on the things that need it.
+</ScrollReveal>
+
+<PullQuote>
+Focus makes me more careful, not less.
+</PullQuote>
+
+---
+
+<SectionLabel text="Counterarguments" />
+
+## Counterarguments
+
+<ScrollReveal>
+**A typed command is a more deliberate act than a button tap.** This is true. A button tap is faster and requires less thought than typing `/approve [PR-number]`. If deliberateness is the goal, removing the typing step moves in the wrong direction. My answer: deliberateness without information is theater. I was typing commands carefully while not reading what I was approving. The notification format does more work than the command format.
+
+**SQLite is overkill for a personal bot.** Also true. A file or even an in-memory queue would work for the volume I run. I chose SQLite because the state needs to survive bot restarts cleanly and I did not want to debug a race condition between restart and re-notification at 2 AM. Overkill relative to the problem; appropriately sized relative to my patience for debugging.
+
+**One person approving their own agent's PRs is not a real approval gate.** Fair. A genuine gate would require a second set of eyes. For a solo homelab running research infrastructure, that is not a realistic requirement, and I am not pretending it is enterprise change management. What it is: a forcing function that prevents silent merges. One human eyeball is better than zero.
+</ScrollReveal>
+
+---
+
+<SectionLabel text="Where This Landed" />
+
+## Where This Landed
+
+<ScrollReveal>
+Buttons are confirmed working. The first properly gated merge went through the full path: the build agent opened the PR, bot sent the notification with CI status, I read the context, I tapped approve, the PR merged.
+
+That is a small thing. It is also the only thing that makes the rest of the agent fleet defensible.
+
+What you are actually protecting against: permission push, where an agent accumulates more access than intended across merges. Hallucination drift, where a change looks correct in isolation but compounds badly. Unreviewed modifications to live infrastructure. The defense against all three is the same: one person who actually read it before it landed.
+
+This is a work in progress, and that can be noted. The bot does not diff-review, it does not flag anomalous scope changes, and it does not have any intelligence about what a PR is doing relative to the ones before it. Those are real gaps. For now, the gate is: I saw it, I understood it, I approved it.
+
+That is enough to be worth having.
+</ScrollReveal>

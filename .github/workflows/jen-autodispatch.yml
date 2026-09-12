@@ -1,0 +1,58 @@
+# vault-2efvr: Jen Draft Auto-Dispatch
+# Scans daemonvault .beads/issues.jsonl for jen-queue beads with matching draft files
+# in 40 Prometheus/Drafts/. For each match: wraps as MDX, creates branch, opens PR.
+#
+# docs/03: Python scripts follow coding standards (structlog, type hints, error handling).
+# docs/06: permissions deny-by-default, SHA-pinned actions.
+#
+# Prerequisites:
+#   VAULT_DEPLOY_KEY_TOKEN -- read-only PAT for daemonprompt/daemonvault (repo secret)
+#   Casey must create this secret before the checkout step will succeed.
+name: Jen Draft Auto-Dispatch
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # 08:00 UTC daily
+  workflow_dispatch:
+    inputs:
+      bead_id:
+        description: 'Specific bead ID to dispatch (optional, dispatches all ready if blank)'
+        required: false
+
+permissions: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout cyberdaemon-site
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - name: Checkout daemonvault (draft source)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          repository: daemonprompt/obsidian-vault
+          token: ${{ secrets.VAULT_DEPLOY_KEY_TOKEN }}
+          path: vault
+          sparse-checkout: |
+            40 Prometheus/Drafts
+            .beads/issues.jsonl
+
+      - name: Find ready jen-queue drafts
+        id: find
+        run: python3 .github/scripts/jen_autodispatch.py
+        env:
+          VAULT_PATH: vault
+          BEAD_FILTER: ${{ inputs.bead_id }}
+
+      - name: Open PRs for ready drafts
+        if: steps.find.outputs.ready_count != '0'
+        run: python3 .github/scripts/jen_open_prs.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          READY_BEADS: ${{ steps.find.outputs.ready_beads }}
+          VAULT_PATH: vault
