@@ -23,6 +23,7 @@ const original = entry.data.updates ? await getOriginalArticle(entry.data.update
   date={entry.data.date}
   lane="build-logs"
   tags={entry.data.tags}
+  slug={entry.id.replace(/\.(mdx|md)$/, '')}
 >
   {original && <AmendmentBanner type="amends" articles={[original]} />}
   {amendments.length > 0 && <AmendmentBanner type="amended-by" articles={amendments} />}
