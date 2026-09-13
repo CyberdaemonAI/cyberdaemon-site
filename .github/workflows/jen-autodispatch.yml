@@ -1,13 +1,13 @@
 # vault-2efvr: Jen Draft Auto-Dispatch
-# Scans daemonvault .beads/issues.jsonl for jen-queue beads with matching draft files
-# in 40 Prometheus/Drafts/. For each match: wraps as MDX, creates branch, opens PR.
+# Scans daemonprompt/prometheus-drafts for jen-queue beads with matching draft files.
+# For each match: wraps as MDX, creates branch, opens PR to cyberdaemon-site.
 #
-# docs/03: Python scripts follow coding standards (structlog, type hints, error handling).
+# docs/03: Python scripts follow coding standards (error handling, explicit paths).
 # docs/06: permissions deny-by-default, SHA-pinned actions.
 #
 # Prerequisites:
-#   VAULT_DEPLOY_KEY_TOKEN -- read-only PAT for daemonprompt/daemonvault (repo secret)
-#   Casey must create this secret before the checkout step will succeed.
+#   VAULT_DEPLOY_KEY_TOKEN -- fine-grained PAT, Contents: Read-only on daemonprompt/prometheus-drafts
+#   vault-if9n9 Windows watcher must be running to push drafts to prometheus-drafts
 name: Jen Draft Auto-Dispatch
 
 on:
@@ -23,7 +23,7 @@ permissions: {}
 
 jobs:
   dispatch:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     permissions:
       contents: write
       pull-requests: write
@@ -32,15 +32,12 @@ jobs:
       - name: Checkout cyberdaemon-site
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
-      - name: Checkout daemonvault (draft source)
+      - name: Checkout prometheus-drafts (draft source)
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
-          repository: daemonprompt/obsidian-vault
+          repository: daemonprompt/prometheus-drafts
           token: ${{ secrets.VAULT_DEPLOY_KEY_TOKEN }}
           path: vault
-          sparse-checkout: |
-            40 Prometheus/Drafts
-            .beads/issues.jsonl
 
       - name: Find ready jen-queue drafts
         id: find
