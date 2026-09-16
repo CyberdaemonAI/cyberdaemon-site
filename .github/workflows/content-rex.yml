@@ -9,9 +9,11 @@ permissions: {}
 
 jobs:
   rex-review:
+    # vault-ne7: Fixed branch condition to accept jen/* branches (Jen creates jen/article-slug, not content/article-slug)
     if: >
       github.event.workflow_run.conclusion == 'success' &&
-      startsWith(github.event.workflow_run.head_branch, 'content/')
+      (startsWith(github.event.workflow_run.head_branch, 'content/') ||
+       startsWith(github.event.workflow_run.head_branch, 'jen/'))
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
@@ -62,25 +64,12 @@ print(prs[0]['number'] if prs else '')
             --repo CyberdaemonAI/cyberdaemon-site \
             --body "**Rex editorial pre-review dispatched** for: *${PR_TITLE}*
 
-Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments (steelmanned?). Results posted to Zulip \`#content-pipeline → PR #${PR_NUMBER}\` when complete.
-
-_TODO(zulip-rip): When Zulip is decommissioned, Rex will post review here directly. Requires a PAT mounted in cc-remote-control-qa._" \
+Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments (steelmanned?). Review will be posted here as a PR comment when complete." \
             || echo "PR comment post failed — continuing"
 
-      - name: Join Tailscale
-        if: steps.meta.outputs.skip != 'true'
-        continue-on-error: true
-        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade  # v3
-        with:
-          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
-          tags: tag:ci
-          version: latest
+      # vault-ne7: Tailscale join step removed — was only needed to reach internal Zulip (decommissioned).
+      # Rex now posts review via GitHub API directly (GITHUB_TOKEN has push access to cyberdaemon-site).
 
-      # TODO(zulip-rip): Rex task prompt instructs posting to Zulip. When Zulip is decommissioned:
-      # 1. Mount a GitHub PAT in cc-remote-control-qa (new K8s secret + env var)
-      # 2. Update task prompt: replace Zulip curl with `gh pr comment` using the PAT
-      # 3. Remove Tailscale join step (only needed to reach internal Zulip)
       - name: Dispatch Rex editorial review
         if: steps.meta.outputs.skip != 'true'
         continue-on-error: true
@@ -94,8 +83,10 @@ _TODO(zulip-rip): When Zulip is decommissioned, Rex will post review here direct
 Do NOT re-run CI hygiene checks — CI already passed before you were dispatched.
 
 PR: ${PR_URL}
+PR Number: ${PR_NUMBER}
 Title: ${PR_TITLE}
 Branch: ${BRANCH}
+Repo: CyberdaemonAI/cyberdaemon-site
 
 Steps:
 1. Clone CyberdaemonAI/cyberdaemon-site (read-only deploy key is in ~/.ssh/id_ed25519).
@@ -111,30 +102,31 @@ Voice: Is this Taco? Check Sarcasm section (dry/deadpan/dark/absurdist, never fo
 Accuracy: List specific claims (CVE IDs, dates, numbers, named orgs, benchmarks, named products) that are unverified or unverifiable from public sources. Write 'Clean' if none found.
 Counterarguments: Present? Minimum 3? Steelmanned (each opposing argument presented at its strongest)? Note any that are strawmanned with the specific issue.
 
-Post your review to Zulip using the credentials in your environment variables (ZULIP_SITE, ZULIP_BOT_EMAIL, ZULIP_API_KEY):
-- stream: content-pipeline
-- topic: PR #${PR_NUMBER}
-
-Use this exact format for the Zulip message:
-[CONTENT REVIEW] ${PR_TITLE}
-Voice: Pass | Flag — <one specific line or note if flagged>
-Accuracy: <n unverified claims, listed> | Clean
-Counterarguments: Steelmanned | Strawmanned — <specific note if flagged>
-Rec: Approve | Revise
-
 Then evaluate from a security/technical accuracy lens (Watcher take). Act as a CISO reading practitioner security content critically. Extract each security/technical claim (AI security, Zero Trust, NIST, cryptography, authentication protocols, CVEs, threat models) and evaluate:
 - Accurate vs published standards (NIST SPs, RFCs, CVE database)?
 - CVE IDs, dates, technical specifics correct?
 - Threat model framing sound (not oversimplified, not strawmanned)?
 - Vendor feature claims verifiable from public sources?
 
-Append to the SAME Zulip message as:
-Watcher take: <one line per claim -- Claim: [claim] -> Accurate | Inaccurate -- [note]> | Clean if none found
+Compose your review in this exact format:
+[CONTENT REVIEW] ${PR_TITLE}
+Voice: Pass | Flag — <one specific line or note if flagged>
+Accuracy: <n unverified claims, listed> | Clean
+Counterarguments: Steelmanned | Strawmanned — <specific note if flagged>
+Rec: Approve | Revise
 
-Use curl to post to Zulip:
-curl -s -f --data-urlencode 'type=stream' --data-urlencode 'to=content-pipeline' --data-urlencode \"topic=PR #${PR_NUMBER}\" --data-urlencode \"content=<your review>\" -u \"\$ZULIP_BOT_EMAIL:\$ZULIP_API_KEY\" \"\$ZULIP_SITE/api/v1/messages\""
+Watcher take: <one line per claim — Claim: [claim] -> Accurate | Inaccurate — [note]> | Clean if none found
 
-          # Encode task as JSON and POST to cc-remote-control-qa via Tailscale
+Post this review as a GitHub PR comment using curl and your GITHUB_TOKEN environment variable:
+curl -s -X POST \\
+  -H \"Authorization: token \$GITHUB_TOKEN\" \\
+  -H \"Accept: application/vnd.github+json\" \\
+  \"https://api.github.com/repos/CyberdaemonAI/cyberdaemon-site/issues/${PR_NUMBER}/comments\" \\
+  -d \"{\\\"body\\\": \\\"\$(cat /tmp/rex-review-body.txt)\\\"}\"
+
+Write your review to /tmp/rex-review-body.txt first, then post it. Escape any double quotes in the body with backslash before posting."
+
+          # Encode task as JSON and POST to cc-remote-control-rex via direct Tailscale IP
           PAYLOAD=$(python3 -c "
 import json, sys
 task = sys.argv[1]
