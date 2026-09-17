@@ -394,7 +394,6 @@ jobs:
   rex-dispatch:
     # vault-ne7: Dispatch Rex editorial review after content-check passes.
     # Runs only for PR events on jen/* or content/* branches.
-    # Polls Tailscale sidecar and dispatches task to cc-remote-control-rex.
     if: >
       github.event_name == 'pull_request' &&
       (startsWith(github.head_ref, 'content/') ||
@@ -413,16 +412,12 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.number }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
-
+          BODY="**Rex editorial pre-review dispatched** for: *${PR_TITLE}* -- Checking voice, accuracy, counterarguments. Review will be posted as a PR comment."
           gh pr comment "$PR_NUMBER" \
             --repo CyberdaemonAI/cyberdaemon-site \
-            --body "**Rex editorial pre-review dispatched** for: *${PR_TITLE}*
-
-Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments (steelmanned?). Review will be posted here as a PR comment when complete." \
+            --body "$BODY" \
             || echo "PR comment post failed -- continuing"
 
-      # Rex dispatches to cc-remote-control-rex pod via Tailscale (rex-2, 100.80.205.34:8080).
-      # GitHub-hosted runners cannot reach Tailscale IPs without joining the network.
       - name: Connect to Tailscale
         uses: tailscale/github-action@v2
         with:
@@ -438,69 +433,18 @@ Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments 
           PR_TITLE="${{ github.event.pull_request.title }}"
           BRANCH="${{ github.head_ref }}"
 
-          TASK="You are Rex. Run an editorial pre-review of this cyberdaemon.ai content PR.
-Do NOT re-run CI hygiene checks -- CI already passed before you were dispatched.
+          TASK="You are Rex. Run an editorial pre-review of this cyberdaemon.ai content PR. Do NOT re-run CI hygiene checks -- CI already passed. PR: ${PR_URL} PR Number: ${PR_NUMBER} Title: ${PR_TITLE} Branch: ${BRANCH} Repo: CyberdaemonAI/cyberdaemon-site. Steps: 1. Clone CyberdaemonAI/cyberdaemon-site (deploy key in ~/.ssh/id_ed25519). 2. git fetch origin ${BRANCH} && git checkout ${BRANCH}. 3. Read the changed .mdx file vs master. 4. Read docs/STYLE-GUIDE.md. 5. Read exemplar articles. Review criteria: Voice (is this Taco?), Accuracy (unverified claims?), Counterarguments (steelmanned?). Watcher take: security/technical claims vs NIST SPs, RFCs, CVE database. Format: [CONTENT REVIEW] ${PR_TITLE}\nVoice: Pass|Flag\nAccuracy: Clean|list\nCounterarguments: Steelmanned|Strawmanned\nRec: Approve|Revise\nWatcher take: claim -> Accurate|Inaccurate. Post as GitHub PR comment."
 
-PR: ${PR_URL}
-PR Number: ${PR_NUMBER}
-Title: ${PR_TITLE}
-Branch: ${BRANCH}
-Repo: CyberdaemonAI/cyberdaemon-site
+          PAYLOAD=$(python3 -c "import json, sys; print(json.dumps({'task': sys.argv[1], 'channel_id': 'content-review'}))" "$TASK")
 
-Steps:
-1. Clone CyberdaemonAI/cyberdaemon-site (read-only deploy key is in ~/.ssh/id_ed25519).
-2. Checkout the PR branch: git fetch origin ${BRANCH} && git checkout ${BRANCH}
-3. Find the article: ls src/content/**/*.mdx -- read the file added or modified in this branch vs master.
-4. Read docs/STYLE-GUIDE.md for voice reference.
-5. Read both exemplar articles:
-   - src/content/build-logs/agent-couldnt-read-its-own-name.mdx (build-log register)
-   - src/content/analysis/strip-agent-voice-guitar.mdx (analysis register)
-
-Review criteria -- editorial only:
-Voice: Is this Taco? Check Sarcasm section (dry/deadpan/dark/absurdist, never forced) and Humility section (no credential announcements, knowledge visible in specifics). No hedging, no doom-posting, no cheerleading. Note ONE specific line if flagged.
-Accuracy: List specific claims (CVE IDs, dates, numbers, named orgs, benchmarks, named products) that are unverified or unverifiable from public sources. Write 'Clean' if none found.
-Counterarguments: Present? Minimum 3? Steelmanned (each opposing argument presented at its strongest)? Note any that are strawmanned with the specific issue.
-
-Then evaluate from a security/technical accuracy lens (Watcher take). Act as a CISO reading practitioner security content critically. Extract each security/technical claim (AI security, Zero Trust, NIST, cryptography, authentication protocols, CVEs, threat models) and evaluate:
-- Accurate vs published standards (NIST SPs, RFCs, CVE database)?
-- CVE IDs, dates, technical specifics correct?
-- Threat model framing sound (not oversimplified, not strawmanned)?
-- Vendor feature claims verifiable from public sources?
-
-Compose your review in this exact format:
-[CONTENT REVIEW] ${PR_TITLE}
-Voice: Pass | Flag -- <one specific line or note if flagged>
-Accuracy: <n unverified claims, listed> | Clean
-Counterarguments: Steelmanned | Strawmanned -- <specific note if flagged>
-Rec: Approve | Revise
-
-Watcher take: <one line per claim -- Claim: [claim] -> Accurate | Inaccurate -- [note]> | Clean if none found
-
-Post this review as a GitHub PR comment using curl and your GITHUB_TOKEN environment variable:
-curl -s -X POST \\
-  -H \"Authorization: token \$GITHUB_TOKEN\" \\
-  -H \"Accept: application/vnd.github+json\" \\
-  \"https://api.github.com/repos/CyberdaemonAI/cyberdaemon-site/issues/${PR_NUMBER}/comments\" \\
-  -d \"{\\\"body\\\": \\\"\$(cat /tmp/rex-review-body.txt)\\\"}\"
-
-Write your review to /tmp/rex-review-body.txt first, then post it. Escape any double quotes in the body with backslash before posting."
-
-          PAYLOAD=$(python3 -c "
-import json, sys
-task = sys.argv[1]
-channel = 'content-review'
-print(json.dumps({'task': task, 'channel_id': channel}))
-" "$TASK")
-
-          # Rex Tailscale IP: rex-2 @ 100.80.205.34 (updated S-384 2026-09-17, was 100.89.151.13)
-          # If this IP changes: kubectl exec -n prometheus <rex-pod> -c tailscale -- tailscale ip -4
+          # Rex Tailscale IP: rex-2 @ 100.80.205.34 (updated S-384 2026-09-17)
           REX_IP="100.80.205.34"
 
           HEALTH=$(curl -sf --max-time 5 "http://${REX_IP}:8080/health" 2>/dev/null || echo '{}')
           BUSY=$(echo "$HEALTH" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('busy', True))" 2>/dev/null || echo 'true')
 
           if [ "$BUSY" = "True" ] || [ "$BUSY" = "true" ]; then
-            echo "Rex is busy -- skipping automated review for PR #${PR_NUMBER}. Review manually."
+            echo "Rex is busy -- skipping for PR #${PR_NUMBER}"
             exit 0
           fi
 
@@ -513,8 +457,8 @@ print(json.dumps({'task': task, 'channel_id': channel}))
           if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ]; then
             echo "Rex dispatched for PR #${PR_NUMBER}"
           elif [ "$HTTP_STATUS" = "409" ]; then
-            echo "Rex busy (409) -- review manually for PR #${PR_NUMBER}"
+            echo "Rex busy (409) -- review manually"
           else
-            echo "Rex dispatch failed (HTTP ${HTTP_STATUS}) -- review manually for PR #${PR_NUMBER}"
+            echo "Rex dispatch failed (HTTP ${HTTP_STATUS})"
             exit 1
           fi
