@@ -1,19 +1,20 @@
 name: Content Rex Review
 
 on:
-  workflow_run:
-    workflows: ["Content Standards Check"]
-    types: [completed]
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
 
 permissions: {}
 
 jobs:
   rex-review:
-    # vault-ne7: Fixed branch condition to accept jen/* branches (Jen creates jen/article-slug, not content/article-slug)
+    # vault-ne7: Converted from workflow_run to pull_request trigger.
+    # workflow_run does not fire for pull_request-triggered workflows on feature branches.
+    # Now polls check-runs API to wait for content-check to pass before dispatching Rex.
     if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      (startsWith(github.event.workflow_run.head_branch, 'content/') ||
-       startsWith(github.event.workflow_run.head_branch, 'jen/'))
+      startsWith(github.head_ref, 'content/') ||
+      startsWith(github.head_ref, 'jen/')
     runs-on: ubuntu-latest
     continue-on-error: true
     permissions:
@@ -21,44 +22,43 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Extract PR metadata
-        id: meta
+      - name: Wait for content-check to pass
+        id: wait
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Pull PR number from workflow_run event (populated for PR-triggered runs)
-          PR_NUMBER=$(echo '${{ toJson(github.event.workflow_run.pull_requests) }}' \
-            | python3 -c "
-import json, sys
-prs = json.load(sys.stdin)
-print(prs[0]['number'] if prs else '')
-" 2>/dev/null || echo '')
+          SHA="${{ github.event.pull_request.head.sha }}"
+          PR_NUMBER="${{ github.event.number }}"
 
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No PR found for workflow run — skipping Rex review"
+          for i in $(seq 1 30); do
+            CONCLUSION=$(gh api "repos/CyberdaemonAI/cyberdaemon-site/commits/${SHA}/check-runs" \
+              --jq '.check_runs[] | select(.name == "content-check") | .conclusion' 2>/dev/null | head -1)
+
+            if [ "$CONCLUSION" = "success" ]; then
+              echo "content-check passed for PR #${PR_NUMBER}"
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              break
+            elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
+              echo "content-check failed (${CONCLUSION}) — skipping Rex review for PR #${PR_NUMBER}"
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Waiting for content-check... attempt $i/30"
+            sleep 10
+          done
+
+          if ! grep -q 'skip=' "$GITHUB_OUTPUT" 2>/dev/null; then
+            echo "content-check did not complete in 5 minutes — skipping Rex review"
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            exit 0
           fi
 
-          PR_URL="https://github.com/CyberdaemonAI/cyberdaemon-site/pull/${PR_NUMBER}"
-          PR_TITLE=$(gh pr view "$PR_NUMBER" \
-            --repo CyberdaemonAI/cyberdaemon-site \
-            --json title -q .title 2>/dev/null || echo 'unknown')
-          BRANCH="${{ github.event.workflow_run.head_branch }}"
-
-          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
-          echo "pr_title=${PR_TITLE}" >> "$GITHUB_OUTPUT"
-          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
-          echo "skip=false" >> "$GITHUB_OUTPUT"
-
       - name: Post Rex dispatch notice to PR
-        if: steps.meta.outputs.skip != 'true'
+        if: steps.wait.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUMBER="${{ steps.meta.outputs.pr_number }}"
-          PR_TITLE="${{ steps.meta.outputs.pr_title }}"
+          PR_NUMBER="${{ github.event.number }}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
 
           gh pr comment "$PR_NUMBER" \
             --repo CyberdaemonAI/cyberdaemon-site \
@@ -68,9 +68,9 @@ Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments 
             || echo "PR comment post failed — continuing"
 
       # Rex dispatches to cc-remote-control-rex pod via Tailscale (rex-2, 100.80.205.34:8080).
-      # GitHub-hosted runners cannot reach Tailscale IPs without joining — this step is required.
+      # GitHub-hosted runners cannot reach Tailscale IPs without joining.
       - name: Connect to Tailscale
-        if: steps.meta.outputs.skip != 'true'
+        if: steps.wait.outputs.skip != 'true'
         uses: tailscale/github-action@v2
         with:
           oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
@@ -78,13 +78,13 @@ Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments 
           tags: tag:ci
 
       - name: Dispatch Rex editorial review
-        if: steps.meta.outputs.skip != 'true'
+        if: steps.wait.outputs.skip != 'true'
         continue-on-error: true
         run: |
-          PR_NUMBER="${{ steps.meta.outputs.pr_number }}"
-          PR_URL="${{ steps.meta.outputs.pr_url }}"
-          PR_TITLE="${{ steps.meta.outputs.pr_title }}"
-          BRANCH="${{ steps.meta.outputs.branch }}"
+          PR_NUMBER="${{ github.event.number }}"
+          PR_URL="https://github.com/CyberdaemonAI/cyberdaemon-site/pull/${PR_NUMBER}"
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          BRANCH="${{ github.head_ref }}"
 
           TASK="You are Rex. Run an editorial pre-review of this cyberdaemon.ai content PR.
 Do NOT re-run CI hygiene checks — CI already passed before you were dispatched.
@@ -133,7 +133,6 @@ curl -s -X POST \\
 
 Write your review to /tmp/rex-review-body.txt first, then post it. Escape any double quotes in the body with backslash before posting."
 
-          # Encode task as JSON and POST to cc-remote-control-rex via direct Tailscale IP
           PAYLOAD=$(python3 -c "
 import json, sys
 task = sys.argv[1]
@@ -145,7 +144,6 @@ print(json.dumps({'task': task, 'channel_id': channel}))
           # If this IP changes: kubectl exec -n prometheus <rex-pod> -c tailscale -- tailscale ip -4
           REX_IP="100.80.205.34"
 
-          # Health check first — skip gracefully if Rex is busy
           HEALTH=$(curl -sf --max-time 5 "http://${REX_IP}:8080/health" 2>/dev/null || echo '{}')
           BUSY=$(echo "$HEALTH" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('busy', True))" 2>/dev/null || echo 'true')
 
