@@ -67,8 +67,15 @@ print(prs[0]['number'] if prs else '')
 Checking voice (is this Taco?), accuracy (unverified claims?), counterarguments (steelmanned?). Review will be posted here as a PR comment when complete." \
             || echo "PR comment post failed — continuing"
 
-      # vault-ne7: Tailscale join step removed — was only needed to reach internal Zulip (decommissioned).
-      # Rex now posts review via GitHub API directly (GITHUB_TOKEN has push access to cyberdaemon-site).
+      # Rex dispatches to cc-remote-control-rex pod via Tailscale (rex-2, 100.80.205.34:8080).
+      # GitHub-hosted runners cannot reach Tailscale IPs without joining — this step is required.
+      - name: Connect to Tailscale
+        if: steps.meta.outputs.skip != 'true'
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TAILSCALE_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TAILSCALE_OAUTH_SECRET }}
+          tags: tag:ci
 
       - name: Dispatch Rex editorial review
         if: steps.meta.outputs.skip != 'true'
@@ -134,8 +141,12 @@ channel = 'content-review'
 print(json.dumps({'task': task, 'channel_id': channel}))
 " "$TASK")
 
+          # Rex Tailscale IP: rex-2 @ 100.80.205.34 (updated S-384 2026-09-17, was 100.89.151.13)
+          # If this IP changes: kubectl exec -n prometheus <rex-pod> -c tailscale -- tailscale ip -4
+          REX_IP="100.80.205.34"
+
           # Health check first — skip gracefully if Rex is busy
-          HEALTH=$(curl -sf --max-time 5 http://100.89.151.13:8080/health 2>/dev/null || echo '{}')
+          HEALTH=$(curl -sf --max-time 5 "http://${REX_IP}:8080/health" 2>/dev/null || echo '{}')
           BUSY=$(echo "$HEALTH" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('busy', True))" 2>/dev/null || echo 'true')
 
           if [ "$BUSY" = "True" ] || [ "$BUSY" = "true" ]; then
@@ -144,7 +155,7 @@ print(json.dumps({'task': task, 'channel_id': channel}))
           fi
 
           HTTP_STATUS=$(curl -sf --max-time 10 \
-            -X POST http://100.89.151.13:8080/run-task \
+            -X POST "http://${REX_IP}:8080/run-task" \
             -H 'Content-Type: application/json' \
             -d "$PAYLOAD" \
             -o /dev/null -w "%{http_code}" 2>/dev/null || echo '000')
