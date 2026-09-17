@@ -53,9 +53,9 @@ jobs:
 
           # Scan only lines ADDED in this PR -- pre-existing violations are not our problem here
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES               | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           else
-            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           fi
 
           PATTERNS=(
@@ -107,9 +107,9 @@ jobs:
           fi
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES \
-              | grep '^+' | grep -v '^+++')
+              | grep '^+' | grep -v '^+++' || true)
           else
-            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           fi
           matches=$(printf '%s' "$ADDED" | python3 -c "import sys; data=sys.stdin.read(); hits=[l for l in data.splitlines() if chr(8212) in l]; print('\n'.join(hits)) if hits else None" || true)
           if [ -n "$matches" ]; then
@@ -181,9 +181,9 @@ jobs:
             exit 0
           fi
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           else
-            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           fi
           HEDGE_PATTERN='perhaps\b|arguably\b|it could be said|it should be noted|to some extent|in some ways|may or may not|might suggest|\bsomewhat\b|\brelatively\b'
           matches=$(echo "$ADDED" | grep -iE "$HEDGE_PATTERN" || true)
@@ -206,9 +206,9 @@ jobs:
             exit 0
           fi
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           else
-            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++')
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
           fi
           BUZZ_PATTERN='\brobust\b|\butilize\b|\bsynergy\b|\bnext-generation\b|\bcutting-edge\b|\bindustry-leading\b|\bseamless\b|\bactionable\b|\bleverage\b|\bholistic\b|\bpivot\b'
           matches=$(echo "$ADDED" | grep -iE "$BUZZ_PATTERN" || true)
