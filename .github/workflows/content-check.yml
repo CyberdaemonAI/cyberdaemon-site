@@ -435,8 +435,8 @@ jobs:
 
           PAYLOAD=$(python3 -c "import json, sys; print(json.dumps({'task': sys.argv[1], 'channel_id': 'content-review'}))" "$TASK")
 
-          # Rex Tailscale IP: rex-2 @ 100.80.205.34 (updated S-384 2026-09-17)
-          REX_IP="100.80.205.34"
+          # Rex Tailscale MagicDNS hostname (stable across pod restarts, current IP 100.103.38.78)
+          REX_IP="rex"
 
           HEALTH=$(curl -sf --max-time 5 "http://${REX_IP}:8080/health" 2>/dev/null || echo '{}')
           BUSY=$(echo "$HEALTH" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('busy', True))" 2>/dev/null || echo 'true')
