@@ -70,11 +70,8 @@ jobs:
           LANE="${{ steps.meta.outputs.lane }}"
           SUMMARY="${{ steps.meta.outputs.summary }}"
 
-          BODY="**[CONTENT PR] \`${LANE}\` — ${TITLE}**
-
-${SUMMARY}
-
-Content pipeline started. CI hygiene checks running; Rex editorial review queued."
+          BODY=$(printf '**[CONTENT PR] `%s` — %s**\n\n%s\n\nContent pipeline started. CI hygiene checks running; Rex editorial review queued.' \
+            "${LANE}" "${TITLE}" "${SUMMARY}")
 
           gh pr comment "$PR_NUMBER" \
             --repo CyberdaemonAI/cyberdaemon-site \
