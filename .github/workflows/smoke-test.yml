@@ -1,7 +1,8 @@
 # vault-apg6j: Post-deploy smoke test suite
-# Runs on PRs to master and on successful Vercel deployments.
-# On deployment_status events, PLAYWRIGHT_BASE_URL is set to the Vercel preview URL
-# so tests run against the actual deployed preview, not the live site.
+# Runs on successful Vercel deployments only — deployment_status provides the
+# preview URL, so tests always run against an actual build, not the live site.
+# pull_request trigger removed: no Vercel URL available in that context, causing
+# all tests to fail when SMOKE_TEST_BASE_URL is unset (hits live site, unreliable).
 #
 # ISA gaps noted:
 # 1. runs-on: ubuntu-latest used (ISA specified [self-hosted, infra1] but no runner
@@ -12,8 +13,6 @@
 name: Smoke Tests
 
 on:
-  pull_request:
-    branches: [master]
   deployment_status: {}
 
 permissions: {}
