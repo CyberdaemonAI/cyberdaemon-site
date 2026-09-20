@@ -1,0 +1,142 @@
+---
+title: "Console noise, Vercel previews, and the fix that broke CORS"
+description: "Vercel injects a toolbar into preview deployments. The toolbar calls Sentry and FedCM. Both fail in an unconfigured preview environment. The console fills with 403s. The smoke tests fail. None of this is your code, and the obvious workaround makes things worse."
+excerpt: "A test that fails because of injected third-party tooling is not a test with a broken environment. It is a test with wrong assumptions about what the environment contains."
+date: 2026-09-20
+tags: ["ci-cd", "infrastructure", "prometheus"]
+draft: false
+---
+
+import Callout from '../../components/Callout.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+
+<Callout variant="note" label="Build log">
+This is a log of the sprint to wire the CI pipeline for this site. The interesting
+part is the toolbar noise.
+</Callout>
+
+---
+
+Hospital monitors generate hundreds of alarms per shift in a busy ICU. Most of them are not emergencies: a probe slipped, a patient moved, a threshold slightly crossed. Clinicians learn to tune them out. Then an actual emergency happens and the alarm sounds exactly like the last hundred false ones. The FDA has a category for this: alarm fatigue. The problem is not that the monitor is broken. The problem is that the monitor cannot tell the difference between noise and signal, so eventually, neither can you.
+
+My smoke tests had the same problem.
+
+---
+
+<SectionLabel text="The Problem" />
+
+## What Vercel injects into every preview
+
+Vercel injects a toolbar into preview deployments. It is a developer experience feature: comments, deployment metadata, feedback controls. It is not in your production build. It is also not something you wrote.
+
+The toolbar makes network requests on every page load. It calls Sentry for error tracking and makes FedCM (the browser's Federated Credential Management API for passkey and identity flows) requests for authentication. On a preview deployment where neither service is configured, both calls fail. The failures appear in the browser console as 403 and 429 errors.
+
+The smoke tests use Playwright. The runner was configured to fail on unexpected console errors. Every run against the preview deployment collected the toolbar's errors, counted them as test failures, and exited non-zero. Every PR was blocked by the pipeline.
+
+The code was fine. The Vercel toolbar was generating noise. The tests could not tell the difference.
+
+<PullQuote>
+A test that fails because of injected third-party tooling is not a test with a broken environment. It is a test with wrong assumptions about what the environment contains.
+</PullQuote>
+
+---
+
+<SectionLabel text="The Fix" />
+
+## Naming the noise: IGNORED_CONSOLE_PATTERNS
+
+The right fix is not to silence console errors. It is to name the ones that are not yours.
+
+The smoke test script was updated to filter console messages against a list of known-benign patterns before counting them as failures:
+
+```typescript
+const IGNORED_CONSOLE_PATTERNS = [
+  /fedcm/i,
+  /sentry\.io/i,
+  /vercel.*toolbar/i,
+];
+
+page.on('console', (msg) => {
+  if (msg.type() === 'error') {
+    const text = msg.text();
+    if (!IGNORED_CONSOLE_PATTERNS.some((p) => p.test(text))) {
+      consoleErrors.push(text);
+    }
+  }
+});
+```
+
+Any error that matches a pattern is logged but not counted as a failure. Any error that does not match fails the test as before.
+
+The structure matters. The list is explicit: you are not silencing errors, you are naming the sources of known noise. When a new unrecognized error appears, the test fails and you investigate. Signal is preserved; noise has a named home.
+
+<Callout variant="insight">
+The IGNORED_CONSOLE_PATTERNS list is also documentation. It records what the test environment actually contains. If Vercel stops injecting the toolbar in a future update, the patterns become dead code and can be removed. The list is a living contract with the environment.
+</Callout>
+
+---
+
+<SectionLabel text="The Wrong Fix" />
+
+## Why extraHTTPHeaders breaks CORS
+
+Before landing on the pattern filter, I tried to suppress the toolbar's requests at the network layer using Playwright's `context.setExtraHTTPHeaders()`. The idea was to set a header that signals Vercel's infrastructure to skip the toolbar injection, so the requests never fire.
+
+The failure mode is worse than the original problem.
+
+`setExtraHTTPHeaders` adds headers to every request in the browser context: first-party and cross-origin alike. When a browser sends a non-standard header on a cross-origin request, it first sends a CORS preflight: an OPTIONS request asking the target server whether the custom header is allowed. If the server's CORS policy does not list the header in `Access-Control-Allow-Headers`, the preflight fails, and the actual request never fires.
+
+Every cross-origin call in the smoke tests started failing with CORS preflight errors. The tests went from failing on toolbar 403s I did not write to failing on CORS 403s I caused.
+
+<Callout variant="warning">
+`setExtraHTTPHeaders` propagates to cross-origin requests and triggers CORS preflight checks. Use it only when you control every server the test touches, or when you have confirmed that every target lists your header in its CORS policy. For anything else, it breaks more than it fixes.
+</Callout>
+
+<ScrollReveal>
+<DiagramBlock caption="Console noise path: toolbar fires on every page load, generating errors the test runner cannot distinguish from application failures">
+{`flowchart LR
+    classDef default fill:#1a1917,stroke:#9b8ecf,color:#e8e5de
+    classDef pass fill:#1a1917,stroke:#00c8a0,color:#e8e5de
+    classDef fail fill:#1a1917,stroke:#c1121f,color:#e8e5de
+
+    PAGE["Page load"]
+    TOOLBAR["Vercel Toolbar\ninjected"]
+    SENTRY["Sentry call\n403"]
+    FEDCM["FedCM call\n429"]
+    CONSOLE["Console\nerrors"]
+    FILTER{"Pattern\nfilter"}
+    PASS["Pass"]
+    FAIL["Fail"]
+
+    PAGE --> TOOLBAR
+    TOOLBAR --> SENTRY
+    TOOLBAR --> FEDCM
+    SENTRY --> CONSOLE
+    FEDCM --> CONSOLE
+    CONSOLE --> FILTER
+    FILTER -->|match| PASS
+    FILTER -->|no match| FAIL
+
+    class PASS pass
+    class FAIL fail`}
+</DiagramBlock>
+</ScrollReveal>
+
+---
+
+<SectionLabel text="What Remains" />
+
+## What the pattern filter does not solve
+
+The pipeline is green on preview deployments. The smoke tests fail correctly when application code breaks.
+
+Two things are still open.
+
+The IGNORED_CONSOLE_PATTERNS list is hand-maintained. If Vercel changes the toolbar's behavior or its external dependencies, the patterns need updating. A more resilient approach would be a test configuration that detects the Vercel preview environment flag and applies the filter automatically, rather than having the filter live in the test file itself.
+
+Visual regression tests are not wired yet. When they are, the toolbar will appear in every screenshot and cause false diffs on every run. That problem has the same shape as this one: an injected element the test cannot ignore without being explicitly told to. The fix will look the same.
+
+Alarm fatigue in an ICU is not solved by making the monitor quieter. It is solved by making the monitor smarter about what it surfaces. The goal is not fewer alarms. It is fewer false ones.
