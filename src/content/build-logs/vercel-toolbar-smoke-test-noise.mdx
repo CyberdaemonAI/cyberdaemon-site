@@ -127,6 +127,14 @@ Every cross-origin call in the smoke tests started failing with CORS preflight e
 
 ---
 
+## Counterarguments
+
+The obvious pushback: just disable the toolbar. There is a `VERCEL_FORCE_NO_TOOLBAR=1` environment variable that strips it from preview deployments. If you control the Vercel project settings, that is simpler than a pattern filter.
+
+Two reasons I didn't do it that way. First, it requires a change in Vercel's dashboard, not in the repo. Any team member working on the project in a different Vercel context would hit the same noise again. Second, the toolbar is useful for review -- it lets non-engineers click around and leave comments directly on the preview. Removing it for everyone to fix a CI problem trades one annoyance for another.
+
+The pattern filter is in the repo. It documents what the noise sources are and why they're ignored. That compounds; the dashboard setting does not.
+
 <SectionLabel text="What Remains" />
 
 ## What the pattern filter does not solve
