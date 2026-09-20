@@ -49,12 +49,13 @@ test.describe('Mermaid SVG rendering', () => {
     test(`${articlePath} renders SVG diagrams`, async ({ page }) => {
       await page.goto(articlePath);
       await page.waitForLoadState('networkidle');
-      // Mermaid renders <svg> inside the diagram container client-side
-      const svgCount = await page.locator('svg').count();
+      // Mermaid renders <svg> inside .diagram-inner client-side (DiagramBlock.astro)
+      const svgCount = await page.locator('.diagram-inner svg').count();
       expect(svgCount).toBeGreaterThan(0);
-      // No raw mermaid code blocks visible (class="language-mermaid" = not rendered)
-      const rawMermaid = await page.locator('code.language-mermaid').count();
-      expect(rawMermaid).toBe(0);
+      // No mermaid syntax errors in diagram containers
+      const diagramTexts = await page.locator('.diagram-inner').allTextContents();
+      const hasSyntaxError = diagramTexts.some(t => t.includes('Syntax error'));
+      expect(hasSyntaxError).toBe(false);
     });
   }
 });

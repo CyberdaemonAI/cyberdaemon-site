@@ -1,13 +1,12 @@
 # vault-apg6j: Post-deploy smoke test suite
-# Runs on every PR to master. Tests against the live deployed site by default.
-# Three suites: page loads, mermaid SVG render, OG tag presence.
+# Runs on PRs to master and on successful Vercel deployments.
+# On deployment_status events, PLAYWRIGHT_BASE_URL is set to the Vercel preview URL
+# so tests run against the actual deployed preview, not the live site.
 #
 # ISA gaps noted:
 # 1. runs-on: ubuntu-latest used (ISA specified [self-hosted, infra1] but no runner
 #    registered for CyberdaemonAI org; docs/06 self-hosted runner applies to daemonprompt/).
-# 2. PLAYWRIGHT_BASE_URL defaults to https://cyberdaemon.ai (live site). ISA specified
-#    local preview, but @astrojs/vercel adapter does not support `npm run preview`.
-#    Override via env var to test a specific Vercel preview URL when available.
+# 2. Zulip not integrated — notifications use Telegram to match existing infra.
 #
 # docs/06: permissions deny-by-default. SHA-pinned actions.
 name: Smoke Tests
@@ -15,6 +14,7 @@ name: Smoke Tests
 on:
   pull_request:
     branches: [master]
+  deployment_status: {}
 
 permissions: {}
 
@@ -22,10 +22,20 @@ jobs:
   smoke-test:
     name: Smoke Tests
     runs-on: ubuntu-latest
+    # On deployment_status: only run when Vercel reports success
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'deployment_status' &&
+       github.event.deployment_status.state == 'success')
     permissions:
       contents: read
     env:
-      PLAYWRIGHT_BASE_URL: ${{ vars.SMOKE_TEST_BASE_URL || 'https://cyberdaemon.ai' }}
+      # On deployment_status, test the exact Vercel preview URL.
+      # On PR, fall back to repo var (or live site if unset).
+      PLAYWRIGHT_BASE_URL: >-
+        ${{ github.event_name == 'deployment_status'
+            && github.event.deployment_status.target_url
+            || vars.SMOKE_TEST_BASE_URL || 'https://cyberdaemon.ai' }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
@@ -52,3 +62,30 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+      - name: Notify Telegram
+        if: always()
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          STATUS: ${{ job.status }}
+          BASE_URL: ${{ env.PLAYWRIGHT_BASE_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TRIGGER: ${{ github.event_name }}
+        run: |
+          python3 <<'PYEOF'
+          import os, json, urllib.request
+          status  = os.environ['STATUS']
+          base    = os.environ['BASE_URL']
+          run_url = os.environ['RUN_URL']
+          trigger = os.environ['TRIGGER']
+          icon    = '✅' if status == 'success' else '❌'
+          msg     = f"{icon} Smoke {status} [{trigger}]\n{base}\n{run_url}"
+          data    = json.dumps({'chat_id': os.environ['CHAT_ID'], 'text': msg}).encode()
+          req     = urllib.request.Request(
+              f"https://api.telegram.org/bot{os.environ['BOT_TOKEN']}/sendMessage",
+              data=data,
+              headers={'Content-Type': 'application/json'},
+          )
+          urllib.request.urlopen(req)
+          PYEOF
