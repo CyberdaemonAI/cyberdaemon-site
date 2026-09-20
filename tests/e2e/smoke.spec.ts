@@ -47,6 +47,7 @@ const IGNORED_CONSOLE_PATTERNS = [
   'FedCM',                                       // Any FedCM API failure
   'sentry.io',                                   // Vercel toolbar Sentry reporter
   'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API (empty URL = toolbar-internal)
+  'Failed to load resource: the server responded with a status of 429 ()', // Vercel toolbar rate-limit (empty URL = toolbar-internal)
   'Failed to load resource: net::ERR_FAILED',    // Vercel toolbar network failure
 ];
 
@@ -71,6 +72,8 @@ test.describe('Mermaid SVG rendering', () => {
     test(`${articlePath} renders SVG diagrams`, async ({ page }) => {
       await page.goto(articlePath);
       await page.waitForLoadState('networkidle');
+      // mermaid.run() is async CPU-bound after networkidle — wait for the first SVG
+      await page.waitForSelector('.diagram-inner svg', { timeout: 15000 });
       // Mermaid renders <svg> inside .diagram-inner client-side (DiagramBlock.astro)
       const svgCount = await page.locator('.diagram-inner svg').count();
       expect(svgCount).toBeGreaterThan(0);
