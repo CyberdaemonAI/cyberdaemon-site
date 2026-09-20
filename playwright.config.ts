@@ -13,6 +13,9 @@ export default defineConfig({
     baseURL: BASE_URL,
     headless: true,
     screenshot: 'only-on-failure',
+    // Skip Vercel's injected toolbar on preview URLs — it fires FedCM noise
+    // and a 403 on its own API call in CI (no Vercel auth), causing false failures.
+    extraHTTPHeaders: { 'x-vercel-skip-toolbar': '1' },
   },
   projects: [
     {

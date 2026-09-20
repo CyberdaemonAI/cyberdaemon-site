@@ -27,6 +27,15 @@ const OG_SAMPLE = [
   '/research/bdd-persona-drift',
 ];
 
+// Console errors from the test environment that are not real site errors.
+// Vercel injects a toolbar script into preview deployment URLs; in CI (no Vercel
+// auth) it fires FedCM credential API noise and a 403 on its own API call.
+const IGNORED_CONSOLE_PATTERNS = [
+  'favicon',
+  "Provider's accounts list is empty",        // Chrome FedCM noise from Vercel toolbar
+  'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API
+];
+
 test.describe('Page smoke tests', () => {
   for (const page of PAGES) {
     test(`${page.name} loads`, async ({ page: p }) => {
@@ -37,8 +46,7 @@ test.describe('Page smoke tests', () => {
       const response = await p.goto(page.path);
       expect(response?.status()).toBe(200);
       await p.waitForLoadState('networkidle');
-      // Favicon 404s are expected on some environments — not a failure
-      const realErrors = errors.filter(e => !e.includes('favicon'));
+      const realErrors = errors.filter(e => !IGNORED_CONSOLE_PATTERNS.some(pat => e.includes(pat)));
       expect(realErrors).toHaveLength(0);
     });
   }
