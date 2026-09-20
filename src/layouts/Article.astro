@@ -22,7 +22,7 @@ const { title, description, date, lane, tags = [], readTime, threads = [], slug 
 // Build OG image URL for this article.
 // Passing title as a query param avoids a server-side file read in the edge function.
 const ogImage = slug
-  ? `https://cyberdaemon.ai/api/og?slug=${encodeURIComponent(slug)}&lane=${encodeURIComponent(lane)}&title=${encodeURIComponent(title)}`
+  ? `https://cyberdaemon.ai/api/og.png?slug=${encodeURIComponent(slug)}&lane=${encodeURIComponent(lane)}&title=${encodeURIComponent(title)}`
   : undefined;
 
 // Compute related articles at build time. Empty when slug is absent (preview/draft context).
