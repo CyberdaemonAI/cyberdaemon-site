@@ -34,6 +34,7 @@ const IGNORED_CONSOLE_PATTERNS = [
   'favicon',
   "Provider's accounts list is empty",        // Chrome FedCM noise from Vercel toolbar
   'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API
+  'Failed to load resource: the server responded with a status of 429 ()',  // Vercel preview rate limit
 ];
 
 test.describe('Page smoke tests', () => {
@@ -57,7 +58,9 @@ test.describe('Mermaid SVG rendering', () => {
     test(`${articlePath} renders SVG diagrams`, async ({ page }) => {
       await page.goto(articlePath);
       await page.waitForLoadState('networkidle');
-      // Mermaid renders <svg> inside .diagram-inner client-side (DiagramBlock.astro)
+      // Mermaid renders <svg> inside .diagram-inner client-side (DiagramBlock.astro).
+      // Wait explicitly — mermaid initialises async and may finish after networkidle.
+      await page.waitForSelector('.diagram-inner svg', { timeout: 15_000 });
       const svgCount = await page.locator('.diagram-inner svg').count();
       expect(svgCount).toBeGreaterThan(0);
       // No mermaid syntax errors in diagram containers
@@ -71,8 +74,9 @@ test.describe('Mermaid SVG rendering', () => {
 test.describe('OG tag presence', () => {
   for (const articlePath of OG_SAMPLE) {
     test(`${articlePath} has required OG tags`, async ({ page }) => {
-      await page.goto(articlePath);
-      await page.waitForLoadState('domcontentloaded');
+      // waitUntil: 'domcontentloaded' avoids blocking on slow edge resources (og.png font fetch).
+      // OG tags are static <head> HTML — no JS needed, domcontentloaded is sufficient.
+      await page.goto(articlePath, { waitUntil: 'domcontentloaded' });
 
       // og:title
       const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
@@ -93,3 +97,4 @@ test.describe('OG tag presence', () => {
     });
   }
 });
+
