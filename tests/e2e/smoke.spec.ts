@@ -27,13 +27,27 @@ const OG_SAMPLE = [
   '/research/bdd-persona-drift',
 ];
 
-// Console errors from the test environment that are not real site errors.
-// Vercel injects a toolbar script into preview deployment URLs; in CI (no Vercel
-// auth) it fires FedCM credential API noise and a 403 on its own API call.
+// Console noise from the CI environment — not real site errors.
+//
+// Vercel injects a toolbar into preview deployment URLs. In CI with no Vercel
+// session the toolbar and its dependencies generate several console errors:
+//   - 403/ERR_FAILED on Vercel's own API (no auth token in CI)
+//   - CORS failures when toolbar tries to report to Sentry (o205439.ingest.sentry.io)
+//   - FedCM credential API noise ("Provider's accounts list is empty",
+//     "[GSI_LOGGER]: FedCM get() rejects") when no Google accounts are present
+//   - favicon 404s on some environments
+//
+// These are filtered rather than suppressed at the request level because
+// extraHTTPHeaders propagates to cross-origin preflight requests, causing
+// Sentry's CORS policy to reject the custom header — more errors, not fewer.
 const IGNORED_CONSOLE_PATTERNS = [
   'favicon',
-  "Provider's accounts list is empty",        // Chrome FedCM noise from Vercel toolbar
-  'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API
+  "Provider's accounts list is empty",           // Chrome FedCM noise (Vercel toolbar)
+  '[GSI_LOGGER]',                                // Google Sign-In FedCM error logger
+  'FedCM',                                       // Any FedCM API failure
+  'sentry.io',                                   // Vercel toolbar Sentry reporter
+  'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API (empty URL = toolbar-internal)
+  'Failed to load resource: net::ERR_FAILED',    // Vercel toolbar network failure
 ];
 
 test.describe('Page smoke tests', () => {
