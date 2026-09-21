@@ -1,0 +1,84 @@
+name: Rex Verdict Handler
+# vault-tb3: Fires on PR comment creation. Detects Rex [CONTENT REVIEW] comments.
+# If verdict is 'Rec: Approve': adds 'rex-approved' label -> triggers publish-gate re-run.
+# If verdict is 'Rec: Revise': adds 'rex-needs-revision' label for visibility.
+# Sends Telegram notification to Casey when Rex approves (publish gate open).
+#
+# Structural validation: requires all five Rex review fields before acting on verdict.
+# This prevents spoofing via a minimal comment with just 'Rec: Approve'.
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  handle-verdict:
+    # Only act on PR comments, not plain issue comments
+    if: github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Parse Rex verdict and label PR
+        id: verdict
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Must contain Rex review header
+          if ! echo "$COMMENT_BODY" | grep -qF "[CONTENT REVIEW]"; then
+            echo "verdict=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Structural validation: all required fields must be present
+          MISSING=""
+          for field in "Voice:" "Accuracy:" "Counterarguments:" "Rec:" "Watcher take:"; do
+            if ! echo "$COMMENT_BODY" | grep -qF "$field"; then
+              MISSING="$MISSING $field"
+            fi
+          done
+          if [ -n "$MISSING" ]; then
+            echo "Incomplete Rex review (missing:$MISSING) — skipping"
+            echo "verdict=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          VERDICT=$(echo "$COMMENT_BODY" | grep "^Rec:" | head -1 | grep -o "Approve\|Revise")
+          echo "verdict=${VERDICT:-none}" >> "$GITHUB_OUTPUT"
+
+          if [ "$VERDICT" = "Approve" ]; then
+            echo "Rex verdict: Approve — adding rex-approved label to PR #${PR_NUMBER}"
+            printf '{"labels":["rex-approved"]}' | gh api --method POST \
+              "repos/${REPO}/issues/${PR_NUMBER}/labels" \
+              --input - \
+              || echo "Label add failed (may already exist — continuing)"
+          elif [ "$VERDICT" = "Revise" ]; then
+            echo "Rex verdict: Revise — adding rex-needs-revision label to PR #${PR_NUMBER}"
+            printf '{"labels":["rex-needs-revision"]}' | gh api --method POST \
+              "repos/${REPO}/issues/${PR_NUMBER}/labels" \
+              --input - \
+              || true
+          else
+            echo "Could not parse Rec: line — no label added"
+          fi
+
+      - name: Notify Casey — publish gate open
+        if: steps.verdict.outputs.verdict == 'Approve'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PR_URL: ${{ github.event.issue.html_url }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+        run: |
+          curl -sf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=[PUBLISH READY] PR #${PR_NUMBER}: ${PR_TITLE}. Rex approved. Your /approve opens the gate. ${PR_URL}" \
+            || echo "Telegram notify failed (non-fatal — check TELEGRAM_BOT_TOKEN secret)"
