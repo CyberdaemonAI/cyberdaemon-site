@@ -1,0 +1,60 @@
+name: Publish Gate
+# vault-tb3: Blocks merge of jen/* and content/* PRs until 'rex-approved' label is present.
+# Rex dispatched by rex-review.yml. When Rex posts [CONTENT REVIEW] with 'Rec: Approve',
+# rex-verdict.yml adds 'rex-approved' label and this gate re-runs via pull_request_target: labeled.
+#
+# No bypass path: merge to master requires this check to pass.
+# Post-deploy: add "Publish Gate / check-rex-verdict" as a required status check in
+# branch protection for master (GitHub Settings -> Branches -> master -> Required status checks).
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  check-rex-verdict:
+    # Run on content branches for normal PR events.
+    # Run on labeled event only when the label added is 'rex-approved' (avoids re-run on every label).
+    if: >
+      (github.event_name == 'pull_request' &&
+       (startsWith(github.head_ref, 'jen/') || startsWith(github.head_ref, 'content/'))) ||
+      (github.event_name == 'pull_request_target' &&
+       (startsWith(github.event.pull_request.head.ref, 'jen/') ||
+        startsWith(github.event.pull_request.head.ref, 'content/')) &&
+       github.event.label.name == 'rex-approved')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+
+    steps:
+      - name: Check for rex-approved label
+        id: label_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          HAS_LABEL=$(gh api \
+            "repos/CyberdaemonAI/cyberdaemon-site/issues/${PR_NUMBER}/labels" \
+            --jq '[.[].name] | contains(["rex-approved"])' 2>/dev/null || echo "false")
+
+          echo "has_label=${HAS_LABEL}" >> "$GITHUB_OUTPUT"
+
+          if [ "$HAS_LABEL" = "true" ]; then
+            echo "Publish gate: PASS — rex-approved label is present."
+          else
+            echo "Publish gate: BLOCKED"
+            echo ""
+            echo "The 'rex-approved' label is not present on this PR."
+            echo "Pipeline:"
+            echo "  1. content-check must pass (already required by rex-review.yml)"
+            echo "  2. rex-review.yml dispatches Rex to post a [CONTENT REVIEW] verdict"
+            echo "  3. rex-verdict.yml fires on Rex's comment and adds 'rex-approved' if Rec: Approve"
+            echo "  4. This gate re-runs automatically on the labeled event and passes"
+            echo "  5. Casey Telegram /approve -> bot merges -> post publishes"
+            exit 1
+          fi
