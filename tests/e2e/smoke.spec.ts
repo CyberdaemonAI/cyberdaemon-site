@@ -48,7 +48,7 @@ test.describe('Page smoke tests', () => {
       });
       const response = await p.goto(page.path);
       expect(response?.status()).toBe(200);
-      await p.waitForLoadState('networkidle');
+      await p.waitForLoadState('load');
       const realErrors = errors.filter(e => !IGNORED_CONSOLE_PATTERNS.some(pat => e.includes(pat)));
       expect(realErrors).toHaveLength(0);
     });

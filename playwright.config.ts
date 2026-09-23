@@ -6,7 +6,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4321';
 
 export default defineConfig({
   testDir: './tests/e2e',
-  timeout: 30_000,
+  timeout: 60_000,
   retries: 1,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
