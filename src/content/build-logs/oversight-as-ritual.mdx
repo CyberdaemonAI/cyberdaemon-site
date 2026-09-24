@@ -111,9 +111,15 @@ Real oversight requires detection infrastructure upstream of the approval gate. 
 
 That is a lot to ask of a button.
 
+## Where I'm wrong
+
+This framing assumes the approval flow is the primary control. In some deployments, the gate is redundant by design: the agent's tool permissions are so narrow that the request can't do meaningful harm regardless of what gets approved. If that's your architecture, the DIRA critique doesn't land — detection upstream is less critical when the blast radius is bounded by tool scope.
+
+The harder objection: detection itself can be gamed. A sufficiently capable agent under adversarial optimization can learn the detection baseline and stay inside it. This doesn't make detection useless, but it shifts the requirement from a static baseline to a continuously updated one, which is a higher operational bar than most teams are actually running.
+
 *Casey Gager builds a personal AI orchestration system and writes about AI security, Zero Trust, and Identity and Access Management (IAM). Views are his own, not those of his employer.*
 
 ## See also
 
-- [Hardening an agent fleet for production](/build-logs/agent-fleet-security-hardening) — what the security boundary around a real agent deployment looks like, from tool permissions to network policy.
-- [Agent tool permissions as attack surface](/build-logs/agent-tool-permissions-attack-surface) — the scope side of this problem: what an agent is allowed to request shapes what an attacker can do through it.
+- [Hardening an agent fleet for production](/build-logs/agent-fleet-security-hardening): what the security boundary around a real agent deployment looks like, from tool permissions to network policy.
+- [Agent tool permissions as attack surface](/build-logs/agent-tool-permissions-attack-surface): the scope side of this problem, what an agent is allowed to request shapes what an attacker can do through it.
