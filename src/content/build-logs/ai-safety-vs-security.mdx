@@ -11,6 +11,7 @@ import Callout from '../../components/Callout.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 
 Here's what happens in a lot of AI risk conversations right now. Someone asks about securing an AI deployment. Someone else pulls up a responsible AI framework. The next hour covers model bias, transparency requirements, and alignment governance. Nobody talks about prompt injection, memory poisoning, or what the model does when it processes attacker-controlled input.
 
@@ -21,6 +22,14 @@ I see this in client conversations constantly. An enterprise deploys an AI-power
 AI safety and AI security are not synonyms. They share two words and almost nothing else. Treating them as interchangeable gives you the wrong threat models, the wrong controls, and the wrong people in the room.
 
 ---
+
+<DiagramBlock caption="Two distinct threat models: safety tracks intent against behavior; security tracks attacker input against behavior">
+```mermaid
+flowchart LR
+  intent["Designer Intent"] -->|"Safety: does behavior match?"| system["AI System"]
+  attacker["Attacker"] -->|"Security: can input redirect behavior?"| system
+```
+</DiagramBlock>
 
 <SectionLabel text="What AI Safety Is" />
 
