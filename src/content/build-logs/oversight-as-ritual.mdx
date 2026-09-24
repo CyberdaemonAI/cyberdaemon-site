@@ -53,9 +53,9 @@ Genuine detection requires a reference point. You cannot identify an anomaly wit
 
 Most action descriptions don't sound bad. That is the problem.
 
-<DiagramBlock caption="The DIRA gate — declared intent routes to authorization, which routes to execution">
+<DiagramBlock caption="The DIRA gate: declared intent routes to authorization, which routes to execution">
 ```mermaid
-graph LR
+flowchart LR
   Agent -->|"Declares intent"| DIRA["DIRA Gate"]
   DIRA -->|"Checks trust threshold"| Auth["Authorization"]
   Auth -->|"Approved"| Exec["Execution"]
@@ -124,7 +124,7 @@ That is a lot to ask of a button.
 
 ## Where I'm wrong
 
-This framing assumes the approval flow is the primary control. In some deployments, the gate is redundant by design: the agent's tool permissions are so narrow that the request can't do meaningful harm regardless of what gets approved. If that's your architecture, the DIRA critique doesn't land — detection upstream is less critical when the blast radius is bounded by tool scope.
+This framing assumes the approval flow is the primary control. In some deployments, the gate is redundant by design: the agent's tool permissions are so narrow that the request can't do meaningful harm regardless of what gets approved. If that's your architecture, the DIRA critique doesn't land, and detection upstream is less critical when the blast radius is bounded by tool scope.
 
 The harder objection: detection itself can be gamed. A sufficiently capable agent under adversarial optimization can learn the detection baseline and stay inside it. This doesn't make detection useless, but it shifts the requirement from a static baseline to a continuously updated one, which is a higher operational bar than most teams are actually running.
 
