@@ -22,7 +22,9 @@ That pessimism has been running around my field for three years. Every conversat
 
 It isn't. Smith's argument assumes specialists are scarce. Small language models (SLMs) just broke that assumption.
 
-<SectionLabel>Scarcity Was the Hidden Premise</SectionLabel>
+<SectionLabel text="Scarcity Was the Hidden Premise" />
+
+## Scarcity Was the Hidden Premise
 
 Pin factory economics work when expertise is rare and expensive to replicate. You hire one master craftsman and structure work around them because you can't afford ten. Division of labor solves the scarcity problem.
 
@@ -34,7 +36,9 @@ That's what SLMs do. A three-billion parameter model running on a consumer GPU h
 
 The scarcity assumption collapses. And when scarcity collapses, so does the argument for centralized dependency.
 
-<SectionLabel>What the Inversion Looks Like</SectionLabel>
+<SectionLabel text="What the Inversion Looks Like" />
+
+## What the Inversion Looks Like
 
 I run a fleet of small agents on Kubernetes on consumer hardware at home. This isn't a lab experiment. It's a production assistant platform I use for real work every day.
 
@@ -46,7 +50,9 @@ I can add a new specialized agent in a day.
 
 Smith would recognize the structure: specialized workers, each excellent at their task, working in parallel. What he couldn't have anticipated is that the "workers" have zero marginal cost to replicate. The scarcity that justified centralization is gone.
 
-<SectionLabel>The Coordination Objection</SectionLabel>
+<SectionLabel text="The Coordination Objection" />
+
+## The Coordination Objection
 
 The standard objection at this point is coordination. Sure, you can run ten specialized models, but who orchestrates them? You still need a general-purpose system to route tasks.
 
@@ -58,7 +64,9 @@ The other objection is quality. Small models can't match a frontier model on com
 
 Also yes, for certain tasks. If I need to reason through a novel legal edge case with no prior examples, I want a big model. For the 80 percent of tasks that are structured, domain-specific, and repetitive, a small model that's been tuned is better than a frontier model that's been prompted. Tuned beats prompted for routine work.
 
-<SectionLabel>The Real Distribution of Control</SectionLabel>
+<SectionLabel text="The Real Distribution of Control" />
+
+## The Real Distribution of Control
 
 The Adam Smith specialization argument, applied to AI, predicted consolidation: one or two dominant model providers running expert systems, everyone else renting access, control concentrated upward.
 
@@ -68,7 +76,9 @@ For security practitioners, this isn't architectural curiosity. Data sovereignty
 
 The technology just caught up with the requirement.
 
-<SectionLabel>Optimism Is Warranted</SectionLabel>
+<SectionLabel text="Optimism Is Warranted" />
+
+## Optimism Is Warranted
 
 I'm not dismissing large models. I use them for the work that needs them: novel synthesis, complex multi-step reasoning, tasks where I genuinely don't know the shape of the answer.
 
@@ -79,3 +89,15 @@ But the narrative that AI creates dependency on centralized expertise, that it i
 Tuned for your domain, your data, your requirements. Coordinated by a lightweight orchestrator you control. Costing you compute you already have.
 
 Adam Smith was right that specialization creates efficiency. He just didn't anticipate that specialists could be free.
+
+---
+
+## Where I'm wrong
+
+The fleet I describe is real, but I run it on hardware I already owned. For an organization starting from scratch, the infrastructure cost is not zero. Consumer GPUs capable of running SLMs at useful speeds are several hundred dollars per seat. That's not prohibitive, but it's not free either. The marginal query cost argument is correct once you have the hardware; the upfront argument requires more honesty about what "already there" actually means.
+
+The quality gap is also understated. Tuned beats prompted for routine work is probably true for well-scoped tasks with good training data. For organizations that don't have domain-specific training data, fine-tuning a small model means either building that dataset or using a general-purpose SLM that hasn't been tuned for their domain. An untuned small model against a well-prompted frontier model is not an obvious win for the small model.
+
+---
+
+*Views are my own, not those of my employer.*
