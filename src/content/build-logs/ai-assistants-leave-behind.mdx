@@ -29,9 +29,9 @@ That is the gap I want to talk about.
 
 When I run an autonomous agent session, it produces evidence in four distinct places. Each place has a different owner, a different retention policy, and a different chain-of-custody status.
 
-<DiagramBlock caption="AI assistant artifact trail — what persists after a session ends">
+<DiagramBlock caption="AI assistant artifact trail: what persists after a session ends">
 ```mermaid
-graph TD
+flowchart TD
   Session["AI Session"] --> Logs["Session logs / transcripts"]
   Session --> Tools["Tool call traces"]
   Session --> Git["Git commits + diffs"]
@@ -42,7 +42,7 @@ graph TD
 
 **Conversation logs.** Every message sent to a model is logged by the provider. Anthropic, OpenAI, and every other commercial API operator retains conversation data under their own terms. The exact retention window and access controls depend on the service tier, the API contract, and whether the session used a consumer product or a direct API call. Some of that data is accessible through the API or a dashboard; some of it is accessible only to the provider; some of it is gone after a defined window. If you run a self-hosted model, you control this layer entirely. If you use a commercial API, you share custody with a third party whose retention policy may or may not match your incident response timeline.
 
-**Memory writes.** Systems like the prom-memory layer I run on Prometheus write durable facts to a vector store during and after sessions. Every significant event can be memorialized: decisions made, errors encountered, tools called, patterns identified. That memory layer is mine; I control the store, I can query it, and I can audit what was written and when. But the content is only as trustworthy as the session that produced it. If the session was compromised, the memory writes are potentially compromised artifacts.
+**Memory writes.** Systems like the persistent memory layer I run on Prometheus write durable facts to a vector store during and after sessions. Every significant event can be memorialized: decisions made, errors encountered, tools called, patterns identified. That memory layer is mine; I control the store, I can query it, and I can audit what was written and when. But the content is only as trustworthy as the session that produced it. If the session was compromised, the memory writes are potentially compromised artifacts.
 
 <ScrollReveal>
 <PullQuote>
