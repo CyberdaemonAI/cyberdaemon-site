@@ -11,6 +11,7 @@ import Callout from '../../components/Callout.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 
 On a Tuesday morning in an environment I will not name, a security team received an alert that looked like a standard data exfiltration event. Files moved, a credential used in an unusual context, a network path that did not match the user's normal pattern. They worked the incident the way they always do: pull the logs, interview the user, reconstruct the timeline.
 
@@ -27,6 +28,17 @@ That is the gap I want to talk about.
 ## What an AI assistant actually generates
 
 When I run an autonomous agent session, it produces evidence in four distinct places. Each place has a different owner, a different retention policy, and a different chain-of-custody status.
+
+<DiagramBlock caption="AI assistant artifact trail — what persists after a session ends">
+```mermaid
+graph TD
+  Session["AI Session"] --> Logs["Session logs / transcripts"]
+  Session --> Tools["Tool call traces"]
+  Session --> Git["Git commits + diffs"]
+  Session --> Memory["Persistent memory entries"]
+  Session --> API["API request logs (provider-side)"]
+```
+</DiagramBlock>
 
 **Conversation logs.** Every message sent to a model is logged by the provider. Anthropic, OpenAI, and every other commercial API operator retains conversation data under their own terms. The exact retention window and access controls depend on the service tier, the API contract, and whether the session used a consumer product or a direct API call. Some of that data is accessible through the API or a dashboard; some of it is accessible only to the provider; some of it is gone after a defined window. If you run a self-hosted model, you control this layer entirely. If you use a commercial API, you share custody with a third party whose retention policy may or may not match your incident response timeline.
 
