@@ -27,7 +27,7 @@ Most organizations treat behavioral drift in production AI as a malfunction. The
 
 <DiagramBlock caption="BDD signal flow: behavioral baselines trigger drift alerts when agents deviate">
 ```mermaid
-graph LR
+flowchart LR
   Agents["Agent Fleet"] -->|"Actions"| Monitor["BDD Monitor"]
   Monitor -->|"Compare to baseline"| Check{"Within tolerance?"}
   Check -->|"Yes"| Continue["Continue"]
@@ -95,7 +95,7 @@ A model being steered toward more hedged, more verbose, or more approval-seeking
 Compliance asks whether the model drifted. Threat intelligence asks who benefits from the direction it drifted in.
 </PullQuote>
 
-BDD is wired to daemon-guard's D53 enforcement gate in my stack. D53 detects drift within a single session against an intra-session behavioral snapshot; BDD closes the cross-session loop. Together they make behavioral consistency a verifiable assertion rather than an assumed property.
+BDD is wired to the behavioral enforcement gate in my stack. D53 detects drift within a single session against an intra-session behavioral snapshot; BDD closes the cross-session loop. Together they make behavioral consistency a verifiable assertion rather than an assumed property.
 
 <ScrollReveal>
 But the framing of the detection system matters as much as its implementation. A compliance posture says: establish a baseline, detect deviation, trigger a review. Necessary, not sufficient.
