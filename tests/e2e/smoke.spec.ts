@@ -35,6 +35,7 @@ const IGNORED_CONSOLE_PATTERNS = [
   "Provider's accounts list is empty",        // Chrome FedCM noise from Vercel toolbar
   'Failed to load resource: the server responded with a status of 403 ()',  // Vercel toolbar API
   'Failed to load resource: the server responded with a status of 429 ()',  // Vercel preview rate limit
+  'ingest.sentry.io',  // Vercel toolbar injects Sentry; x-vercel-skip-toolbar causes CORS rejection
 ];
 
 test.describe('Page smoke tests', () => {
