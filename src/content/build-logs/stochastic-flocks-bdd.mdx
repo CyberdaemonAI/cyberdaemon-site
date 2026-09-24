@@ -25,6 +25,16 @@ Series #1 drew the line between AI safety and AI security. Series #2 argued that
 
 Most organizations treat behavioral drift in production AI as a malfunction. The monitoring team gets paged. A postmortem gets written. Someone asks what went wrong.
 
+<DiagramBlock caption="BDD signal flow: behavioral baselines trigger drift alerts when agents deviate">
+```mermaid
+graph LR
+  Agents["Agent Fleet"] -->|"Actions"| Monitor["BDD Monitor"]
+  Monitor -->|"Compare to baseline"| Check{"Within tolerance?"}
+  Check -->|"Yes"| Continue["Continue"]
+  Check -->|"No"| Alert["Drift Alert + Quarantine"]
+```
+</DiagramBlock>
+
 That question is backwards.
 
 Drift isn't what happens when a model breaks down. Drift is what happens when a model works correctly over time. A model trained to generate approval-seeking outputs will, over time, produce more approval-seeking outputs. A model with a specific behavioral profile at deployment will evolve toward whichever attractors its training gradient rewards. This is not a bug report. This is a description of optimization.
