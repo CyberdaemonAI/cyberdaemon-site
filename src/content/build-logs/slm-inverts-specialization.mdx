@@ -8,6 +8,7 @@ featured: false
 ---
 
 import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
@@ -60,6 +61,16 @@ Yes. You need an orchestration layer. I have one. It's not complicated.
 
 The orchestrator doesn't need to be a large frontier model either. A small model that knows how to classify a task, pick the right specialist, and pass it context is a well-defined problem. It's a routing problem. Routers don't need to be intelligent; they need to be correct.
 
+<DiagramBlock caption="Specialist fleet routing: orchestrator classifies, specialists execute">
+```mermaid
+graph LR
+  User-->O[Orchestrator]
+  O-->IAM[IAM Agent]
+  O-->Content[Content Agent]
+  O-->Task[Task Agent]
+```
+</DiagramBlock>
+
 The other objection is quality. Small models can't match a frontier model on complex reasoning.
 
 Also yes, for certain tasks. If I need to reason through a novel legal edge case with no prior examples, I want a big model. For the 80 percent of tasks that are structured, domain-specific, and repetitive, a small model that's been tuned is better than a frontier model that's been prompted. Tuned beats prompted for routine work.
@@ -73,6 +84,10 @@ The Adam Smith specialization argument, applied to AI, predicted consolidation: 
 SLMs predict the opposite: fragmentation of capability, distribution of control. The edge running its own inference. Organizations owning their own models. No data leaving the perimeter.
 
 For security practitioners, this isn't architectural curiosity. Data sovereignty matters. A healthcare organization running a specialized SLM for clinical note summarization keeps patient data on-premises. A financial firm running fraud detection locally doesn't expose transaction patterns to an external API. These aren't fringe use cases; they're mainstream requirements.
+
+<Callout variant="note">
+SLMs (small language models) are models under roughly 10 billion parameters. They run on consumer GPUs, handle domain-specific queries at near-zero marginal cost per query, and operate fully offline. Most production-useful SLMs today land between 3B and 13B parameters.
+</Callout>
 
 The technology just caught up with the requirement.
 
