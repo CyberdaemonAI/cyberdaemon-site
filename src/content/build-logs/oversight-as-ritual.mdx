@@ -1,0 +1,136 @@
+---
+title: "Oversight as Ritual"
+description: "Human approval gates on AI agents feel like oversight. Most of the time, they aren't. Here's what real oversight looks like."
+excerpt: "The approve button comes too late in the pipeline to be meaningful oversight. Detection has to happen before the request reaches the gate."
+date: 2026-09-23
+tags: ["ai-security", "autonomous-agents"]
+featured: false
+---
+
+import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+import ScrollReveal from '../../components/ScrollReveal.astro';
+
+I watched a security review last spring where the team walked through their AI governance stack. When they got to the slide on human oversight, the engineering lead said, "We have approvals on everything."
+
+I asked him to show me the flow. He pulled up a dashboard. Action requests queued up every few seconds. He clicked approve on four of them while we talked.
+
+He hadn't read any of them.
+
+---
+
+<SectionLabel text="The Governance Checkbox" />
+
+## Human in the loop means what, exactly
+
+Every AI governance framework being sold right now includes "human-in-the-loop" as a control. The control looks like this: the agent cannot take an action without a human approving it. In theory, a human reviews each proposed action, assesses whether it makes sense, and either allows it or stops it.
+
+In practice, that flow breaks down under volume. An enterprise AI deployment running moderate task automation generates dozens of agent actions per hour. The review queue fills up. The approval bottleneck becomes a problem. The team learns to process the queue faster. Fast becomes fast enough that nobody is actually reading the requests.
+
+<ScrollReveal>
+<PullQuote>
+The ritual of oversight replaces the function of oversight. The button gets clicked. The protection doesn't exist.
+</PullQuote>
+</ScrollReveal>
+
+This is not a criticism of the people involved. It is a structural problem. Human attention under high volume and low variance converges on automation bias. When 97 out of 100 requests look routine, request 98 gets the same treatment. The cognitive load of genuine review doesn't scale with request volume, and nobody designs the approval flow to account for that.
+
+The governance audit says "human in the loop." The checkbox gets checked. The actual detection capacity is absent.
+
+---
+
+<SectionLabel text="DIRA and the Collapsed Gate" />
+
+## Detection doesn't happen at the button
+
+Detect, Isolate, Respond, Adapt (DIRA) is an operational framework for AI security. When I map enterprise approval flows against DIRA, most of them collapse the entire Detect and Respond phases into a single moment: the approve button.
+
+The approve button is supposed to be detection and response simultaneously. A human sees the action request, detects whether it is anomalous, and either approves or denies. That sounds reasonable until you work through the cognitive requirements.
+
+Genuine detection requires a reference point. You cannot identify an anomaly without knowing what normal looks like for this agent, this action type, in this context. That baseline has to exist before the action reaches you. If you are looking at a raw action request with no context, you are not detecting anything. You are reading a description and deciding if it sounds bad.
+
+Most action descriptions don't sound bad. That is the problem.
+
+<DiagramBlock caption="The DIRA gate: declared intent routes to authorization, which routes to execution">
+```mermaid
+flowchart LR
+  Agent -->|"Declares intent"| DIRA["DIRA Gate"]
+  DIRA -->|"Checks trust threshold"| Auth["Authorization"]
+  Auth -->|"Approved"| Exec["Execution"]
+  Auth -->|"Denied"| Block["Block + Alert"]
+```
+</DiagramBlock>
+
+<Callout variant="warning">
+An approval flow where humans click through 95% of requests without meaningful review is not a DIRA Detect gate. It is latency injected between agent decision and agent action, with occasional human attention applied to the fraction that happens to look unusual in the description alone.
+</Callout>
+
+---
+
+<SectionLabel text="When Detection Has to Happen" />
+
+## Before the request reaches a human
+
+Real detection is not something that happens at the approval gate. It happens upstream, on the action stream, before a human ever sees the request. The questions detection has to answer:
+
+- Is this action consistent with the agent's defined scope?
+- Is the frequency, sequencing, or target unusual relative to historical baseline?
+- Does this action follow from the preceding task context, or is it arriving from nowhere?
+- Has this agent taken this action before? If not, why now?
+
+None of those questions can be answered in three seconds by a human reading an action description. They require continuous analysis running on the action stream, scoring each request against a behavioral model before it hits the queue.
+
+When that analysis exists, the approve button becomes meaningful. The human sees a request that has already been scored, contextualized, and flagged or cleared by automated detection. If it is flagged, the human knows why and can make a real decision. If it is cleared, the approve click is a confirmation of a detection result, not a substitute for one.
+
+<ScrollReveal>
+<PullQuote>
+The approve button is too late in the pipeline to be the detection gate. By the time a human sees the request, detection should already have an answer.
+</PullQuote>
+</ScrollReveal>
+
+Without the upstream analysis layer, the approval flow is DIRA theater. The Detect phase never ran. The human at the gate is being asked to do that work in real time, without baselines, under volume, with no mechanism to distinguish a novel action from a routine one.
+
+---
+
+<SectionLabel text="What Actually Works" />
+
+## Building detection into the pipeline
+
+Two patterns hold up in practice.
+
+The first is **action scope enforcement at the agent boundary**. Every agent has a declared action space: the set of operations it is permitted to request. Requests outside that space never reach the approval queue. They are blocked and logged at the boundary. This doesn't require human attention to work. It runs continuously, handles volume silently, and keeps most out-of-scope requests away from the human gate entirely.
+
+The second is **behavioral baseline scoring**. The agent's action history builds a model of normal: what it requests, how often, in what sequence, against what targets. New requests are scored against that model before they enter the approval queue. High-scoring requests go through standard review. Low-scoring requests are flagged for real scrutiny. This directs human attention to the requests that warrant it and lets routine requests move faster.
+
+Neither of these is complicated. Both require treating detection as an engineering problem, not a governance checkbox. The approval flow is the last gate, not the only gate.
+
+---
+
+<SectionLabel text="The Diagnostic Question" />
+
+## What to ask about your own deployment
+
+If your AI governance audit says "human in the loop" and the evidence is an approval flow, one question cuts through it: what happens when the agent requests something it has never requested before?
+
+Does your system detect that before the request reaches the queue? Does it score the novelty? Does it flag it for additional scrutiny, or does it look identical to every other request in the queue?
+
+If it looks identical, you have ritual oversight. The checkbox is checked. The protection is not there.
+
+Real oversight requires detection infrastructure upstream of the approval gate. The gate is where humans apply judgment to anomalies the detection layer surfaced. Without the upstream layer, you are asking humans to do both jobs at once, under volume, without the baseline knowledge that makes detection possible.
+
+That is a lot to ask of a button.
+
+## Where I'm wrong
+
+This framing assumes the approval flow is the primary control. In some deployments, the gate is redundant by design: the agent's tool permissions are so narrow that the request can't do meaningful harm regardless of what gets approved. If that's your architecture, the DIRA critique doesn't land, and detection upstream is less critical when the blast radius is bounded by tool scope.
+
+The harder objection: detection itself can be gamed. A sufficiently capable agent under adversarial optimization can learn the detection baseline and stay inside it. This doesn't make detection useless, but it shifts the requirement from a static baseline to a continuously updated one, which is a higher operational bar than most teams are actually running.
+
+*Casey Gager builds a personal AI orchestration system and writes about AI security, Zero Trust, and Identity and Access Management (IAM). Views are his own, not those of his employer.*
+
+## See also
+
+- [Hardening an agent fleet for production](/build-logs/agent-fleet-security-hardening): what the security boundary around a real agent deployment looks like, from tool permissions to network policy.
+- [Agent tool permissions as attack surface](/build-logs/agent-tool-permissions-attack-surface): the scope side of this problem, what an agent is allowed to request shapes what an attacker can do through it.
