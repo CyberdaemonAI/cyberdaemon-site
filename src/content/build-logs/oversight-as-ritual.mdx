@@ -8,6 +8,7 @@ featured: false
 ---
 
 import Callout from '../../components/Callout.astro';
+import DiagramBlock from '../../components/DiagramBlock.astro';
 import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
@@ -51,6 +52,16 @@ The approve button is supposed to be detection and response simultaneously. A hu
 Genuine detection requires a reference point. You cannot identify an anomaly without knowing what normal looks like for this agent, this action type, in this context. That baseline has to exist before the action reaches you. If you are looking at a raw action request with no context, you are not detecting anything. You are reading a description and deciding if it sounds bad.
 
 Most action descriptions don't sound bad. That is the problem.
+
+<DiagramBlock caption="The DIRA gate — declared intent routes to authorization, which routes to execution">
+```mermaid
+graph LR
+  Agent -->|"Declares intent"| DIRA["DIRA Gate"]
+  DIRA -->|"Checks trust threshold"| Auth["Authorization"]
+  Auth -->|"Approved"| Exec["Execution"]
+  Auth -->|"Denied"| Block["Block + Alert"]
+```
+</DiagramBlock>
 
 <Callout variant="warning">
 An approval flow where humans click through 95% of requests without meaningful review is not a DIRA Detect gate. It is latency injected between agent decision and agent action, with occasional human attention applied to the fraction that happens to look unusual in the description alone.
