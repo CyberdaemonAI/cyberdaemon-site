@@ -1,0 +1,172 @@
+---
+/**
+ * ComparisonTable — two-column structured comparison with lane-themed header row.
+ * Semantic HTML table. Responsive: stacks on mobile with inline column labels.
+ *
+ * Usage:
+ *   <ComparisonTable
+ *     leftHeader="What the spec provides"
+ *     rightHeader="What you must build"
+ *     rows={[
+ *       ["Tool calling protocol", "Tool-to-permission mapping"],
+ *       ["Stateless MCP connection", "Session state management"],
+ *       ["JSON schema validation", "Runtime trust boundary enforcement"],
+ *     ]}
+ *   />
+ *
+ * Lane: defaults to 'research'. Set lane="analysis" or lane="buildlog" to match
+ * the article's lane accent color.
+ */
+
+interface Props {
+  leftHeader: string;
+  rightHeader: string;
+  rows: [string, string][];
+  lane?: 'research' | 'analysis' | 'buildlog';
+}
+
+const { leftHeader, rightHeader, rows, lane = 'research' } = Astro.props;
+---
+
+<div class="comparison-wrapper" data-lane={lane}>
+  <table class="comparison-table" role="table">
+    <thead>
+      <tr>
+        <th scope="col" class="col-header font-mono">{leftHeader}</th>
+        <th scope="col" class="col-header font-mono">{rightHeader}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {rows.map(([left, right], i) => (
+        <tr class="comparison-row" data-even={i % 2 === 0 ? 'true' : 'false'}>
+          <td class="comparison-cell" data-label={leftHeader}>{left}</td>
+          <td class="comparison-cell" data-label={rightHeader}>{right}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .comparison-wrapper {
+    margin: 2.5rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  /* Lane-keyed header background */
+  .comparison-wrapper[data-lane="research"] thead tr {
+    background: var(--color-lane-research-glow, rgba(8, 145, 178, 0.10));
+    border-bottom: 1px solid var(--color-lane-research, #0891b2);
+  }
+
+  .comparison-wrapper[data-lane="analysis"] thead tr {
+    background: var(--color-lane-analysis-glow, rgba(180, 83, 9, 0.10));
+    border-bottom: 1px solid var(--color-lane-analysis, #b45309);
+  }
+
+  .comparison-wrapper[data-lane="buildlog"] thead tr {
+    background: var(--color-lane-buildlog-glow, rgba(107, 80, 144, 0.10));
+    border-bottom: 1px solid var(--color-lane-buildlog, #6b5090);
+  }
+
+  .col-header {
+    padding: 0.875rem 1.25rem;
+    text-align: left;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    border-right: 1px solid var(--color-border);
+  }
+
+  .comparison-wrapper[data-lane="research"] .col-header { color: var(--color-lane-research); }
+  .comparison-wrapper[data-lane="analysis"] .col-header { color: var(--color-lane-analysis); }
+  .comparison-wrapper[data-lane="buildlog"] .col-header { color: var(--color-lane-buildlog); }
+
+  .col-header:last-child {
+    border-right: none;
+  }
+
+  .comparison-row {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .comparison-row:last-child {
+    border-bottom: none;
+  }
+
+  .comparison-row[data-even="true"] {
+    background: var(--color-bg-secondary);
+  }
+
+  .comparison-row[data-even="false"] {
+    background: var(--color-bg-surface);
+  }
+
+  .comparison-cell {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    border-right: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+
+  .comparison-cell:last-child {
+    border-right: none;
+  }
+
+  /* Responsive: stack columns vertically with inline label */
+  @media (max-width: 640px) {
+    .comparison-table,
+    .comparison-table thead,
+    .comparison-table tbody,
+    .comparison-table tr,
+    .comparison-table th,
+    .comparison-table td {
+      display: block;
+      width: 100%;
+    }
+
+    .comparison-table thead {
+      display: none;
+    }
+
+    .comparison-row {
+      border-bottom: 2px solid var(--color-border);
+      padding: 0;
+    }
+
+    .comparison-cell {
+      border-right: none;
+      border-bottom: 1px solid var(--color-border);
+      padding: 0.75rem 1rem;
+    }
+
+    .comparison-cell:last-child {
+      border-bottom: none;
+    }
+
+    /* Inline column label via data-label */
+    .comparison-cell::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.5625rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      margin-bottom: 0.375rem;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+  }
+</style>

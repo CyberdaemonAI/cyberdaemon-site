@@ -1,0 +1,76 @@
+---
+title: "New MDX Components: ImageBlock, Timeline, TerminalBlock, ComparisonTable"
+description: "Component showcase for vault-mzsvu: four new MDX components added to cyberdaemon.ai. Draft — not published."
+date: 2026-09-28
+draft: true
+tags: ["meta"]
+topic: "Site"
+featured: false
+---
+
+import ImageBlock from '../../components/ImageBlock.astro';
+import Timeline from '../../components/Timeline.astro';
+import TerminalBlock from '../../components/TerminalBlock.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
+
+This draft demonstrates the four new MDX components added in vault-mzsvu. Not published.
+
+---
+
+## ImageBlock
+
+Static image or SVG embed with caption and optional attribution.
+
+<ImageBlock
+  src="/brand/profile-mark.svg"
+  alt="Cyberdaemon profile mark"
+  caption="Profile mark — used in article headers and social cards"
+  attribution="cyberdaemon.ai brand assets"
+/>
+
+---
+
+## Timeline
+
+Vertical timeline for chronological build content.
+
+<Timeline items={[
+  { phase: 'Scaffold', date: '2026-09-01', description: 'Repo created, CI wired, first commit.', status: 'complete' },
+  { phase: 'Core components', date: '2026-09-15', description: 'ImageBlock, Timeline, TerminalBlock, ComparisonTable built.', status: 'complete' },
+  { phase: 'Article integration', date: '2026-09-28', description: 'Components wired into existing articles. Dev server verified.', status: 'in-progress' },
+  { phase: 'Production deploy', description: 'Vercel deploy after PR merge.', status: 'planned' },
+]} />
+
+---
+
+## TerminalBlock
+
+Styled terminal output with prompt prefix and command/output distinction.
+
+<TerminalBlock label="kronos — bash" content={`$ kubectl get pods -n prometheus
+NAME                          READY   STATUS    RESTARTS   AGE
+daemon-mm-7d8f9b-xyz         1/1     Running   0          2d
+cc-remote-control-5f9c-abc   1/1     Running   1          2d
+prom-memory-6d4e-def         1/1     Running   0          2d
+$ kubectl describe pod daemon-mm-7d8f9b-xyz | grep Image
+    Image:         ghcr.io/daemonprompt/daemon-mm:sha-a3f2c1b
+    Image ID:      ghcr.io/daemonprompt/daemon-mm@sha256:a3f2c1b...`} />
+
+---
+
+## ComparisonTable
+
+Two-column semantic table with lane-themed headers.
+
+<ComparisonTable
+  leftHeader="What the spec provides"
+  rightHeader="What you must build"
+  lane="analysis"
+  rows={[
+    ["Tool calling protocol", "Tool-to-permission mapping"],
+    ["Stateless MCP connection", "Session state management"],
+    ["JSON schema validation", "Runtime trust boundary enforcement"],
+    ["Standard error codes", "Failure mode classification and recovery"],
+    ["Agent identity field", "Identity attestation and delegation chain"],
+  ]}
+/>

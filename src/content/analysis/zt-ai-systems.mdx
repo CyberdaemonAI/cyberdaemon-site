@@ -14,6 +14,7 @@ import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
+import ComparisonTable from '../../components/ComparisonTable.astro';
 
 <SectionLabel text="Two Silos" />
 
@@ -53,16 +54,21 @@ NIST SP 800-207 (the federal Zero Trust architecture blueprint) defines Zero Tru
 
 Here is the full mapping:
 
-| ZTA Concept (SP 800-207) | Agentic AI Analog | Notes |
-|---|---|---|
-| **Subject** | AI Agent | The entity making access requests |
-| **Resource** | Tool, API, data source, external service | What the agent wants to use |
-| **Policy Decision Point (PDP)** | Runtime authorization engine | Evaluates whether the agent can take this action in this context |
-| **Policy Enforcement Point (PEP)** | Tool gateway / action interceptor | Blocks or allows the action based on PDP decision |
-| **Policy Administrator** | Human policy author | Writes the rules the PDP evaluates |
-| **Trust Algorithm** | Intent + role + context evaluation | Multi-signal assessment of whether to authorize |
-| **Continuous Diagnostics & Mitigation** | Behavioral drift detection | Ongoing monitoring for anomalous agent behavior |
-| **Identity Governance** | Agent identity and delegation chain | Who is this agent, who delegated to it, what authority was delegated |
+<ComparisonTable
+  leftHeader="ZTA Concept (SP 800-207)"
+  rightHeader="Agentic AI Analog"
+  lane="research"
+  rows={[
+    ["Subject", "AI Agent"],
+    ["Resource", "Tool, API, data source, external service"],
+    ["Policy Decision Point (PDP)", "Runtime authorization engine"],
+    ["Policy Enforcement Point (PEP)", "Tool gateway / action interceptor"],
+    ["Policy Administrator", "Human policy author"],
+    ["Trust Algorithm", "Intent + role + context evaluation"],
+    ["Continuous Diagnostics & Mitigation", "Behavioral drift detection"],
+    ["Identity Governance", "Agent identity and delegation chain"],
+  ]}
+/>
 
 <Callout variant="insight" label="Not a metaphor">
 This is not "Zero Trust (the security model that treats every request as untrusted) is like agent security." This is "Zero Trust IS agent security, applied to a different substrate." The architecture is identical. The implementation differs. The principles do not.

@@ -14,6 +14,7 @@ import PullQuote from '../../components/PullQuote.astro';
 import SectionLabel from '../../components/SectionLabel.astro';
 import ScrollReveal from '../../components/ScrollReveal.astro';
 import DiagramBlock from '../../components/DiagramBlock.astro';
+import Timeline from '../../components/Timeline.astro';
 
 <Callout variant="note" label="Build log">
 This is not a theoretical architecture. It's four containerized AI agent instances
@@ -363,13 +364,11 @@ reproduced locally.
 
 The fleet's compute cost model is evolving through three phases:
 
-<ScrollReveal>
-| Phase | What changes | Status |
-|-------|-------------|--------|
-| Phase 1 | Event-driven startup, kill idle loop | Shipped |
-| Phase 2 | Autoscaler scale-to-zero, chat-ops dispatch triggers | Planned |
-| Phase 3 | API key migration (away from OAuth), local model routing | Planned |
-</ScrollReveal>
+<Timeline items={[
+  { phase: 'Phase 1', description: 'Event-driven startup, kill idle loop', status: 'complete' },
+  { phase: 'Phase 2', description: 'Autoscaler scale-to-zero, chat-ops dispatch triggers', status: 'planned' },
+  { phase: 'Phase 3', description: 'API key migration (away from OAuth), local model routing', status: 'planned' },
+]} />
 
 Phase 1 was the immediate win: removing the idle agent loop dropped the baseline cost
 to near zero. Phase 2 removes the instance itself when idle, saving container resources.

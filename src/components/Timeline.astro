@@ -1,0 +1,167 @@
+---
+/**
+ * Timeline — vertical timeline for build-log articles.
+ * Phase labels, optional dates, descriptions, and status indicators.
+ * Replaces flowcharts for chronological content.
+ *
+ * Usage:
+ *   <Timeline items={[
+ *     { phase: 'Sprint 1', date: '2026-08-01', description: 'Initial scaffold — beads wired.', status: 'complete' },
+ *     { phase: 'Sprint 2', date: '2026-08-15', description: 'CI gates added.', status: 'complete' },
+ *     { phase: 'Sprint 3', description: 'Memory layer integration.', status: 'in-progress' },
+ *     { phase: 'Sprint 4', description: 'Fleet-wide rollout.', status: 'planned' },
+ *   ]} />
+ */
+
+interface TimelineItem {
+  phase: string;
+  date?: string;
+  description: string;
+  status?: 'complete' | 'in-progress' | 'planned';
+}
+
+interface Props {
+  items: TimelineItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<div class="timeline">
+  {items.map((item, index) => (
+    <div class="timeline-item" data-status={item.status ?? 'planned'}>
+      <div class="timeline-track">
+        <div class="timeline-dot" aria-hidden="true"></div>
+        {index < items.length - 1 && <div class="timeline-line" aria-hidden="true"></div>}
+      </div>
+      <div class="timeline-content">
+        <div class="timeline-header">
+          <span class="phase-label font-mono">{item.phase}</span>
+          {item.date && <span class="phase-date font-mono">{item.date}</span>}
+        </div>
+        <p class="phase-description font-sans">{item.description}</p>
+      </div>
+    </div>
+  ))}
+</div>
+
+<style>
+  .timeline {
+    margin: 2.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .timeline-item {
+    display: flex;
+    gap: 1.25rem;
+    position: relative;
+  }
+
+  /* Track: dot + vertical line */
+  .timeline-track {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding-top: 0.125rem;
+  }
+
+  .timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-border);
+    border: 2px solid var(--color-bg);
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+
+  .timeline-line {
+    width: 2px;
+    flex: 1;
+    min-height: 1.5rem;
+    background: var(--color-border);
+    margin-top: 2px;
+  }
+
+  /* Status colors for dot */
+  .timeline-item[data-status="complete"] .timeline-dot {
+    background: #16a34a;
+    border-color: var(--color-bg);
+  }
+
+  .timeline-item[data-status="in-progress"] .timeline-dot {
+    background: #d97706;
+    border-color: var(--color-bg);
+  }
+
+  .timeline-item[data-status="planned"] .timeline-dot {
+    background: var(--color-border);
+    border-color: var(--color-bg);
+  }
+
+  /* Line: use lane accent from first item with in-progress/complete status */
+  .timeline-item[data-status="complete"] .timeline-line,
+  .timeline-item[data-status="in-progress"] .timeline-line {
+    background: var(--color-lane-buildlog);
+    opacity: 0.3;
+  }
+
+  .timeline-content {
+    padding-bottom: 1.75rem;
+    flex: 1;
+  }
+
+  .timeline-item:last-child .timeline-content {
+    padding-bottom: 0;
+  }
+
+  .timeline-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .phase-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-text-primary);
+  }
+
+  .timeline-item[data-status="complete"] .phase-label {
+    color: #16a34a;
+  }
+
+  .timeline-item[data-status="in-progress"] .phase-label {
+    color: #d97706;
+  }
+
+  .phase-date {
+    font-size: 0.6875rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  .phase-description {
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  @media (max-width: 640px) {
+    .timeline-item {
+      gap: 1rem;
+    }
+
+    .phase-header {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+</style>

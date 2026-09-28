@@ -1,0 +1,97 @@
+---
+/**
+ * ImageBlock — static image or inline SVG embed with caption and attribution.
+ * Supports Excalidraw SVG exports, hand-crafted diagrams, and raster images.
+ *
+ * Usage:
+ *   <ImageBlock src="/images/context-flow.svg" alt="Context flow diagram" caption="System context" />
+ *   <ImageBlock src="/images/photo.webp" alt="Screenshot" caption="CI pipeline" attribution="daemonprompt/cc-remote-control" />
+ *
+ * SVG detection: if src ends in .svg, renders a plain <img> (no Next.js Image optimization).
+ * Raster images: same <img> path, lazy-loaded.
+ *
+ * Public images live in /public/images/; reference as /images/filename in src.
+ */
+
+interface Props {
+  src: string;
+  alt: string;
+  caption?: string;
+  attribution?: string;
+}
+
+const { src, alt, caption, attribution } = Astro.props;
+---
+
+<figure class="image-block">
+  <div class="image-inner">
+    <img src={src} alt={alt} loading="lazy" />
+  </div>
+  {(caption || attribution) && (
+    <figcaption class="image-caption font-mono">
+      {caption && <span class="caption-text">{caption}</span>}
+      {attribution && <span class="attribution-text">{attribution}</span>}
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .image-block {
+    margin: 2.5rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-bg-surface);
+  }
+
+  .image-inner {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-surface);
+  }
+
+  .image-inner img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+  }
+
+  .image-caption {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+    padding: 0.75rem 1.5rem;
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .caption-text {
+    flex: 1;
+  }
+
+  .attribution-text {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+    font-size: 0.625rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 640px) {
+    .image-caption {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .attribution-text {
+      white-space: normal;
+    }
+  }
+</style>
