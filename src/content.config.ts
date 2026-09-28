@@ -15,6 +15,8 @@ const articleSchema = z.object({
   threads: z.array(z.string()).default([]),
   // If this article deprecates or updates a prior position, link the slug here.
   updates: z.string().optional(),
+  // Suppress AuthorCard for the rare article that should not show it (e.g. evergreen reference pages).
+  hideAuthorCard: z.boolean().optional().default(false),
 });
 
 export const collections = {

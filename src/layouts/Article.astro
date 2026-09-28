@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import ArticleHero from '../components/ArticleHero.astro';
+import AuthorCard from '../components/AuthorCard.astro';
 import SeriesNav from '../components/SeriesNav.astro';
 import RelatedArticles from '../components/RelatedArticles.astro';
 import { getRelatedArticles } from '../lib/related-articles';
@@ -15,9 +16,10 @@ interface Props {
   threads?: string[];
   slug?: string;
   collection?: 'research' | 'analysis' | 'build-logs';
+  hideAuthorCard?: boolean;
 }
 
-const { title, description, date, lane, tags = [], readTime, threads = [], slug = '', collection = lane } = Astro.props;
+const { title, description, date, lane, tags = [], readTime, threads = [], slug = '', collection = lane, hideAuthorCard = false } = Astro.props;
 
 // Build OG image URL for this article.
 // Passing title as a query param avoids a server-side file read in the edge function.
@@ -56,6 +58,8 @@ const related = slug
     )}
 
     <RelatedArticles articles={related} />
+
+    {!hideAuthorCard && <AuthorCard />}
 
   </article>
 
