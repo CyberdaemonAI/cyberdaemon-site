@@ -79,14 +79,16 @@ The dispatching context must provide:
 
 ## Execution Loop
 
-1. **Read context**: event description, lane, thesis, key claims
-2. **Read standards**: `docs/PUBLISHING-STANDARDS.md` + `docs/STYLE-GUIDE.md`
-3. **Research**: search RAG for supporting material if needed
-4. **Draft**: write MDX with components, counterarguments, builder voice
-5. **Self-review**: run `docs/CONTENT-REVIEW-CHECKLIST.md` against the draft
-6. **Submit**: open PR on CyberdaemonAI/cyberdaemon-site via GitHub App
-7. **Post to Zulip**: summary + key claims to #content-pipeline for Casey's review _(TODO: Zulip is getting ripped — replace with GitHub PR comment when comms replacement is known)_
-8. **Revise if needed**: Casey comments on PR or reacts in Zulip; revise and re-push
+1. **Read context**: Article Manifest — source, lane, thesis, key claims, structural spec, LVE enrichment blob
+2. **Read standards**: `docs/PUBLISHING-STANDARDS.md` + `docs/STYLE-GUIDE.md` (voice fingerprints, components)
+3. **Read exemplars**: both register exemplars before drafting (see Exemplar Articles above)
+4. **Research**: search RAG for supporting material against `sources` in Manifest
+5. **Draft**: write MDX with components, counterarguments, builder voice. Populate `image_specs`. Populate `threads_not_pulled`.
+6. **Generate images**: for each `image_spec`, call OpenAI API with style prefix + spec. Write to `output_path`.
+7. **Challenger pass**: run adversarial review against draft (see taco.yaml `challenger_posture`). Revise significant/fatal challenges. Flag escalations in PR description.
+8. **Self-review**: run `docs/CONTENT-REVIEW-CHECKLIST.md` against final draft
+9. **Submit**: open PR on CyberdaemonAI/cyberdaemon-site via GitHub App. Include Challenger summary in PR description.
+10. **Revise if needed**: Casey comments on PR; revise and re-push
 
 ## Completion Gate
 
@@ -101,6 +103,11 @@ This section defines the structured dispatch format for B0b article runs. Every 
 ### Article Bead Schema (required fields)
 
 ```
+# --- Initiation ---
+source: casey-initiated | pipeline-proposed | thread-continuation
+parent_slug: null  # if thread-continuation, which article's thread this continues
+
+# --- Content spec ---
 title: [working title]
 description: [1-2 sentence meta description — this becomes the article excerpt]
 lane: [build-logs | analysis | research]
@@ -110,16 +117,50 @@ audience: [who this is for and what they already know]
 sources: [specific RAG queries or URLs — "zero trust agentic AI" beats "AI security"]
 word_target: [1200–2000 recommended]
 components: [list of MDX components to use from docs/STYLE-GUIDE.md]
-voice_notes: [anything Taco-specific for this piece — tone, register, angle]
+voice_notes: [anything specific for this piece — tone, register, angle]
+
+# --- Structural synthesis (populated by Stage 3, not by dispatch) ---
+structural_spec:
+  method: morphological | adversarial | dna-transplant
+  argument_type: causal | comparative | paradoxical | analogical | theorem | inversion
+  structure_id: ""
+  tprng_seed: ""
+  notes: ""
+
+# --- Image specs (one entry per image in the article) ---
+image_specs:
+  - intent: [what the image communicates, one sentence]
+    style_notes: [composition, mood, specific elements]
+    alt_text: [accessibility + SEO — written by B0b]
+    aspect_ratio: "16:9"
+    placement: [where in the MDX: after-intro / section-X / conclusion]
+    output_path: /public/images/{slug}/{index}-{descriptor}.webp
+
+# --- Stage flags (optional overrides) ---
+skip_challenger: false   # set true to skip Challenger pass (Stage 7)
+skip_image_gen: false    # set true if images are manual
+skip_lve: false          # set true to use static casey-voice.yaml constraints only
+
+# --- Post-publish harvest (populated after Stage 12, not by dispatch) ---
+threads_not_pulled: []   # observations surfaced but not developed in the draft
 ```
 
 ### Taco Persona
 
-Inject this at the top of every B0b article dispatch:
+Taco is a full LVE persona — same infrastructure as the daemon characters in Prometheus. Taco writes in Casey's voice. As LVE evolves, Taco inherits automatically.
 
-> You are Taco. You write for cyberdaemon.ai. Read docs/STYLE-GUIDE.md before writing a single word. The voice is: curious builder, sarcastic, self-aware, zero hedge words. You share what and why. You keep how close unless it matters to the argument. Pop culture as functional shorthand, not decoration.
+LVE reference profiles:
+- **Taco** (writing agent): `prometheus-lve/profiles/taco.yaml`
+- **Casey voice** (voice constraints): `prometheus-lve/profiles/casey-voice.yaml`
 
-Voice is injected via `claude_md_content` in the B0b dispatch config (daemon-incubation). If STYLE-GUIDE.md is not current, voice drift occurs immediately. Keep STYLE-GUIDE.md authoritative.
+LVE enrichment (Stage 4) calls `http://lve-service:PORT/enrich` with `persona_id: taco`. The enrichment blob is injected into B0b's system prompt before drafting. The blob includes: vocabulary OWN/NEVER lists, register constraints, vocabulary delta (recently overused terms), structural delta (recently overused patterns).
+
+Fallback when LVE is unavailable: inject casey-voice.yaml OWN/NEVER lists as static constraints directly.
+
+**Minimum static Taco posture** (used as fallback, also included in LVE enrichment):
+> You are Taco. You write for cyberdaemon.ai. Read docs/STYLE-GUIDE.md before writing a single word. The voice is Casey's: curious builder, sarcasm with payload, zero hedge words. You share what and why. You keep how close unless it matters to the argument. Apply the vocabulary NEVER list absolutely. Check the structural delta — if a pattern is in the delta, don't use it.
+
+Voice accuracy depends on STYLE-GUIDE.md and casey-voice.yaml being current. Voice drift occurs when either is stale.
 
 ### Exemplar Articles (B0b reads before writing)
 
