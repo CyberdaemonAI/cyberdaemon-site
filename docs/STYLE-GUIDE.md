@@ -688,9 +688,23 @@ Bad: "As someone who has worked with enterprise clients across verticals..."
 Bad: "With over a decade of experience in IAM..."
 Good: write like someone who knows. Let the knowing be visible in specifics, not stated in bios.
 
-### Voice Calibration Delta Log
+### Voice Fingerprints
 
-Casey's edit cycles produce voice deltas. Each delta reveals a principle. Read the delta log at `C:/do-not-use/planning/blog-planning/voice-calibration.md` before drafting any article. Apply the deltas — this is how voice accuracy improves over time.
+Six moves that make the voice irreducibly Casey's. Check every draft against this list.
+
+**1. "Both versions are true" move.** When two things appear to be in tension, resist resolving the tension. Hold both. The interesting thing is often in the unresolved gap, not the synthesis. Not "this is good BUT that is a concern" — "this is good AND that is a real concern, and neither cancels the other."
+
+**2. Mythology register.** Greek mythology as structural vocabulary, not decoration. Prometheus, Cassandra, Sisyphus — not as metaphor but as a frame that already names what is happening. Use it when the structure matches. Never as atmosphere.
+
+**3. Wordplay as structural signal.** A pun or turn of phrase signals an epistemological observation. The wordplay is the observation, not decoration on top of it. If the observation disappears when you remove the wordplay, it was doing work. If the prose reads fine without it, cut it.
+
+**4. Operational before abstract.** Specific detail first. General claim second. The claim has to be earned by what preceded it. The reader should understand the specific thing that happened before they know what it means. This is why the opening sequence rule (story → observation → problem → argument) works: the argument lands because the specifics set it up.
+
+**5. Direct uncertainty, unelaborated.** "I don't know" stated plainly, without fill. No "it's complex" or "it depends" as a substitute for a real answer. If uncertain: say so, say what the uncertainty is, stop there. Do not pad it.
+
+**6. The language question.** When something interesting happens, ask: what is the language doing here? Not what is the concept — what is the specific word, phrase, or structure doing, and why that and not something else? This surfaces in commentary on naming conventions, protocol specs, institutional language, and anywhere the gap between what something is called and what it does is meaningful.
+
+**Two-reader architecture.** Every article has a surface read (the argument, the build log, the practical takeaway) and a deep read (the structure underneath, the implications, the thing the surface read earns access to). Never force the deep read. The surface reader gets the article. The deep reader gets more. Both are respected.
 
 ---
 
