@@ -397,7 +397,7 @@ Tags are lowercase-kebab-case strings. Use existing tags when possible. Create n
 | Standards | `governance`, `risk-management`, `compliance`, `model-context-protocol` |
 
 **Tag rules:**
-- 3-7 tags per article. Enough to be findable, not so many that tags lose meaning.
+- 2-5 tags per article. Enough to be findable, not so many that tags lose meaning. CI enforces max 5.
 - First tag should be the primary topic.
 - Include the lane-relevant domain tag (e.g., articles in `research/` should include the framework or concept tag).
 - Use `prometheus` tag only when the Prometheus system is explicitly part of the article topic.
@@ -701,7 +701,7 @@ Casey's edit cycles produce voice deltas. Each delta reveals a principle. Read t
 - Keep diagrams to 5-9 nodes. More than that needs to be split into multiple diagrams.
 - Captions are mandatory.
 - No real node names, IPs, service names, or internal identifiers in diagrams. Use functional labels ("Auth Service," "Intent Validator," "Agent Runtime").
-- Prefer `graph LR` (left-to-right) for flows and chains. Use `graph TD` (top-down) for hierarchies.
+- Use `flowchart LR` (left-to-right) for flows and chains. Use `flowchart TD` (top-down) for hierarchies. Do NOT use `graph LR/TD/TB` — CI rejects old Mermaid graph syntax.
 
 ---
 

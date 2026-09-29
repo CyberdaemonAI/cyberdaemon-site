@@ -347,18 +347,18 @@ jobs:
           echo "Opening hook check complete (warnings only, not blocking)."
 
 
-      - name: Check canonical tags (max 2, canonical set only)
+      - name: Check canonical tags (max 5, canonical set only)
         run: |
-          echo "=== Checking frontmatter tags: canonical set + max 2 per article ==="
-          CANONICAL="autonomous-agents ai-security ai-systems infrastructure research reflection"
+          echo "=== Checking frontmatter tags: canonical set + max 5 per article ==="
+          CANONICAL="autonomous-agents ai-security ai-systems infrastructure research reflection agentic-ai ai-governance ai-memory ai-rmf identity nhi authorization human-in-the-loop security incident-response zero-trust dira padcn isa mcp nist sp-800-207 vector-search episodic-memory compression ci-cd structured-prompting prometheus fleet-management governance risk-management compliance model-context-protocol"
           FAIL=0
           for file in $(find src/content -name "*.mdx" | sort); do
             tag_line=$(awk '/^---$/{if(++c==2)exit} c==1 && /^tags:/' "$file")
             [ -z "$tag_line" ] && continue
             tags=$(echo "$tag_line" | grep -oP '"[^"]+"' | tr -d '"')
             count=$(echo "$tags" | wc -w)
-            if [ "$count" -gt 2 ]; then
-              echo "FAIL: $file has $count tags (max 2): $tags"
+            if [ "$count" -gt 5 ]; then
+              echo "FAIL: $file has $count tags (max 5): $tags"
               FAIL=1
             fi
             for tag in $tags; do
@@ -368,7 +368,7 @@ jobs:
               done
               if [ "$valid" -eq 0 ]; then
                 echo "FAIL: $file has non-canonical tag '$tag'"
-                echo "  Allowed: $CANONICAL"
+                echo "  See STYLE-GUIDE.md established tags table for allowed values."
                 FAIL=1
               fi
             done
