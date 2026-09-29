@@ -21,9 +21,12 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
 
 <Base title="cyberdaemon.ai" description="Casey Gager — AI security practitioner and researcher.">
 
-  <section class="max-w-site mx-auto px-6 pt-16 pb-8">
-    <h1 class="font-serif text-display text-text-primary mb-3">cyberdaemon.ai</h1>
-    <p class="text-text-secondary text-body max-w-xl">AI security, agentic systems, and what breaks when you build them.</p>
+  <section class="max-w-site mx-auto px-6">
+    <div class="site-hero">
+      <p class="site-hero-eyebrow font-mono">cyberdaemon.ai</p>
+      <h1 class="site-hero-headline font-serif">I build AI systems.<br />This is what breaks.</h1>
+      <p class="site-hero-subline">Autonomous AI in practice. No hype, no demos.</p>
+    </div>
   </section>
 
   <!-- Tag filter -->
@@ -49,6 +52,7 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
             tags={a.data.tags}
             date={a.data.date}
             featured={true}
+            coverImage={a.data.coverImage}
           />
         ))}
       </div>
@@ -66,6 +70,7 @@ const CANONICAL_TAGS = ['autonomous-agents', 'ai-security', 'ai-systems', 'infra
           slug={a.id}
           tags={a.data.tags}
           date={a.data.date}
+          coverImage={a.data.coverImage}
         />
       ))}
     </div>

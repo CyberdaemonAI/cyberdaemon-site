@@ -17,6 +17,7 @@ const articleSchema = z.object({
   updates: z.string().optional(),
   // Suppress AuthorCard for the rare article that should not show it (e.g. evergreen reference pages).
   hideAuthorCard: z.boolean().optional().default(false),
+  coverImage: z.string().optional(),
 });
 
 export const collections = {
