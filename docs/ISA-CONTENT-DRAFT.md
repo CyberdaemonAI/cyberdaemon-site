@@ -145,20 +145,24 @@ skip_lve: false          # set true to use static casey-voice.yaml constraints o
 threads_not_pulled: []   # observations surfaced but not developed in the draft
 ```
 
-### Taco Persona
+### Blog Writing Persona (casey-blog)
 
-Taco is a full LVE persona — same infrastructure as the daemon characters in Prometheus. Taco writes in Casey's voice. As LVE evolves, Taco inherits automatically.
+`casey-blog` is the LVE voice enrichment persona for blog articles. Same infrastructure as the daemon characters in Prometheus. Writes in Casey's voice. As LVE evolves, casey-blog inherits automatically.
+
+NOTE: Previously planned as "taco" — name collision discovered 2026-09-29. LVE service already has a `taco` persona (Taco MacArthur, The League, chat character). Renamed to `casey-blog`. No conflict.
 
 LVE reference profiles:
-- **Taco** (writing agent): `prometheus-lve/profiles/taco.yaml`
+- **casey-blog** (writing agent): `prometheus-lve/profiles/casey-blog.yaml`
 - **Casey voice** (voice constraints): `prometheus-lve/profiles/casey-voice.yaml`
 
-LVE enrichment (Stage 4) calls `http://lve-service:PORT/enrich` with `persona_id: taco`. The enrichment blob is injected into B0b's system prompt before drafting. The blob includes: vocabulary OWN/NEVER lists, register constraints, vocabulary delta (recently overused terms), structural delta (recently overused patterns).
+LVE enrichment (Stage 4) calls `http://lve.prometheus.svc.cluster.local:8800/enrich` with `persona: casey-blog`. The enrichment blob is injected into B0b's system prompt before drafting. The blob includes: vocabulary OWN/NEVER lists, register constraints, 6 voice fingerprints, two-reader architecture constraints, MDX output requirements.
+
+Confirmed live 2026-09-29. POST /enrich with `persona: casey-blog` returns enriched_system_prompt.
 
 Fallback when LVE is unavailable: inject casey-voice.yaml OWN/NEVER lists as static constraints directly.
 
-**Minimum static Taco posture** (used as fallback, also included in LVE enrichment):
-> You are Taco. You write for cyberdaemon.ai. Read docs/STYLE-GUIDE.md before writing a single word. The voice is Casey's: curious builder, sarcasm with payload, zero hedge words. You share what and why. You keep how close unless it matters to the argument. Apply the vocabulary NEVER list absolutely. Check the structural delta — if a pattern is in the delta, don't use it.
+**Minimum static posture** (used as fallback, also included in LVE enrichment):
+> You are writing for cyberdaemon.ai in Casey's voice. Read docs/STYLE-GUIDE.md before writing a single word. The voice is Casey's: curious builder, sarcasm with payload, zero hedge words. You share what and why. You keep how close unless it matters to the argument. Apply the vocabulary NEVER list absolutely. Check the structural delta — if a pattern is in the delta, don't use it.
 
 Voice accuracy depends on STYLE-GUIDE.md and casey-voice.yaml being current. Voice drift occurs when either is stale.
 
@@ -190,7 +194,7 @@ Resolve these before dispatch — not during:
 - What components to use (per `vault-cb90e` rules + `components` field in spec)
 - What the thesis is (it's in the `thesis` field)
 - Whether to include counterarguments (always, minimum 3, steelmanned not strawmanned)
-- What voice to use (Taco, `docs/STYLE-GUIDE.md` is authoritative)
+- What voice to use (casey-blog LVE persona, `docs/STYLE-GUIDE.md` is authoritative)
 - What lane (it's in the `lane` field)
 
 ---
