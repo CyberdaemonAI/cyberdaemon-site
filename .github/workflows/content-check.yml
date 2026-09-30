@@ -52,10 +52,11 @@ jobs:
           FAIL=0
 
           # Scan only lines ADDED in this PR -- pre-existing violations are not our problem here
+          # Exclude coverImage: frontmatter lines -- image directory names may use internal project slugs
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
+            ADDED=$(git diff "origin/${{ github.base_ref }}"...HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' | grep -v '^+[[:space:]]*coverImage:' || true)
           else
-            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' || true)
+            ADDED=$(git diff HEAD~1..HEAD -- $MDX_FILES | grep '^+' | grep -v '^+++' | grep -v '^+[[:space:]]*coverImage:' || true)
           fi
 
           PATTERNS=(

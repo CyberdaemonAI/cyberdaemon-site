@@ -37,6 +37,7 @@ const IGNORED_CONSOLE_PATTERNS = [
   'Failed to load resource: the server responded with a status of 429 ()',  // Vercel preview rate limit
   'ingest.sentry.io',  // Vercel toolbar injects Sentry; x-vercel-skip-toolbar causes CORS rejection
   'net::ERR_FAILED',   // CI network blocks (Vercel toolbar CORS, blocked third-party requests)
+  'has been blocked by CORS policy',  // x-vercel-skip-toolbar header leaks into CDN preflight (fonts, mermaid)
   'GSI_LOGGER',        // Google Sign-In identity API noise in headless CI
   'FedCM',             // Chrome FedCM credential API noise (no user session in CI)
 ];
