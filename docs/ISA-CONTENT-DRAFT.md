@@ -176,11 +176,13 @@ B0b should read both exemplars before drafting. These are the voice reference, n
 ### Branch and PR Naming
 
 ```
-Branch: content/[slug]
+Branch: content/[slug]           ← REQUIRED. Not feat/, not jen/. content/ only.
 Commit: content([bead-id]): [title]
 PR title: [article title] (no period)
 PR body: 2-sentence summary + "Closes [bead]"
 ```
+
+**HARD CONSTRAINT: Branch MUST start with `content/`.** The publish-gate.yml fires ONLY on `content/*` and `jen/*` branches. A `feat/*` branch bypasses Rex review and Casey's approval gate entirely — the article will auto-merge without review. Wrong prefix = broken pipeline = unauthorized publish.
 
 Never push to master directly. Always open a PR.
 

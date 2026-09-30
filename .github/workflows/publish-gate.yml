@@ -18,22 +18,54 @@ permissions: {}
 
 jobs:
   check-rex-verdict:
-    # Run on content branches for normal PR events.
-    # Run on labeled event only when the label added is 'rex-approved' (avoids re-run on every label).
-    if: >
-      (github.event_name == 'pull_request' &&
-       (startsWith(github.head_ref, 'jen/') || startsWith(github.head_ref, 'content/'))) ||
-      (github.event_name == 'pull_request_target' &&
-       (startsWith(github.event.pull_request.head.ref, 'jen/') ||
-        startsWith(github.event.pull_request.head.ref, 'content/')) &&
-       github.event.label.name == 'rex-approved')
+    # Fires on content/* and jen/* branch PRs (canonical content pipeline branches).
+    # Also fires on ANY branch that touches src/content/ -- catches wrong-prefix branches
+    # that would otherwise bypass Rex review and Casey's approval gate.
+    # Run on labeled event for rex-approved to re-evaluate the gate after Rex verdict.
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: read
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect content file changes
+        id: content_check
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          CHANGED=$(git diff --name-only origin/master...HEAD 2>/dev/null || echo "")
+          HAS_CONTENT=$(echo "$CHANGED" | grep -q "^src/content/.*\.mdx$" && echo "true" || echo "false")
+          IS_CONTENT_BRANCH="false"
+          if [[ "$BRANCH" == jen/* ]] || [[ "$BRANCH" == content/* ]]; then
+            IS_CONTENT_BRANCH="true"
+          fi
+          echo "has_content_changes=${HAS_CONTENT}" >> "$GITHUB_OUTPUT"
+          echo "is_content_branch=${IS_CONTENT_BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          echo "Branch: $BRANCH — is_content_branch=${IS_CONTENT_BRANCH} has_content_changes=${HAS_CONTENT}"
+
+      - name: Skip if not a content PR
+        if: >
+          steps.content_check.outputs.has_content_changes == 'false' &&
+          steps.content_check.outputs.is_content_branch == 'false'
+        run: echo "Not a content PR — publish gate skipped."
+
+      - name: Warn on wrong branch prefix with content changes
+        if: >
+          steps.content_check.outputs.has_content_changes == 'true' &&
+          steps.content_check.outputs.is_content_branch == 'false'
+        run: |
+          echo "::warning::Content files changed on branch '${{ steps.content_check.outputs.branch }}' — expected content/* or jen/* prefix."
+          echo "::warning::This PR will be held at the publish gate. Rex review required."
+
       - name: Check for rex-approved label
         id: label_check
+        if: >
+          steps.content_check.outputs.has_content_changes == 'true' ||
+          steps.content_check.outputs.is_content_branch == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
