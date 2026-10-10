@@ -1,0 +1,138 @@
+---
+/**
+ * TerminalBlock — styled terminal output block with prompt prefix and command/output distinction.
+ * Replaces bare <pre> or fenced code blocks when showing real command sessions.
+ *
+ * Usage:
+ *   <TerminalBlock label="infra1 — bash" content={`$ kubectl get pods -n prometheus
+ * NAME                      READY   STATUS
+ * daemon-mm-7d8f9b-xyz     1/1     Running
+ * $ kubectl logs daemon-mm-7d8f9b-xyz --tail=5
+ * {"level":"info","msg":"session_started"}`} />
+ *
+ * Line detection:
+ *   Lines starting with "$" or "#" → command (styled prompt prefix + accent color)
+ *   All other lines → output (muted text, no prefix)
+ *
+ * Multi-line content: pass as a template literal prop in MDX.
+ */
+
+interface Props {
+  content: string;
+  label?: string;
+}
+
+const { content, label } = Astro.props;
+
+type TerminalLine = { type: 'cmd' | 'output'; text: string };
+
+const lines: TerminalLine[] = content
+  .split('\n')
+  .map((raw) => {
+    const trimmed = raw.trimStart();
+    if (trimmed.startsWith('$ ') || trimmed.startsWith('# ') || trimmed === '$' || trimmed === '#') {
+      return { type: 'cmd' as const, text: raw };
+    }
+    return { type: 'output' as const, text: raw };
+  });
+---
+
+<div class="terminal-block">
+  {label && (
+    <div class="terminal-header font-mono">
+      <span class="terminal-label">{label}</span>
+    </div>
+  )}
+  <pre class="terminal-body font-mono" aria-label={label ? `Terminal: ${label}` : 'Terminal output'}><code>{lines.map((line) => (
+    <span class={`terminal-line terminal-line--${line.type}`}>{
+      line.type === 'cmd'
+        ? <><span class="terminal-prompt" aria-hidden="true">&gt; </span><span class="terminal-cmd-text">{line.text.replace(/^\s*[$#]\s?/, '')}</span></>
+        : <span class="terminal-output-text">{line.text}</span>
+    }{'\n'}</span>
+  ))}</code></pre>
+</div>
+
+<style>
+  .terminal-block {
+    margin: 2rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0d0d0d;
+  }
+
+  .terminal-header {
+    padding: 0.5rem 1rem;
+    background: #1a1a1a;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Traffic light dots — decorative only */
+  .terminal-header::before {
+    content: '● ● ●';
+    font-size: 0.5rem;
+    letter-spacing: 0.3em;
+    color: #3a3a3a;
+    flex-shrink: 0;
+  }
+
+  .terminal-label {
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    color: #5a5a5a;
+    text-transform: none;
+  }
+
+  .terminal-body {
+    padding: 1.25rem 1.5rem;
+    margin: 0;
+    overflow-x: auto;
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    background: transparent;
+    border: none;
+    white-space: pre;
+    color: #c8c8c8;
+  }
+
+  .terminal-body code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+  }
+
+  .terminal-line {
+    display: block;
+  }
+
+  /* Empty lines — preserve spacing */
+  .terminal-line--output:has(.terminal-output-text:empty) {
+    min-height: 1.2em;
+  }
+
+  .terminal-prompt {
+    color: var(--color-accent);
+    user-select: none;
+  }
+
+  .terminal-cmd-text {
+    color: #e8e8e8;
+  }
+
+  .terminal-output-text {
+    color: #8c8c8c;
+  }
+
+  @media (max-width: 640px) {
+    .terminal-body {
+      padding: 1rem;
+      font-size: 0.75rem;
+    }
+  }
+</style>
