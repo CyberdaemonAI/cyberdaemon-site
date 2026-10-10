@@ -13,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await render(entry);
+const { Content, headings } = await render(entry);
 const amendments = await getAmendments(entry.id);
 const original = entry.data.updates ? await getOriginalArticle(entry.data.updates) : null;
 ---
@@ -26,6 +26,7 @@ const original = entry.data.updates ? await getOriginalArticle(entry.data.update
   threads={entry.data.threads}
   slug={entry.id.replace(/\.(mdx|md)$/, '')}
   collection="research"
+  headings={headings}
 >
   {original && <AmendmentBanner type="amends" articles={[original]} />}
   {amendments.length > 0 && <AmendmentBanner type="amended-by" articles={amendments} />}

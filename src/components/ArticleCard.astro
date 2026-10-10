@@ -7,9 +7,10 @@ interface Props {
   tags: string[];
   date: Date;
   featured?: boolean;
+  coverImage?: string;
 }
 
-const { title, excerpt, lane, slug, tags, date, featured } = Astro.props;
+const { title, excerpt, lane, slug, tags, date, featured, coverImage } = Astro.props;
 const href = `/${lane}/${slug}/`;
 
 const laneLabel: Record<string, string> = {
@@ -25,23 +26,29 @@ const laneClass: Record<string, string> = {
 ---
 
 <a href={href} class:list={["article-card group", { 'featured-card': featured }]} data-tags={tags.join(',')} data-lane={laneClass[lane]}>
-  <article class="h-full flex flex-col p-6 bg-surface border border-border rounded-2xl relative overflow-hidden">
-    <header class="mb-4">
-      <div class="flex items-center gap-3 mb-3">
-        <span class:list={["lane-tag", laneClass[lane]]}>{laneLabel[lane]}</span>
-        <time class="text-text-dim text-label font-mono" datetime={date.toISOString()}>
-          {date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-        </time>
-      </div>
-      <h2 class="font-serif text-heading text-text-primary group-hover:text-accent transition-colors leading-snug">{title}</h2>
-    </header>
-    <p class="text-text-secondary text-small leading-relaxed flex-grow mb-4">{excerpt}</p>
-    <footer class="flex items-center justify-between mt-auto pt-4 border-t border-border">
-      <div class="flex gap-2">
+  <article class="h-full flex flex-col bg-surface border border-border rounded-xl relative overflow-hidden">
+    <div class="card-media">
+      {coverImage
+        ? <img src={coverImage} alt="" class="card-image" loading="lazy" decoding="async" />
+        : <div class="card-placeholder"></div>
+      }
+    </div>
+    <div class="p-5 flex flex-col flex-grow">
+      <header class="mb-3">
+        <div class="flex items-center gap-3 mb-2">
+          <span class:list={["lane-tag", laneClass[lane]]}>{laneLabel[lane]}</span>
+          <time class="text-text-dim text-label font-mono" datetime={date.toISOString()}>
+            {date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+          </time>
+        </div>
+        <h2 class="font-serif text-heading text-text-primary group-hover:text-accent transition-colors leading-snug">{title}</h2>
+      </header>
+      <p class="text-text-secondary text-small leading-relaxed flex-grow mb-4">{excerpt}</p>
+      <footer class="flex items-center gap-2 mt-auto pt-4 border-t border-border">
         {tags.slice(0, 2).map(tag => (
           <span class="tag-pill">{tag}</span>
         ))}
-      </div>
-    </footer>
+      </footer>
+    </div>
   </article>
 </a>

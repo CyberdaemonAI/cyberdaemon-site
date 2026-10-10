@@ -1,0 +1,51 @@
+name: Analytics Trip Wire
+
+# Counts published articles on every merge to master.
+# When count >= 5: fires Telegram to open vault-0frp and deploy Plausible.
+# Trip condition: article count only (automated). Readership check: manual.
+# vault-0frp — blog pipeline Extension Slot E1 (reader-emergent navigation).
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/content/**/*.mdx'
+
+jobs:
+  count-and-trip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Count published articles
+        id: count
+        run: |
+          COUNT=$(find src/content -name "*.mdx" | wc -l | tr -d ' ')
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Published articles: $COUNT"
+
+      - name: Trip wire — notify on threshold
+        if: ${{ fromJson(steps.count.outputs.count) >= 5 }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ARTICLE_COUNT: ${{ steps.count.outputs.count }}
+        run: |
+          MESSAGE="📊 Analytics trip wire fired.
+
+${ARTICLE_COUNT} articles published on cyberdaemon.ai.
+
+Action: open vault-0frp (Plausible analytics deployment).
+
+Before deploying: check Vercel Analytics for external referrers. If you're seeing outside traffic, ship it now. If not, your call.
+
+Schema is locked in docs/ANALYTICS-SCHEMA.md.
+Setup: Plausible Cloud (\$9/mo) → wire PLAUSIBLE_DOMAIN + script tag in Astro layout → add section-exit and read-complete custom events.
+
+This message fires once per push past threshold — not every push."
+
+          curl -sf -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${MESSAGE}" \
+            -d "parse_mode=HTML" \
+            || echo "Telegram notify failed (non-fatal)"

@@ -424,96 +424,63 @@
 
   /* ─── Card animations ───────────────────────────────────────────────── */
 
-  /* Base transition (replaces Tailwind transition-colors) */
   .article-card article {
     transition:
-      transform       120ms ease-out,
-      border-color    120ms ease-out,
-      box-shadow      120ms ease-out,
-      background-color 120ms ease-out,
-      opacity         150ms ease-out;
-    will-change: transform, box-shadow;
+      border-color     150ms ease-out,
+      box-shadow       150ms ease-out,
+      background-color 150ms ease-out;
   }
 
-  /* Laser scan line — traces left to right across card top on hover */
-  .article-card article::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    transition: width 260ms ease-out;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  /* Card lift */
   .article-card:hover article {
-    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
   }
 
-  /* Lane: Research — vivid cyan */
-  .article-card[data-lane="research"] article::before {
-    background: var(--color-lane-research);
-  }
   .article-card[data-lane="research"]:hover article {
-    border-color: rgba(34, 211, 240, 0.48);
-    box-shadow: 0 0 28px var(--glow-research), 0 12px 40px var(--shadow-lift);
-    background-color: rgba(34, 211, 240, 0.03);
-  }
-  .article-card[data-lane="research"]:hover article::before { width: 100%; }
-  .article-card[data-lane="research"]:hover .lane-tag.research {
-    text-shadow: 0 0 8px var(--color-lane-research), 0 0 22px rgba(34, 211, 240, 0.45);
-    animation: neon-flicker 0.35s ease-out;
-  }
-
-  /* Lane: Analysis — vivid amber */
-  .article-card[data-lane="analysis"] article::before {
-    background: var(--color-lane-analysis);
+    box-shadow: 0 0 24px var(--glow-research);
+    background-color: rgba(34, 211, 240, 0.02);
   }
   .article-card[data-lane="analysis"]:hover article {
-    border-color: rgba(245, 158, 11, 0.44);
-    box-shadow: 0 0 28px var(--glow-analysis), 0 12px 40px var(--shadow-lift);
-    background-color: rgba(245, 158, 11, 0.03);
-  }
-  .article-card[data-lane="analysis"]:hover article::before { width: 100%; }
-  .article-card[data-lane="analysis"]:hover .lane-tag.analysis {
-    text-shadow: 0 0 8px var(--color-lane-analysis), 0 0 22px rgba(245, 158, 11, 0.40);
-    animation: neon-flicker 0.35s ease-out;
-  }
-
-  /* Lane: Build Log — vivid lavender */
-  .article-card[data-lane="buildlog"] article::before {
-    background: var(--color-lane-buildlog);
+    box-shadow: 0 0 24px var(--glow-analysis);
+    background-color: rgba(245, 158, 11, 0.02);
   }
   .article-card[data-lane="buildlog"]:hover article {
-    border-color: rgba(167, 139, 250, 0.50);
-    box-shadow: 0 0 28px var(--glow-buildlog), 0 12px 40px var(--shadow-lift);
-    background-color: rgba(167, 139, 250, 0.03);
-  }
-  .article-card[data-lane="buildlog"]:hover article::before { width: 100%; }
-  .article-card[data-lane="buildlog"]:hover .lane-tag.buildlog {
-    text-shadow: 0 0 8px var(--color-lane-buildlog), 0 0 22px rgba(167, 139, 250, 0.45);
-    animation: neon-flicker 0.35s ease-out;
+    box-shadow: 0 0 24px var(--glow-buildlog);
+    background-color: rgba(155, 126, 184, 0.02);
   }
 
-  /* Featured card: idle glow pulse */
-  @keyframes featured-pulse {
-    0%,  100% { box-shadow: 0 0 0 rgba(139, 92, 246, 0); }
-    50%        { box-shadow: 0 0 22px rgba(160, 120, 80, 0.16), 0 4px 24px rgba(0,0,0,0.3); }
-  }
-  .article-card.featured-card article {
-    animation: featured-pulse 4s ease-in-out infinite;
-  }
-  .article-card.featured-card:hover article {
-    animation: none;
+  /* Card media — image container */
+  .card-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    flex-shrink: 0;
   }
 
-  /* Sibling dimming — cards recede when a peer is focused */
-  #article-grid:has(.article-card:hover) .article-card:not(:hover) article {
-    opacity: 0.55;
-    transform: scale(0.985);
+  .card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 450ms ease-out;
+  }
+
+  .article-card:hover .card-image {
+    transform: scale(1.04);
+  }
+
+  .card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--color-bg-surface);
+  }
+
+  .article-card[data-lane="research"] .card-placeholder {
+    background: linear-gradient(135deg, rgba(34, 211, 240, 0.07) 0%, var(--color-bg-surface) 100%);
+  }
+  .article-card[data-lane="analysis"] .card-placeholder {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.07) 0%, var(--color-bg-surface) 100%);
+  }
+  .article-card[data-lane="buildlog"] .card-placeholder {
+    background: linear-gradient(135deg, rgba(155, 126, 184, 0.07) 0%, var(--color-bg-surface) 100%);
   }
 
   /* Page-load card reveal */
@@ -524,21 +491,67 @@
   .article-card {
     animation: card-in 0.38s ease-out both;
   }
-  .article-card:nth-child(2)      { animation-delay: 55ms; }
-  .article-card:nth-child(3)      { animation-delay: 110ms; }
-  .article-card:nth-child(4)      { animation-delay: 165ms; }
-  .article-card:nth-child(5)      { animation-delay: 220ms; }
-  .article-card:nth-child(6)      { animation-delay: 275ms; }
-  .article-card:nth-child(7)      { animation-delay: 330ms; }
-  .article-card:nth-child(n+8)    { animation-delay: 380ms; }
+  .article-card:nth-child(2)   { animation-delay: 55ms; }
+  .article-card:nth-child(3)   { animation-delay: 110ms; }
+  .article-card:nth-child(4)   { animation-delay: 165ms; }
+  .article-card:nth-child(5)   { animation-delay: 220ms; }
+  .article-card:nth-child(6)   { animation-delay: 275ms; }
+  .article-card:nth-child(7)   { animation-delay: 330ms; }
+  .article-card:nth-child(n+8) { animation-delay: 380ms; }
 
-  /* Neon flicker keyframe */
-  @keyframes neon-flicker {
-    0%   { opacity: 1;    }
-    12%  { opacity: 0.78; }
-    18%  { opacity: 1;    }
-    28%  { opacity: 0.85; }
-    34%  { opacity: 1;    }
-    100% { opacity: 1;    }
+  /* ─── Article layout — 2-column with ToC sidebar ─────────────────── */
+
+  .article-sidebar {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .article-wrap--with-toc {
+      display: grid;
+      grid-template-columns: minmax(0, 70ch) 240px;
+      column-gap: 5rem;
+      align-items: start;
+    }
+    .article-wrap--with-toc .prose-container {
+      max-width: none;
+      margin-left: 0;
+      margin-right: 0;
+    }
+    .article-sidebar {
+      display: block;
+    }
+  }
+
+  /* ─── Site hero ───────────────────────────────────────────────────── */
+
+  .site-hero {
+    max-width: 700px;
+    padding-top: 5rem;
+    padding-bottom: 4rem;
+  }
+
+  .site-hero-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .site-hero-headline {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--color-text-primary);
+    margin-bottom: 1.25rem;
+  }
+
+  .site-hero-subline {
+    font-size: 1.0625rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
   }
 }

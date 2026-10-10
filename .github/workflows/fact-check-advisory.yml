@@ -1,0 +1,181 @@
+# vault-ljja7: Fact-check advisory for blog PRs.
+# Extracts hard claims from the diff (CVE IDs, dates, named orgs, stats, arXiv IDs),
+# attempts verification via Claude API (claude-haiku-4-5), and posts an advisory comment.
+# Advisory only — never blocks merge. Casey dismisses and merges freely.
+#
+# Requires: ANTHROPIC_API_KEY secret (set in CyberdaemonAI/cyberdaemon-site repo settings).
+
+name: Fact-Check Advisory
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize]
+
+permissions: {}
+
+jobs:
+  fact-check:
+    if: >
+      startsWith(github.head_ref, 'content/') ||
+      startsWith(github.head_ref, 'jen/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff (content files only)
+        id: diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch origin master --depth=1
+          DIFF=$(git diff --diff-filter=AM "origin/master"...HEAD -- 'src/content/**/*.mdx' 2>/dev/null || true)
+          if [ -z "$DIFF" ]; then
+            echo "no_content=true" >> "$GITHUB_OUTPUT"
+            echo "No .mdx content changes — skipping fact-check."
+          else
+            echo "no_content=false" >> "$GITHUB_OUTPUT"
+            # Write diff to file to avoid shell quoting issues
+            printf '%s' "$DIFF" > /tmp/pr-diff.txt
+            echo "Diff captured: $(wc -l < /tmp/pr-diff.txt) lines"
+          fi
+
+      - name: Set up Python
+        if: steps.diff.outputs.no_content != 'true'
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2f  # v5
+        with:
+          python-version: "3.12"
+
+      - name: Install anthropic SDK
+        if: steps.diff.outputs.no_content != 'true'
+        run: pip install anthropic==0.34.2 --quiet
+
+      - name: Extract and verify claims
+        if: steps.diff.outputs.no_content != 'true'
+        id: claims
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python3 << 'PYEOF'
+          import anthropic
+          import json
+          import os
+          import sys
+
+          diff_text = open("/tmp/pr-diff.txt").read()
+
+          # Truncate to avoid token limits (haiku context: ~200k tokens, but keep cost low)
+          if len(diff_text) > 20000:
+              diff_text = diff_text[:20000] + "\n\n[...diff truncated for cost control...]"
+
+          client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+          SYSTEM = """You are a fact-checking assistant for a security and AI blog (cyberdaemon.ai).
+          Your job is to extract hard, verifiable claims from a blog post diff and assess each one.
+          Hard claims include: CVE IDs, arXiv paper IDs, specific dates, named organizations,
+          specific percentages or numbers, product version numbers, named standards (NIST SPs, RFCs),
+          specific quotes attributed to sources.
+          Soft opinions, generalizations, and style statements are NOT hard claims — skip them.
+          For each hard claim, give a brief verification status based on your training knowledge:
+          - VERIFIED: you can confirm this is accurate from well-established public sources
+          - LIKELY: plausible and consistent with known facts, but you cannot fully confirm
+          - UNVERIFIED: you cannot find this in your knowledge, or the specifics seem off
+          - CHECK: the claim references something outside your knowledge cutoff (post-2025)
+          Be concise. Return ONLY a JSON array of objects with keys: claim, status, note.
+          If no hard claims found, return an empty array: []
+          Status values: VERIFIED | LIKELY | UNVERIFIED | CHECK"""
+
+          USER = f"""Blog PR diff (added lines only, look for + prefixed lines):
+
+          {diff_text}
+
+          Extract hard claims from the added content (+) and verify each one. Return JSON array only."""
+
+          try:
+              response = client.messages.create(
+                  model="claude-haiku-4-5-20251001",
+                  max_tokens=1024,
+                  system=SYSTEM,
+                  messages=[{"role": "user", "content": USER}],
+              )
+              raw = response.content[0].text.strip()
+              # Strip markdown code fences if present
+              if raw.startswith("```"):
+                  raw = raw.split("```")[1]
+                  if raw.startswith("json"):
+                      raw = raw[4:]
+              claims = json.loads(raw)
+          except json.JSONDecodeError as e:
+              print(f"JSON parse error: {e}", file=sys.stderr)
+              print(f"Raw response: {raw[:500]}", file=sys.stderr)
+              claims = []
+          except Exception as e:
+              print(f"API error: {e}", file=sys.stderr)
+              claims = []
+
+          # Build the advisory comment
+          STATUS_EMOJI = {
+              "VERIFIED": "✅ VERIFIED",
+              "LIKELY": "🔵 LIKELY",
+              "UNVERIFIED": "⚠️ UNVERIFIED",
+              "CHECK": "🔍 CHECK (post-cutoff)",
+          }
+
+          if not claims:
+              body = "## Fact-Check Advisory\n\nNo hard claims found in this diff. ✅"
+          else:
+              rows = []
+              for c in claims:
+                  status_str = STATUS_EMOJI.get(c.get("status", "UNVERIFIED"), "⚠️ UNVERIFIED")
+                  claim_text = str(c.get("claim", "")).replace("|", "\\|")
+                  note_text = str(c.get("note", "")).replace("|", "\\|")
+                  rows.append(f"| {claim_text} | {status_str} | {note_text} |")
+
+              table = "\n".join(rows)
+              body = f"""## Fact-Check Advisory
+
+          _Advisory only — never blocks merge. Verify flagged claims before publishing._
+
+          | Claim | Status | Note |
+          |-------|--------|------|
+          {table}
+
+          <sub>Checked by claude-haiku-4-5 · vault-ljja7</sub>"""
+
+          with open("/tmp/fact-check-comment.txt", "w") as f:
+              f.write(body)
+
+          print(f"Generated advisory with {len(claims)} claim(s).")
+          PYEOF
+
+      - name: Post advisory comment
+        if: steps.diff.outputs.no_content != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ github.event.number }}"
+          COMMENT_BODY=$(cat /tmp/fact-check-comment.txt)
+
+          # Delete previous advisory comment from this workflow (avoid stacking on synchronize)
+          EXISTING_ID=$(gh api \
+            "repos/CyberdaemonAI/cyberdaemon-site/issues/${PR_NUMBER}/comments" \
+            --jq '.[] | select(.body | startswith("## Fact-Check Advisory")) | .id' \
+            2>/dev/null | head -1 || true)
+          if [ -n "$EXISTING_ID" ]; then
+            gh api --method DELETE \
+              "repos/CyberdaemonAI/cyberdaemon-site/issues/comments/${EXISTING_ID}" \
+              2>/dev/null || true
+            echo "Deleted previous advisory comment ${EXISTING_ID}"
+          fi
+
+          gh pr comment "$PR_NUMBER" \
+            --repo CyberdaemonAI/cyberdaemon-site \
+            --body "$COMMENT_BODY" \
+            && echo "Advisory comment posted on PR #${PR_NUMBER}" \
+            || echo "Failed to post advisory comment — non-fatal"
