@@ -1,0 +1,274 @@
+---
+title: "Agents need a syscall boundary, not a policy document"
+description: "An operating system has one trick: every resource access goes through an interface the process cannot route around. Agent platforms copy the interface and skip the cannot. Here is the model that tells them apart, applied to a running nine-agent platform, with the rows measured rather than asserted."
+excerpt: "The useful question about an agent permission table is not whether it is correct. It is whether an agent that ignores its instructions still fails."
+date: 2026-10-15
+draft: true
+tags: ["research", "ai-security", "agentic-ai"]
+topic: "Agentic AI Security"
+featured: false
+threads: ["agents-as-people", "intent-consent"]
+---
+
+import Callout from '../../components/Callout.astro';
+import StatRow from '../../components/StatRow.astro';
+import PullQuote from '../../components/PullQuote.astro';
+import SectionLabel from '../../components/SectionLabel.astro';
+
+<Callout variant="note" label="What this is">
+A model, and then the model applied to my own platform with the numbers re-measured on the
+day of writing. Nine agent sessions, one cluster, 539 pods. Where a row says a control
+binds, I say what I observed. Where I did not observe it, I say that too, and I name the
+observation that would settle it. The platform is personal infrastructure built on personal
+time and equipment.
+</Callout>
+
+<SectionLabel text="The framing" />
+
+## An operating system has exactly one trick
+
+Everything else about a kernel is engineering. The trick is this: a process asks for a
+resource through an interface it cannot route around, and the thing on the other side of
+that interface decides. Memory, files, sockets, other processes, the clock. A process does
+not get to be trusted about what it needs. It gets to ask.
+
+That is a strange and expensive design. It means a context switch on every file read. It
+means the interface has to be exhaustive, because a single unmediated path to a resource
+makes the rest of the interface decorative. Operating systems paid that cost anyway,
+because the alternative is a permission model that works exactly as long as every process
+behaves.
+
+Agent platforms are built on a component whose defining property is that it sometimes does
+not behave. And the dominant way to constrain one is a document: a system prompt, a tool
+description, a dispatch template with the scope written at the top. These are not
+interfaces. They are requests, delivered in the same channel as the work, to the same
+component that is deciding what to do next.
+
+So the framing is not an analogy that makes agents sound more serious. It is a test. Draw
+the resources an agent actually touches, name each one as a call, and then ask the only
+question that distinguishes a kernel from a convention:
+
+<PullQuote>
+If an agent ignored every instruction it was given, which of these would still stop it?
+</PullQuote>
+
+There are two answers, not three. Either the resource is behind something that refuses, or
+it is not. "It is in the prompt, and the model is good at following prompts" is the second
+answer wearing the first answer's clothes.
+
+<SectionLabel text="The map" />
+
+## The calls an agent actually makes
+
+Strip away the framework names and an agent in a real deployment reaches for the same seven
+or eight things a process does.
+
+| Agent call | What it reaches | OS analogue |
+|---|---|---|
+| `memory_read(query)` | the platform's long-term fact store | `read()` |
+| `memory_write(fact)` | the same store, mutably | `write()` |
+| `identity_get()` | the credential it acts under | `getuid()` |
+| `secret_read(path)` | a credential for something else | process keyring |
+| `net_connect(host, port)` | anything reachable from where it runs | `socket()` plus `connect()` |
+| `storage_open(path)` | the working tree, the repo, the vault | `open()` |
+| `compute_exec(spec)` | a pod, a container, a subprocess, a subagent | `fork()` plus `exec()` |
+| `ipc_send(target, payload)` | another agent | `pipe()` |
+| `audit_log(event)` | the record that it happened | the audit subsystem |
+
+The table is uninteresting by itself. Any platform can be drawn this way, and drawing it
+proves nothing. It becomes useful the moment you add one column, which is the answer to the
+question above, and then refuse to let yourself write anything in that column that you have
+not observed.
+
+<Callout variant="warning" label="The column that costs something">
+The failure mode of this exercise is writing "enforced" in the third column for a row where
+the enforcement is a sentence. I have done this. The version of this table I wrote fifteen
+days before this article had a status column, and it recorded "Implemented" for several rows
+whose implementation was a rule in a markdown file.
+</Callout>
+
+<SectionLabel text="Applied" />
+
+## The same table, measured
+
+Nine agent sessions share one cluster. Here is each row as of today, with the method.
+
+### `net_connect`: binds, and its coverage is a number nobody reports
+
+The cluster has 56 network policy objects plus 17 from the CNI's own policy type. One of
+them selects agent pods specifically and constrains their egress to nine explicit
+destinations. Reaching anything else from one of those pods fails at the network layer, not
+at the model's discretion. That is a real boundary and it was built deliberately.
+
+The interesting part is the selector. It is an opt-in label, and three pods carry it. The
+namespace has a default-deny for inbound traffic and no default-deny for outbound. So a pod
+that does not carry the label is not partially constrained or constrained by a weaker
+policy. It has unrestricted egress, because no policy selects it, and nothing about that
+state produces an error, a warning, or a line in any report.
+
+<PullQuote>
+The coverage of an opt-in control is the coverage of its selector, and the control itself is
+the one component that cannot tell you that number.
+</PullQuote>
+
+This generalizes past networking. Any allowlist-shaped control has a population it governs
+and a population it was supposed to govern, and the gap between them is invisible from
+inside the control, by construction, because every member of the governed population looks
+correct. You find it by intersecting the rule against an inventory that was built for a
+different purpose.
+
+What I did not observe: a refused connection. The policy objects exist and the CNI that
+implements them is installed, so I expect enforcement, but I am writing a piece about the
+difference between a declaration and a refusal and I am not going to quietly exempt my own
+table. The observation that would settle it is one connection attempt from inside a labelled
+pod to a destination outside the nine, watched being dropped. Until then this row reads
+"declared, selective, enforcement expected, unobserved."
+
+### `compute_exec`: unconstrained by omission, at scale
+
+539 pods. 288 have CPU and memory limits on every container. 243 have no limits on any
+container, which is 45.1%. Eight are partial.
+
+The number that matters is not 45.1%. It is zero: the cluster has no `LimitRange` and no
+`ResourceQuota` anywhere. There is no default. Every one of those 243 pods is unlimited
+because nothing said otherwise, and a 244th will be unlimited tomorrow the same way.
+
+This is the second failure shape and it is worth naming on its own:
+
+<Callout variant="critical" label="Unconstrained by omission">
+When a control is a per-object opt-in with no default, absence is the permission. There is no
+conflicting setting to detect, no error to log, and no state that disagrees with any other
+state. The system is in a consistent, fully reconciled, entirely unenforced condition, and
+every health signal it emits is accurate.
+</Callout>
+
+### `memory_write`: declared in one definition and absent in its twin
+
+The platform has a build agent that executes scoped work handed to it by an orchestrator.
+Policy says it may read the fact store and may not write to it, so that facts enter memory
+only after a human has approved them. That policy is written in the instruction file, and it
+is also declared in the agent definition as an explicit tool denial, which is the right
+layer: the tool is not offered, so there is nothing for the agent's judgment to get wrong.
+
+There are two agent definitions for that role. One carries the denial. The other, which does
+the same job under a different name, declares no tool restrictions at all and therefore
+inherits everything.
+
+I did not dispatch an agent to test whether the denial binds at runtime, and I want to be
+precise about why that does not weaken the finding. Ask what each outcome would mean:
+
+1. If the declaration binds, then one of two definitions for the same role is enforcing the
+   policy and the other is not, and which one you get depends on which name the dispatch
+   used.
+2. If the declaration does not bind, then neither is enforcing it and the one that looks
+   protected is worse than the one that does not, because it reads as coverage.
+
+The asymmetry is the finding under both branches. A test that cannot change the conclusion
+is not the next thing to run.
+
+### `secret_read`: binds structurally, which is the only row I would defend without a test
+
+Secrets reach workloads by reference. The orchestrator injects them from a secret store into
+the process environment at start, and the value never passes through any agent's context
+window. There is no instruction telling an agent not to read a credential file, because
+there is no step at which an agent holds the credential to begin with.
+
+This is the shape worth copying. The row is safe not because something refuses the call but
+because the call does not exist. A control that removes the operation outranks a control that
+denies it, since the denial has a matcher and the matcher has a surface.
+
+### `identity_get` and `audit_log`: one identity, and no trace
+
+Every session, plus the automation that merges their work, acts under a single platform
+credential. The audit trail therefore records an ordering of events and cannot attribute any
+of them. I worked through what that does to a threat model in the companion build log:
+spoofing and elevation mostly fall out of the model, because nothing is distinguished and
+there is nothing to elevate to, and repudiation becomes the dominant category. The fix is
+per-agent cryptographic identity issued at spawn. It is specified and not deployed.
+
+`audit_log` is in the same state, one step further back. The design exists. There is no
+syscall-level trace, so the honest entry for the row is that the platform cannot currently
+answer "which agent did this" for any call in this table.
+
+<StatRow stats={[
+  {value: "2", label: "rows that bind without an instruction"},
+  {value: "3", label: "rows declared but unobserved"},
+  {value: "45.1%", label: "pods with no compute limit"},
+  {value: "0", label: "cluster-wide defaults for that limit"}
+]} />
+
+<SectionLabel text="Why bother" />
+
+## The model earns its keep as an intake filter, not as a diagram
+
+The map does not secure anything. What it does is make one specific evasion impossible to
+perform accidentally.
+
+Without it, a new capability arrives as a feature, gets a design, gets built, and its
+permission story is whatever the design document said. With it, a new capability cannot ship
+until somebody has put it in the table, which means naming the resource it reaches, and then
+answering the ignore-your-instructions question out loud. The answer is allowed to be
+"convention". It is not allowed to be absent, and it is not allowed to be "enforced" without
+a sentence saying what was observed.
+
+Three practical rules fall out of having done this once:
+
+1. **Prefer removing the call to denying it.** The secrets row is the cheapest row to defend
+   because there is no operation to police. Every control with a matcher inherits the
+   matcher's blind spots, and the blind spots are usually discovered by someone routing around
+   them without meaning to.
+2. **For any opt-in control, record its selector's population next to it.** A policy that
+   governs three of 539 objects is not wrong, but "we have an egress policy for agents" and
+   "three pods are covered" are different sentences and only one of them is a control
+   description.
+3. **Treat a missing default as a decision.** Every per-object control needs an explicit
+   answer to what happens to an object nobody configured, and if the answer is "nothing", that
+   is the actual policy regardless of what the per-object settings say.
+
+<SectionLabel text="Not built" />
+
+## What this platform does not have
+
+Named, because a model that only lists what exists is marketing.
+
+- **Per-agent identity.** No cryptographic credential per agent class, issued at spawn and
+  carried on every call. Until this exists, server-side enforcement in the platform's own
+  services has nothing to enforce against, which makes it the row that unblocks the others.
+- **A syscall trace.** No immutable per-call audit record, so attribution is unavailable for
+  every row above.
+- **Server-side permission checks in the platform services.** The fact store and the state
+  service accept calls from inside the trust boundary and decide based on nothing about the
+  caller. The policy table lives entirely outside them.
+- **Compute quota defaults.** No `LimitRange`, no `ResourceQuota`, so the 45.1% stands until
+  a default exists.
+- **Syscall-level sandboxing of agent processes.** Specified, not deployed, and ordered after
+  identity on purpose.
+
+<SectionLabel text="The uncomfortable part" />
+
+## Re-measuring moved rows in both directions
+
+The version of this table I wrote fifteen days ago called per-agent network egress a gap and
+said there was no per-process egress control. That was wrong today: the policies exist, four
+of them select the agent fleet by name, and the work landed in between without the document
+knowing. It also recorded several rows as "Implemented" whose implementation was a rule in a
+markdown file, which is the error this whole article is about, committed by me, in the
+document that proposed the test.
+
+Both corrections have the same cause. A permission table is a claim about the present tense
+of a system that nine agents are changing, and it decays silently in both directions:
+toward understating, when something gets built, and toward overstating, when a rule that was
+true stops being reachable. Neither decay produces a conflict. Nothing diffs a document
+against a cluster.
+
+So the last rule is the one I would keep if I had to throw out the model: **re-derive every
+row before quoting it.** Not because the old number was careless, but because the old number
+was measured, correct when taken, and is now evidence about a system that no longer exists.
+
+<Callout variant="insight" label="Related">
+The threat model for the nine-agent fleet, including the single-identity STRIDE reordering and
+the six controls sorted into binds and advice, is in the companion build log. The
+authorization primitive referenced in the identity row is covered in
+[Dual-Intent Runtime Authorization](/research/dira-framework), and the identity half in
+[Non-Human Identity for Agentic Systems](/research/nhi-agentic).
+</Callout>
