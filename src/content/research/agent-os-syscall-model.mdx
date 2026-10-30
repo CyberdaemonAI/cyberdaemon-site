@@ -244,6 +244,20 @@ Named, because a model that only lists what exists is marketing.
 - **Syscall-level sandboxing of agent processes.** Specified, not deployed, and ordered after
   identity on purpose.
 
+<SectionLabel text="The case against" />
+
+## Where this model is wrong
+
+Four objections. The first is the one that would change the article if I took it seriously enough.
+
+**The analogy imports a property the agent case does not have.** A kernel's call table is finite and fixed before the process starts, and a process cannot invent a new entry in it. An agent's is open ended, because an agent holding `compute_exec` and `storage_open` can synthesize every other row. It does not need `net_connect` if it can write a script and run it. So the nine rows are not nine independent controls. Two of them are general, seven are reachable through those two, and a coverage number on a derived row describes a path rather than a boundary. Drawn honestly the table has a dependency order, and the egress percentage I quoted sits below two rows that can route around it.
+
+**Two answers, not three, throws away the answer that pays for itself.** A kernel is affordable because mediation is cheap and the resource is dumb. Both invert here. Mediating an agent call means another model call or a human, and the resource is semantic, so for most rows there is no refusal that can be written without first solving the problem the agent was hired for. That is why platforms ship documents. It is a cost structure, not laziness. I treat the convention answer as the second answer wearing the first one's clothes, and for a good number of rows it is the only answer that exists at today's prices. An article that says so would be less quotable and more useful.
+
+**The test as written cannot fail.** "If an agent ignored every instruction" names a worst case, not a threat with a probability attached. Against an adversary with arbitrary capability every control is advice, and against one that complies every control is adequate. Without a stated bound on capability the test sorts controls by how they are built rather than by how much risk they remove, which is a sorting I can perform and not the sorting I want.
+
+**And the boundary would not have caught my own best story.** The table I wrote fifteen days earlier recorded "Implemented" for rows whose implementation was a rule in a markdown file. No call interface prevents that. What prevents it is re-deriving the row, which arrives in the next section as the thing I would keep if I threw out the model. If that is true, and I think it is, then the load bearing idea here is measurement cadence and the title is about the part I can draw. I have written up the diagram and footnoted the discipline.
+
 <SectionLabel text="The uncomfortable part" />
 
 ## Re-measuring moved rows in both directions
